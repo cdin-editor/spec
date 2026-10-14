@@ -1,0 +1,22 @@
+name: 🐛 Specification defect
+description: A contradiction, a broken link, a diagram that disagrees with its text
+title: "[DEFECT] "
+labels: ["defect"]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Page and requirement ID
+      placeholder: docs/kernel/transactions.md, TXN-012
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What is wrong
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What it should say

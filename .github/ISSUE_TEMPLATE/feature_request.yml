@@ -1,0 +1,20 @@
+name: 💡 Proposal
+description: Propose a new requirement or an answer to an open decision
+title: "[PROPOSAL] "
+labels: ["proposal"]
+body:
+  - type: input
+    id: od
+    attributes:
+      label: Open decision or ADR it relates to
+      placeholder: OD-17
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Options and trade-offs
