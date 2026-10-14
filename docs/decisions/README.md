@@ -24,6 +24,7 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0013](ADR-0013-hot-swap.md) | Hot-swap and state migration | `DEFERRED` |
 | [ADR-0014](ADR-0014-no-shared-repositories.md) | No shared or common repositories | `ACCEPTED` |
 | [ADR-0015](ADR-0015-spec-language-and-scope.md) | Specification language and scope | `ACCEPTED` |
+| [ADR-0016](ADR-0016-arch-specific-optimizations.md) | Architecture-specific optimizations (SIMD and assembly) in the kernel | `PROPOSED` |
 
 ## How owner approval is recorded
 

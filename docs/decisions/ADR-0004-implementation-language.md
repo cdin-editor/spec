@@ -24,5 +24,7 @@ Safety is bought back by discipline instead of by the language: strict warnings 
 - A second kernel implementation in Rust remains possible behind the same contract; the contract makes that a replacement, not a rewrite of the system.
 - Requirements in this specification that depend on the language (none are normative) are limited to the sketches in the ABI document, which are labelled non-normative.
 
+- The owner later asked for assembly where it improves speed. That is handled as an addition, not a change of language: optional architecture-specific paths with a portable C11 fallback ([ADR-0016](ADR-0016-arch-specific-optimizations.md), `PROPOSED`).
+
 ## References
 KERNEL-011, ABI-001, [conformance.md](../testing/conformance.md).

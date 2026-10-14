@@ -20,13 +20,13 @@ A first attempt to unpack the archive with one tool produced empty files; it was
 
 | Measure | Count |
 |---|---|
-| Markdown files | 49 |
-| Normative requirements | 395 |
+| Markdown files | 50 |
+| Normative requirements | 396 |
 | ... `ACCEPTED` | 72 |
 | ... `EXISTING` (each with a code anchor) | 31 |
-| ... `PROPOSED` | 287 |
+| ... `PROPOSED` | 288 |
 | ... `DEFERRED` | 5 |
-| ADRs | 15 |
+| ADRs | 16 |
 | Open decisions in the register | 31 (9 `OPEN`, 19 `PROPOSED`, 3 `DEFERRED`) |
 | Mermaid diagrams | 34 |
 
@@ -58,6 +58,7 @@ A first attempt to unpack the archive with one tool produced empty files; it was
 - The Frontend Protocol model ([ADR-0005](docs/decisions/ADR-0005-frontend-protocol.md)) and frontend ownership of visual layout ([ADR-0006](docs/decisions/ADR-0006-visual-layout-ownership.md)).
 - Extension UI via declarative widgets and an optional canvas ([ADR-0011](docs/decisions/ADR-0011-extension-ui.md)), which changes the extension contract.
 - The staged repository topology and the definition of "backend" as the headless core ([ADR-0001](docs/decisions/ADR-0001-repository-topology.md), [OD-15](docs/decisions/open-decisions.md)).
+- Optional architecture-specific optimized paths (SIMD, assembly) in the kernel, as requested by the owner ([ADR-0016](docs/decisions/ADR-0016-arch-specific-optimizations.md)); it narrows the accepted "kernel is C11" decision and needs the owner's confirmation of its conditions.
 - Rejecting other writers during a transaction ([OD-21](docs/decisions/open-decisions.md)); the UI core staying in Lua ([OD-30](docs/decisions/open-decisions.md)); the repository name ([OD-31](docs/decisions/open-decisions.md)).
 
 ### Open
