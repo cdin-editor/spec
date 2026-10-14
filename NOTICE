@@ -1,0 +1,15 @@
+NOTICE
+======
+
+CDIN Specification — Copyright (c) 2026 m-mdy-m
+Project license: GNU General Public License v3.0 or later (GPL-3.0-or-later).
+See LICENSE for the full license text.
+
+This repository is the design specification of cdin and uses the same license
+as the cdin repository, so that text and code written against it can move
+between the two without a license change.
+
+It contains documents and one standard-library Python script (scripts/check.py).
+No third-party source code is bundled. Names of third-party components that
+appear in the text (SDL, Lua, libuv, Unicode, regular-expression libraries) are
+references to those projects, not copies of them; each keeps its own license.
