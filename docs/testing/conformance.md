@@ -8,7 +8,7 @@ This document designs how the requirements will be verified. **It contains no te
 - **TEST-002** `PROPOSED` A conformance vector is a data-driven case: a named scenario of operations and expected observable outcomes, expressed against the **public contract only** (ABI operations, protocol messages). It names the requirement IDs it covers. — *Verify:* INSPECT
 - **TEST-003** `PROPOSED` Vectors are language-neutral data, plus a thin runner per contract written once per binding (for the kernel: a C runner over the ABI; for the protocol: a runner over the serialized transport). The specification will define the vector format; the runner is implementation work. — *Verify:* INSPECT
 - **TEST-004** `PROPOSED` No test is reported as passing unless it was run. Reports state what was run, where, on which implementation version. — *Verify:* INSPECT
-- **TEST-005** `PROPOSED` A requirement with no planned vector and a method of `CONF` is a defect of the specification and is listed in [STATUS.md](../../STATUS.md). — *Verify:* STATIC
+- **TEST-005** `PROPOSED` A requirement with no planned vector and a method of `CONF` is a defect of the specification and is listed in [status.md](../reference/status.md). — *Verify:* STATIC
 
 ```mermaid
 flowchart LR

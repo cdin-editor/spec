@@ -2,7 +2,7 @@
 
 Maps each requirement group to its verification methods and conformance-vector families. **Nothing in this matrix has been run.** "Planned" means designed in [conformance.md](conformance.md), not written.
 
-Methods are defined in [CONVENTIONS.md](../../CONVENTIONS.md): `INSPECT`, `STATIC`, `CONF`, `FUZZ`, `SAN`, `PERF`, `INTEG`.
+Methods are defined in [conventions.md](../reference/conventions.md): `INSPECT`, `STATIC`, `CONF`, `FUZZ`, `SAN`, `PERF`, `INTEG`.
 
 ## 1. Required test groups
 
