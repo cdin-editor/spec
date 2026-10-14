@@ -24,6 +24,10 @@ flowchart LR
     OPT -- "download only that plugin" --> USER
     USER --> RT
     X -. "sees only the extension contract" .-> RT
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    class BUNDLE,MAND,OPT,RT,USER comp
+    class X group
 ```
 
 *Caption: the build takes a directory path; installs download single plugins. Nothing clones the whole repository.*

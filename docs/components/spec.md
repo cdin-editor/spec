@@ -15,16 +15,16 @@ It is **design only**: no implementation, no test runner, no code beyond non-nor
 
 - **SPEC-001** `ACCEPTED` The specification MUST be written in English first. — *Verify:* INSPECT
 - **SPEC-002** `ACCEPTED` This repository contains design and architecture only; no implementation. — *Verify:* INSPECT
-- **SPEC-003** `PROPOSED` Every normative requirement has a stable ID and a named verification method ([CONVENTIONS.md](../../CONVENTIONS.md)). — *Verify:* STATIC
+- **SPEC-003** `PROPOSED` Every normative requirement has a stable ID and a named verification method ([conventions.md](../reference/conventions.md)). — *Verify:* STATIC
 - **SPEC-004** `PROPOSED` Every `EXISTING` statement carries a code anchor; a statement whose anchor no longer matches is a recorded contradiction. — *Verify:* INSPECT
 - **SPEC-005** `PROPOSED` Unresolved items appear only in the Open Decisions Register, never as requirements. — *Verify:* STATIC
 - **SPEC-006** `PROPOSED` Diagrams and prose agree; a diagram never shows `OPEN` behaviour as settled. — *Verify:* INSPECT
-- **SPEC-007** `PROPOSED` No history or date is invented. A claim about the state of any repository names the snapshot it was drawn from ([STATUS.md](../../STATUS.md)). — *Verify:* INSPECT
+- **SPEC-007** `PROPOSED` No history or date is invented. A claim about the state of any repository names the snapshot it was drawn from ([status.md](../reference/status.md)). — *Verify:* INSPECT
 - **SPEC-008** `PROPOSED` No test is reported as passing unless it was run. The specification currently reports none run. — *Verify:* INSPECT
 
 ## 3. Versioning of the specification
 
-- **SPEC-010** `PROPOSED` The specification has a semantic version recorded in [STATUS.md](../../STATUS.md). MAJOR increments when an `ACCEPTED` requirement changes meaning; MINOR when requirements are added or promoted; PATCH for editorial fixes. — *Verify:* INSPECT
+- **SPEC-010** `PROPOSED` The specification has a semantic version recorded in [status.md](../reference/status.md). MAJOR increments when an `ACCEPTED` requirement changes meaning; MINOR when requirements are added or promoted; PATCH for editorial fixes. — *Verify:* INSPECT
 - **SPEC-011** `PROPOSED` A component states the specification version it claims to conform to (ARCH-014). A conformance claim is meaningful only for requirements that were `ACCEPTED` at that version. — *Verify:* INSPECT
 - **SPEC-012** `PROPOSED` Requirement IDs are permanent. A withdrawn requirement keeps its ID, with a note, and is never reused. — *Verify:* STATIC
 
@@ -59,7 +59,7 @@ This is how the specification stays honest against real code although it contain
 
 ## 6. Traceability
 
-- **SPEC-040** `PROPOSED` [STATUS.md](../../STATUS.md) lists, per area, the count of requirements by status and the count with a recorded verification run. — *Verify:* INSPECT
+- **SPEC-040** `PROPOSED` [status.md](../reference/status.md) lists, per area, the count of requirements by status and the count with a recorded verification run. — *Verify:* INSPECT
 - **SPEC-041** `PROPOSED` The matrix in [test-matrix.md](../testing/test-matrix.md) maps each requirement group to its verification methods and to the planned conformance-vector families. — *Verify:* INSPECT
 
 ## 7. Repository layout and flow

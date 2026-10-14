@@ -41,12 +41,13 @@
 | `psx.yml` | project-structure configuration |
 | `docs/` | documentation of the product (the specification lives in the `spec` repository) |
 
-The tooling stays here; it depends on the layout of `src/` and on the Makefile, so a separate scripts repository would break whenever the layout changes. (Rationale in [ADR-0001](../decisions/ADR-0001-repository-topology.md).)
+The tooling stays here; it depends on the layout of `src/` and on the Makefile, so a separate scripts repository would break whenever the layout changes. (Rationale in [ADR-0001](../adr/ADR-0001-repository-topology.md).)
 
 ## 5. Launch sequence
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant U as User
     participant L as launcher
     participant B as backend

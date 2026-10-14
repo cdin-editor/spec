@@ -35,6 +35,12 @@ flowchart TB
     OSS --> OS[("operating system")]
     LOG -.-> KH
     LOG -.-> RH
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef ext fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    class FE,KH,LOG,OSS,PS,RH,SES comp
+    class K,OS ext
+    class BE group
 ```
 
 *Caption: `PROPOSED` internal structure. Boxes are not repositories and not necessarily separate libraries.*
@@ -69,6 +75,7 @@ OS services are an internal C API of the backend, not an ABI. Their behaviour is
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant F as Frontend
     participant P as Protocol server
     participant R as Runtime (Lua)

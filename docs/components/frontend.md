@@ -27,6 +27,12 @@ flowchart TB
     CLI --> PROTO
     TUI --> PROTO
     NEW --> PROTO
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef later fill:#f8fafc,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
+    class GUI,HL,NEW comp
+    class PROTO contract
+    class CLI,TUI later
 ```
 
 *Caption: `PROPOSED`. Adding a frontend means writing one more box on the left; nothing on the right changes.*
@@ -52,7 +58,7 @@ flowchart TB
 
 ## 5. Rewriting a frontend
 
-A frontend can be replaced by a different implementation, in a different language, provided it passes the protocol conformance vectors ([conformance.md](../testing/conformance.md)). The only shared artifact is the protocol; whether a client library for it exists as a repository is [OD-23](../decisions/open-decisions.md).
+A frontend can be replaced by a different implementation, in a different language, provided it passes the protocol conformance vectors ([conformance.md](../testing/conformance.md)). The only shared artifact is the protocol; whether a client library for it exists as a repository is [OD-23](../adr/open-decisions.md).
 
 ## 6. State owned
 

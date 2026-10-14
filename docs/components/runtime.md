@@ -39,6 +39,12 @@ flowchart TB
     UIM --> DOC
     SYN --> DOC
     RT --> HOST
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    class CFG,CMD,DOC,KEY,PLG,SYN,THEME,UIM,X comp
+    class HOST contract
+    class RT group
 ```
 
 *Caption: `PROPOSED` structure; the existing Lua core already follows this shape (`data/core/`).*
@@ -69,7 +75,7 @@ The Lua-visible environment the runtime and plugins can rely on. It is **partial
 | `fs`, `path` | backend OS services | `EXISTING` names (`src/api/api.c`) |
 | `doc` | backend, forwarding to kernel | `PROPOSED` (new) |
 | `search` | backend, forwarding to kernel search | `PROPOSED` (replaces current `search`) |
-| `ui` | backend protocol relay (declarative widgets, canvas capability) | `PROPOSED` (replaces direct `renderer` drawing, see [ADR-0011](../decisions/ADR-0011-extension-ui.md)) |
+| `ui` | backend protocol relay (declarative widgets, canvas capability) | `PROPOSED` (replaces direct `renderer` drawing, see [ADR-0011](../adr/ADR-0011-extension-ui.md)) |
 | `system` (OS part) | backend OS services | `EXISTING` names, to be split |
 | `renderer` | frontend-private (gui-sdl) during transition | `EXISTING`; retired with shims |
 

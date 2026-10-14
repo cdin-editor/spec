@@ -4,7 +4,7 @@ Status: **`DEFERRED` as a repository.** This document records the responsibiliti
 
 ## 1. Two different things called "data"
 
-The word means two unrelated things in this project (see [GLOSSARY.md](../../GLOSSARY.md)):
+The word means two unrelated things in this project (see [glossary.md](../reference/glossary.md)):
 
 | Meaning | What it is |
 |---|---|
@@ -43,9 +43,9 @@ A `cdin-data` repository is created only if all hold (an application of ARCH-030
 2. Its contract can be stated without referring to the kernel's internals.
 3. The owner approves it in an ADR (ARCH-005).
 
-Until then, no repository, no component boundary and no ABI exist for it. Recorded in [OD-16](../decisions/open-decisions.md).
+Until then, no repository, no component boundary and no ABI exist for it. Recorded in [OD-16](../adr/open-decisions.md).
 
 ## 5. Existing code
 
 - **EXISTING** File and path primitives already exist in the backend layer (`src/fs/ops.c`, `src/fs/path.c`) and the Lua tables `fs` and `path` expose them. — *Anchor:* `src/fs/`, `src/api/api.c`
-- **EXISTING** The current buffer stores bytes and does not rewrite content on load (`AGENTS.md §2.6`). That behaviour is the baseline for DATA-004.
+- **EXISTING** The current buffer stores bytes and does not rewrite content on load. That behaviour is the baseline for DATA-004. — *Anchor:* `AGENTS.md §2.6`
