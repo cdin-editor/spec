@@ -5,28 +5,38 @@ Who may depend on whom, who owns what, and how components talk. This is the cont
 ## 1. Dependency directions
 
 ```mermaid
-flowchart BT
-    K["kernel"]
-    RTH["runtime host API (provided by backend)"]
-    OSS["OS services (inside backend)"]
-    BE["backend"]
-    RT["runtime (Lua)"]
+flowchart TB
+    ROOT["cdin root<br/>composition: build, bundle, launch"]
+    subgraph TOP["consumers"]
+        direction LR
+        FE["frontends"]
+        X["cdin-x"]
+    end
     PROTO{{"Frontend Protocol"}}
-    FE["frontends"]
-    X["cdin-x"]
-    ROOT["cdin root"]
+    subgraph CORE["cdin core"]
+        direction TB
+        RT["runtime (Lua)"]
+        RTH{{"runtime host API<br/>provided by backend"}}
+        BE["backend"]
+        OSS["OS services<br/>inside backend"]
+        K["kernel<br/>depends on libc, an injected allocator,<br/>an internal regex library"]
+    end
 
-    BE --> K
-    BE --> OSS
-    BE --> RTH
-    RT --> RTH
-    X --> RT
-    FE --> PROTO
+    ROOT -. "ARCH-045: build time only" .-> TOP
+    ROOT -.-> CORE
+    FE -- "ARCH-043" --> PROTO
     BE --> PROTO
-    ROOT --> BE
-    ROOT --> FE
-    ROOT --> RT
-    ROOT --> K
+    X -- "ARCH-044" --> RT
+    RT -- "ARCH-041" --> RTH
+    BE --> RTH
+    BE --> OSS
+    BE -- "Kernel C ABI" --> K
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    class BE,FE,K,OSS,ROOT,RT,X comp
+    class PROTO,RTH contract
+    class CORE,TOP group
 ```
 
 *Caption: `PROPOSED`. An arrow `A --> B` means A depends on B. Nothing depends on a frontend; nothing below the kernel exists.*

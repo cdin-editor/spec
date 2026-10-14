@@ -1,6 +1,6 @@
 # ABI and compatibility
 
-Every binary boundary between CDIN components uses the **C ABI** (`ACCEPTED`). This document defines the rules all such boundaries follow. Component-specific operations are defined in their own documents; the *names* in the sketches below are illustrative and not frozen (see [OD-17](../decisions/open-decisions.md)).
+Every binary boundary between CDIN components uses the **C ABI** (`ACCEPTED`). This document defines the rules all such boundaries follow. Component-specific operations are defined in their own documents; the *names* in the sketches below are illustrative and not frozen (see [OD-17](../adr/open-decisions.md)).
 
 ## 1. Which boundaries are binary
 

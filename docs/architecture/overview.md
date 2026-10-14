@@ -23,37 +23,45 @@ Non-goals for this phase: implementation, general hot-swap of modules, a network
 ## 3. System context
 
 ```mermaid
-flowchart LR
+flowchart TB
     User(["User"])
-    subgraph FEs["Frontends"]
+    subgraph FEs["Frontends: peers"]
+        direction LR
         GUI["gui-sdl"]
         TUI["tui"]
         CLI["cli / headless"]
     end
+    PROTO{{"Frontend Protocol"}}
     subgraph Core["cdin core"]
+        direction LR
         BE["backend"]
-        RT["runtime"]
+        RT["runtime (Lua)"]
+        KABI{{"Kernel C ABI"}}
         K["kernel"]
+        BE -- "hosts, Lua" --> RT
+        BE --> KABI --> K
     end
     X["cdin-x ecosystem"]
-    OS[("OS: files, processes, clipboard, terminal, window system")]
-    Root["cdin composition root: build, bundle, release, launcher"]
+    OS[("OS: files, processes, clipboard,<br/>terminal, window system")]
+    Root["cdin composition root<br/>build, bundle, release, launcher"]
 
-    User --> GUI
-    User --> TUI
-    User --> CLI
-    GUI -- "Frontend Protocol" --> BE
-    TUI -- "Frontend Protocol" --> BE
-    CLI -- "Frontend Protocol" --> BE
-    BE -- "Kernel C ABI" --> K
-    BE -- "hosts, Lua" --> RT
+    User --> FEs
+    FEs -- "speak only" --> PROTO
+    PROTO --> BE
     X -- "extension contract" --> RT
     BE -- "OS services" --> OS
-    GUI -- "toolkit calls" --> OS
-    TUI -- "terminal calls" --> OS
-    Root -. "builds and bundles" .-> Core
-    Root -. "builds and bundles" .-> FEs
-    Root -. "bundles mandatory set" .-> X
+    FEs -- "toolkit and terminal calls" --> OS
+    Root -.-> Core
+    Root -.-> FEs
+    Root -.-> X
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef ext fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    class BE,CLI,GUI,K,RT,Root,TUI,X comp
+    class KABI,PROTO contract
+    class OS,User ext
+    class Core,FEs group
 ```
 
 *Caption: `PROPOSED` target architecture. Today the GUI and the backend are fused in one process and one repository; see [migration.md](migration.md).*

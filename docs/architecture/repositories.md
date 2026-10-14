@@ -2,7 +2,24 @@
 
 A **component** has one responsibility and a contract. A **repository** is a unit of version control and release. They are different things. This document says which component lives in which repository now, and the conditions under which that changes.
 
-## 1. Target topology (`PROPOSED`)
+## 1. Today and target
+
+### Today
+
+```mermaid
+flowchart TB
+    cdinnow["cdin (repo)<br/>C runtime in src/, Lua core in data/core/,<br/>scripts/, mk/, docs/"]
+    xnow["cdin-x (repo)<br/>separate ecosystem"]
+    specnow["spec (repo)<br/>this repository: contracts only"]
+    xnow -. "four things bundled at build time (CDINX_DIR)" .-> cdinnow
+    specnow -. "defines the contracts, contains no code" .-> cdinnow
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    class cdinnow,specnow,xnow comp
+```
+
+*Caption: what exists now, per [status.md](../reference/status.md). One implementation repository holds the C runtime, the Lua core and the tooling; `cdin-x` is already separate; this repository holds contracts only.*
+
+### Target (`PROPOSED`)
 
 ```mermaid
 flowchart TB
@@ -29,6 +46,10 @@ flowchart TB
     spec -.-> runtime
     spec -.-> be
     spec -.-> x
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    class be,fecli,fegui,fetui,kernel,root,runtime,spec,x comp
+    class cdinrepo group
 ```
 
 *Caption: `PROPOSED` end state. Arrows are build or link dependencies; dotted arrows are contract relationships.*
@@ -47,7 +68,7 @@ flowchart TB
 | cdin (root) | `cdin` repository | same | `ACCEPTED` as composition root |
 | cdin-x | its own repository | same, fully separate | `ACCEPTED` |
 
-There is deliberately **no** `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin-scripts`, `cdin-common` or `cdin-shared` repository in the target topology. Reasons are in [ADR-0001](../decisions/ADR-0001-repository-topology.md).
+There is deliberately **no** `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin-scripts`, `cdin-common` or `cdin-shared` repository in the target topology. Reasons are in [ADR-0001](../adr/ADR-0001-repository-topology.md).
 
 ## 3. Rules for creating or splitting a repository
 
@@ -56,7 +77,7 @@ There is deliberately **no** `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin
 - **ARCH-032** `PROPOSED` Extraction MUST preserve history (`git mv` then split with history retained), and the editor MUST build and start before and after extraction. — *Verify:* INTEG
 - **ARCH-033** `PROPOSED` Frontends MAY live outside the `cdin` repository at any time, because they depend only on the Frontend Protocol. No change to other components is required for that. — *Verify:* INSPECT
 - **ARCH-034** `ACCEPTED` No `cdin-common` or `cdin-shared` repository is created without explicit approval and a stated reason (same as ARCH-005; restated here as the rule for this document). — *Verify:* INSPECT
-- **ARCH-035** `PROPOSED` A protocol client library (a binding of the Frontend Protocol for frontend authors) is the one shared artifact with an architectural justification. Whether it is a separate repository is `OPEN`: see [OD-23](../decisions/open-decisions.md). — *Verify:* INSPECT
+- **ARCH-035** `PROPOSED` A protocol client library (a binding of the Frontend Protocol for frontend authors) is the one shared artifact with an architectural justification. Whether it is a separate repository is `OPEN`: see [OD-23](../adr/open-decisions.md). — *Verify:* INSPECT
 
 ## 4. What each repository is, and is not
 

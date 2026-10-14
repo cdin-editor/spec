@@ -1,6 +1,6 @@
 # Frontend Protocol
 
-The contract between the backend and any number of frontends (GUI, TUI, CLI, headless, a different GUI toolkit, web). Status of this whole document: **`PROPOSED`**. The model (backend owns state, frontends own presentation) is the recommendation behind [ADR-0005](../decisions/ADR-0005-frontend-protocol.md); it awaits owner acceptance.
+The contract between the backend and any number of frontends (GUI, TUI, CLI, headless, a different GUI toolkit, web). Status of this whole document: **`PROPOSED`**. The model (backend owns state, frontends own presentation) is the recommendation behind [ADR-0005](../adr/ADR-0005-frontend-protocol.md); it awaits owner acceptance.
 
 ## 1. Model
 
@@ -25,6 +25,8 @@ flowchart LR
     UIM -- "ui events" --> LAY
     LAY --> DRAW
     LAY -- "line range requests" --> UIM
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    class Backend,Frontend group
 ```
 
 ## 2. Roles and ownership
@@ -39,6 +41,7 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant F as Frontend
     participant B as Backend
     F->>B: hello (protocol versions supported, frontend name, capabilities)
@@ -65,7 +68,7 @@ sequenceDiagram
 - **PROPOSED capability set** (illustrative, to be fixed by ADR): `units` = `cells` or `pixels`; `images`; `truecolor`; `mouse`; `hit_regions`; `rich_text`; `canvas`; `clipboard`; `dialogs`; `ime`. The backend sends only what the frontend declared.
 - **PROTO-011** `PROPOSED` Capabilities are declared by the frontend and accepted or reduced by the backend in `hello_ack`. Unknown capability names MUST be ignored. — *Verify:* CONF
 - **PROTO-012** `PROPOSED` Several frontends MAY attach to one session simultaneously. Each has an independent handshake, capability set and flush sequence. — *Verify:* INTEG
-- **PROTO-013** `PROPOSED` Whether a second frontend may *mutate* while another is attached is `OPEN` (see [OD-24](../decisions/open-decisions.md)); until decided, one attached frontend is the *driver* and others are observers. — *Verify:* INSPECT
+- **PROTO-013** `PROPOSED` Whether a second frontend may *mutate* while another is attached is `OPEN` (see [OD-24](../adr/open-decisions.md)); until decided, one attached frontend is the *driver* and others are observers. — *Verify:* INSPECT
 
 ## 4. Message catalogue
 
@@ -98,7 +101,7 @@ sequenceDiagram
 | `view.lines` | view id, version, line range, per-line bytes and spans (byte ranges with style role id) | logical content; spans come from the runtime highlighter |
 | `view.invalidate` | view id, version, ranges | tells the frontend cached lines are stale |
 | `view.cursor` / `view.selection` | logical positions | selections owned by the view |
-| `ui.statusline` / `ui.prompt` / `ui.panel` | structured content | declarative widgets, see [ADR-0011](../decisions/ADR-0011-extension-ui.md) |
+| `ui.statusline` / `ui.prompt` / `ui.panel` | structured content | declarative widgets, see [ADR-0011](../adr/ADR-0011-extension-ui.md) |
 | `ui.notify` | level, text | |
 | `request.clipboard_get/set` | | answered by `response.*` |
 | `request.dialog` | confirm, open, save | `dialogs` capability only |
@@ -115,7 +118,7 @@ sequenceDiagram
 ## 5. Transports
 
 - **PROTO-030** `PROPOSED` The protocol is defined by its messages, not by an encoding. Two transports carry the same messages: *in-process* (C ABI functions, used by the embedded GUI) and *serialized* (framed bytes over a stream, used by TUI, CLI, remote and tests). — *Verify:* INSPECT
-- **PROTO-031** `PROPOSED` Serialized frames are length-prefixed and self-delimiting. The encoding inside frames is `OPEN` ([OD-22](../decisions/open-decisions.md)). — *Verify:* INSPECT
+- **PROTO-031** `PROPOSED` Serialized frames are length-prefixed and self-delimiting. The encoding inside frames is `OPEN` ([OD-22](../adr/open-decisions.md)). — *Verify:* INSPECT
 - **PROTO-032** `PROPOSED` A frontend and backend that both support serialization MUST interoperate regardless of implementation language. — *Verify:* CONF, INTEG
 - **PROTO-033** `PROPOSED` The in-process transport MUST observe the ABI rules ([abi-and-compatibility.md](abi-and-compatibility.md)). — *Verify:* STATIC
 
@@ -144,4 +147,4 @@ sequenceDiagram
 
 ## 9. Open points
 
-Tracked in the register: encoding ([OD-22](../decisions/open-decisions.md)), client library ([OD-23](../decisions/open-decisions.md)), multi-frontend mutation ([OD-24](../decisions/open-decisions.md)), canvas and plugin UI ([OD-25](../decisions/open-decisions.md)), visual-layout ownership confirmation ([OD-26](../decisions/open-decisions.md)).
+Tracked in the register: encoding ([OD-22](../adr/open-decisions.md)), client library ([OD-23](../adr/open-decisions.md)), multi-frontend mutation ([OD-24](../adr/open-decisions.md)), canvas and plugin UI ([OD-25](../adr/open-decisions.md)), visual-layout ownership confirmation ([OD-26](../adr/open-decisions.md)).

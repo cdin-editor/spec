@@ -41,13 +41,17 @@ This mapping is a **plan to be verified during migration review**, not a stateme
 
 ```mermaid
 flowchart LR
-    M0["M0: spec (this repository)"]
-    M1["M1: kernel inside cdin, behind the ABI"]
-    M2["M2: Lua document layer becomes a kernel client"]
-    M3["M3: Frontend Protocol in-process around the GUI"]
-    M4["M4: headless frontend, then serialized transport"]
-    M5["M5: extract repositories as contracts stabilize"]
-    M0 --> M1 --> M2 --> M3 --> M4 --> M5
+    M0["M0<br/>spec: this repository"]
+    M1["M1<br/>kernel inside cdin,<br/>behind its ABI"]
+    M2["M2<br/>Lua document layer<br/>becomes a kernel client"]
+    M3["M3<br/>Frontend Protocol,<br/>in-process around the GUI"]
+    M4["M4<br/>headless frontend,<br/>then serialized transport"]
+    M5["M5<br/>extract repositories as<br/>contracts stabilize"]
+    M0 -- "kernel sections unblocked" --> M1
+    M1 -- "conformance vectors pass" --> M2
+    M2 -- "no content outside the kernel" --> M3
+    M3 -- "no private backend call" --> M4
+    M4 -- "a second frontend attaches" --> M5
 ```
 
 *Caption: `PROPOSED` order. Each box ends with the editor building and starting.*
@@ -67,7 +71,7 @@ flowchart LR
 
 ## 4. The hardest steps
 
-**The document layer (M2).** The current document model lives in Lua (`data/core/doc/`). Moving it to the kernel reverses a documented principle: today's overview states that the C layer "knows nothing about documents". That statement is recorded as a contradiction in [STATUS.md](../../STATUS.md) and resolved by [ADR-0002](../decisions/ADR-0002-kernel-owns-documents.md).
+**The document layer (M2).** The current document model lives in Lua (`data/core/doc/`). Moving it to the kernel reverses a documented principle: today's overview states that the C layer "knows nothing about documents". That statement is recorded as a contradiction in [status.md](../reference/status.md) and resolved by [ADR-0002](../adr/ADR-0002-kernel-owns-documents.md).
 
 **The views (M3).** Views draw directly through the renderer API today. Making them produce a semantic UI model is the largest change, and the extension contract lets plugins subclass views. The transitional plan: keep the existing drawing path working through an in-process `canvas`-style capability while the declarative path is built, then retire it with shims (ARCH-027).
 

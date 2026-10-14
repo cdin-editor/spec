@@ -30,6 +30,8 @@ flowchart TB
     M -- "commit publishes new version" --> S
     T3 -- "acquire snapshot" --> S
     M --> N
+    classDef ext fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    class S ext
 ```
 
 *Caption: `PROPOSED` model. Mutations are serialized by the executor; readers never wait for it beyond the instant of snapshot acquisition.*
@@ -46,11 +48,11 @@ flowchart TB
 
 ### Reads during an active transaction
 
-- **CONC-012** `PROPOSED` While a transaction is active on a document, reads by other callers observe the last committed version. Only the transaction's own handle MAY read tentative content. (Closes the proposed answer to open item 7 of the original list; see [OD-07](../decisions/open-decisions.md).) — *Verify:* CONF
+- **CONC-012** `PROPOSED` While a transaction is active on a document, reads by other callers observe the last committed version. Only the transaction's own handle MAY read tentative content. (Closes the proposed answer to open item 7 of the original list; see [OD-07](../adr/open-decisions.md).) — *Verify:* CONF
 
 ### Transactions and other writers
 
-- **CONC-013** `PROPOSED` While a transaction is active on a document, mutation requests on that document that do not belong to the transaction are rejected with `BUSY` rather than queued, so that no long transaction can stall every other writer silently. Other documents are unaffected. This is `PROPOSED`; the alternative (queue behind the transaction) is recorded in [OD-21](../decisions/open-decisions.md). — *Verify:* CONF
+- **CONC-013** `PROPOSED` While a transaction is active on a document, mutation requests on that document that do not belong to the transaction are rejected with `BUSY` rather than queued, so that no long transaction can stall every other writer silently. Other documents are unaffected. This is `PROPOSED`; the alternative (queue behind the transaction) is recorded in [OD-21](../adr/open-decisions.md). — *Verify:* CONF
 
 ## 3. Shutdown
 
@@ -64,7 +66,7 @@ stateDiagram-v2
     Stopped --> [*]
 ```
 
-*Caption: `PROPOSED`. Pending requests at shutdown are the subject of [OD-18](../decisions/open-decisions.md).*
+*Caption: `PROPOSED`. Pending requests at shutdown are the subject of [OD-18](../adr/open-decisions.md).*
 
 - **CONC-020** `PROPOSED` Shutdown has two modes. *Graceful*: stop accepting new requests (they return `SHUTDOWN`), finish every accepted request in FIFO order, then stop. *Abort*: stop accepting, fail every request not yet started with `SHUTDOWN`, finish only the request currently executing, then stop. — *Verify:* CONF
 - **CONC-021** `PROPOSED` Active transactions at shutdown are aborted and rolled back in both modes. — *Verify:* CONF

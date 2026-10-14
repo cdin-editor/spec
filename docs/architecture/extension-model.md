@@ -18,6 +18,10 @@ flowchart TB
     RT --> HOST
     HOST --> BE
     BE --> K
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    class BE,K,PLUG,RT comp
+    class CONTRACT,HOST contract
 ```
 
 *Caption: `PROPOSED` layering. A plugin has no arrow to the kernel or backend.*
@@ -48,7 +52,7 @@ The extension contract lets plugins add side panels, a prompt and views, and som
 - **EXT-031** `PROPOSED` Plugins that need free-form drawing use an optional `canvas` capability that only frontends declaring it receive. A plugin MUST degrade gracefully (or report unavailability) when the capability is absent. — *Verify:* INTEG
 - **EXT-032** `PROPOSED` These changes alter the extension contract. They MUST be made only through an owner-approved ADR with shims and one deprecation log per process for each changed API (ARCH-027). — *Verify:* INSPECT
 
-See [ADR-0011](../decisions/ADR-0011-extension-ui.md) for options and trade-offs.
+See [ADR-0011](../adr/ADR-0011-extension-ui.md) for options and trade-offs.
 
 ## 5. Contract versioning
 

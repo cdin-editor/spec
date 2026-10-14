@@ -6,6 +6,7 @@ Process, module and document lifecycles. Document-level behaviour in detail is i
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant R as cdin root (launcher)
     participant B as backend
     participant K as kernel
@@ -66,7 +67,7 @@ stateDiagram-v2
 
 - **LIFE-010** `PROPOSED` A module MUST NOT become `Active` until its ABI version and features have been validated against the caller's requirements (ABI-014). — *Verify:* CONF, INTEG
 - **LIFE-011** `PROPOSED` Shutdown of a module releases every resource it owns and invalidates every handle it issued. — *Verify:* SAN
-- **LIFE-012** `DEFERRED` Hot-swap policy: which modules support it, how state moves (versioned, implementation-independent), validation, activation, rollback, restart fallback. Proposals recorded in [ADR-0013](../decisions/ADR-0013-hot-swap.md). — *Verify:* INSPECT
+- **LIFE-012** `DEFERRED` Hot-swap policy: which modules support it, how state moves (versioned, implementation-independent), validation, activation, rollback, restart fallback. Proposals recorded in [ADR-0013](../adr/ADR-0013-hot-swap.md). — *Verify:* INSPECT
 - **LIFE-013** `PROPOSED` Replacing the kernel in the first phase requires a restart. — *Verify:* INSPECT
 
 ## 3. Plugin lifecycle (existing)
