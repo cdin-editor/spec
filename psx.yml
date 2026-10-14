@@ -1,0 +1,58 @@
+version: 1
+
+project:
+  type: "" # generic; design-only repository, no source and no tests
+
+rules:
+  readme: error
+  license: warning
+  gitignore: warning
+  gitattributes: info
+  changelog: info
+
+  docs_folder: error
+  architecture: error
+  adr: error # docs/adr/ holds the ADRs and the Open Decisions Register
+  contributing: info
+  security: info
+  code_of_conduct: info
+  code_owners: info
+  pull_request_template: info
+  issue_templates: info
+  scripts_folder: info
+
+  ci_config: info
+  workflow_ci: info
+  editorconfig: info
+
+  # Deliberately not checked: src_folder, tests_folder, package_manager, lockfile,
+  # makefile, dockerfile. The spec contains design only; verification is *designed*
+  # in docs/testing/, never implemented here.
+
+ignore:
+  - .git/
+  - .psx/
+  - .psx-project.yml
+  - node_modules/
+
+fix:
+  interactive: true
+  backup: false
+
+custom:
+  folders:
+    - path: "scripts"
+    - path: "docs"
+      structure:
+        reference: {}
+        architecture: {}
+        components: {}
+        kernel: {}
+        testing: {}
+        adr: {}
+  files:
+    - path: docs/README.md
+    - path: docs/reference/conventions.md
+    - path: docs/reference/glossary.md
+    - path: docs/reference/status.md
+    - path: docs/adr/open-decisions.md
