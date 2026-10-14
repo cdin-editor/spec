@@ -4,23 +4,67 @@ All notable changes to this specification are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 The specification version is defined in `docs/reference/status.md` (SPEC-010).
 
-## [Unreleased]
+## [1.0.0] - 2026-10-14
 
-### Changed
-
-- Repository restructured to mirror `cdin`: root hygiene files, `docs/README.md` as the index,
-  `docs/reference/` for conventions, glossary and status, `docs/adr/` (was `docs/decisions/`).
-  Requirement IDs, ADR numbers and open-decision numbers are unchanged; all relative links rewritten.
-- Diagrams share one visual vocabulary (see `docs/reference/conventions.md` §4). System context,
-  module boundaries, undo/redo, text-model and migration diagrams redrawn; sequence diagrams numbered.
+First release.
 
 ### Added
 
-- `LICENSE` (GPL-3.0-or-later, as `cdin`) and `NOTICE`.
-- `docs/README.md`, `CONTRIBUTING.md`, `AGENTS.md`, `psx.yml`, issue and PR templates, check workflow.
-- `scripts/check.py`: IDs, links, references, index and diagram checks, in the repository.
-- A "today" diagram in `docs/architecture/repositories.md`.
+#### Specification content (396 requirements, 16 ADRs, 35 diagrams)
 
-### Fixed
+- **Architecture** (`docs/architecture/`): overview, repositories, module boundaries, the C ABI
+  rules, the Frontend Protocol, concurrency, lifecycles, the error model, the extension model and
+  the migration plan from today's `cdin`.
+- **Components** (`docs/components/`): one page each for the `cdin` composition root, backend,
+  runtime, frontends, data, `cdin-x` and the specification itself.
+- **Kernel** (`docs/kernel/`): the generic text engine in full: document model, text model (bytes
+  first, regions of valid and raw UTF-8, line endings), positions and ranges, editing operations,
+  transactions, undo and redo, change notifications and the search engine.
+- **Testing** (`docs/testing/`): the conformance-suite design and the test matrix. Design only; no
+  test code exists and none has been run.
+- **Decisions** (`docs/adr/`): sixteen ADRs and the Open Decisions Register (31 entries).
+- **Reference** (`docs/reference/`): conventions (status labels, requirement IDs, verification
+  methods, diagram vocabulary), the glossary, and the status report.
 
-- `DATA` page: an `EXISTING` statement lacked its `Anchor:` field.
+#### Structure and tooling
+
+- `docs/README.md`: the index, with reader paths and a map from requirement-ID prefix to page.
+- `scripts/check.py`: checks requirement IDs, relative links and anchors, ID/ADR/OD references,
+  index completeness and diagram types; `--stats` prints the counts quoted in the status report;
+  `--render` renders every diagram with the Mermaid CLI.
+- `psx.yml`: repository-structure rules for a design-only repository. `src`, `tests`, package
+  manager, lockfile, Makefile and Dockerfile are deliberately not checked; the `docs/` tree is
+  declared under `custom`.
+- GitHub: a CI workflow (`ci.yml`) running `scripts/check.py`; issue templates for specification
+  defects and proposals; Dependabot for GitHub Actions; `CODEOWNERS`.
+- A detailed pull-request template (`.github/PULL_REQUEST_TEMPLATE.md`): type of change and
+  semantic-version impact, a requirement table (ID, change, status before and after, verification
+  method), status-transition rules (owner approval, ADR, prototype spike), ADR and register
+  checks, `EXISTING` anchors and contradictions with `cdin`, diagram rules, version and
+  changelog, the checks that were and were not run, impact on implementers, and signed commits.
+- Project files: `CONTRIBUTING.md`, `AGENTS.md`, `SECURITY.md` (scoped to design flaws in the
+  contracts), `CODE_OF_CONDUCT.md`, `.editorconfig`, `.gitattributes`, a `.gitignore` for this
+  repository, and the git-flow configuration in `.gix/config`.
+- `LICENSE` (GPL-3.0-or-later, the same as `cdin`) and a `NOTICE` stating that no third-party
+  source is bundled.
+
+#### Diagrams
+
+- One visual vocabulary for every diagram: components, contracts, external systems, `DEFERRED`
+  items and outcomes (documented in `docs/reference/conventions.md`).
+- Redrawn: system context, module boundaries (with the `ARCH-04x` rule on each dependency),
+  undo and redo, the text-model example with byte offsets, and the migration phases with their
+  gates. A "today" diagram was added beside the target topology.
+- Sequence diagrams are numbered.
+
+### Changed
+
+- Documents moved to the layout above: `CONVENTIONS.md`, `GLOSSARY.md` and `STATUS.md` are now
+  under `docs/reference/`; `docs/decisions/` is now `docs/adr/`. Requirement IDs, ADR numbers and
+  open-decision numbers are unchanged, and every relative link was rewritten.
+- The specification version is `1.0.0` (it was recorded as `0.1.0`, draft). This is the first
+  release of the repository, not a claim of stability: see Known limitations.
+- Paths changed, so external links to `CONVENTIONS.md`, `GLOSSARY.md`, `STATUS.md` and
+  `docs/decisions/` no longer resolve; documents in `cdin` and `cdin-x` that link here need updating.
+- `docs/reference/status.md` now names `scripts/check.py` as the structural check (it was a script
+  kept outside t
