@@ -29,6 +29,7 @@ stateDiagram-v2
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant C as Client
     participant K as Kernel
     C->>K: begin(doc, expected v7)
@@ -59,14 +60,14 @@ sequenceDiagram
 
 ## 4. Interaction with other writers and readers
 
-- **TXN-007** `PROPOSED` While a transaction is active on a document, mutation requests on that document not belonging to the transaction fail with `BUSY`. Other documents are unaffected. Alternative (queueing) is recorded in [OD-21](../decisions/open-decisions.md). — *Verify:* CONF
+- **TXN-007** `PROPOSED` While a transaction is active on a document, mutation requests on that document not belonging to the transaction fail with `BUSY`. Other documents are unaffected. Alternative (queueing) is recorded in [OD-21](../adr/open-decisions.md). — *Verify:* CONF
 - **TXN-008** `PROPOSED` Reads by other callers during an active transaction see the last committed version. Only the transaction's handle may read tentative content (CONC-012). — *Verify:* CONF
 - **TXN-009** `PROPOSED` Closing the document or shutting the kernel down aborts the active transaction and rolls it back (CONC-021, DOC-031). — *Verify:* CONF
 
 ## 5. Nesting
 
 - **TXN-020** `PROPOSED` Nested transactions are not supported in the first version. `begin` on a document with an active transaction fails with `INVALID_STATE` (or `BUSY` for a different caller). — *Verify:* CONF
-- **TXN-021** `DEFERRED` Nested transactions with partial rollback, and savepoints. Revisit with [OD-03](../decisions/open-decisions.md). — *Verify:* INSPECT
+- **TXN-021** `DEFERRED` Nested transactions with partial rollback, and savepoints. Revisit with [OD-03](../adr/open-decisions.md). — *Verify:* INSPECT
 
 ## 6. Why not queue behind a transaction
 

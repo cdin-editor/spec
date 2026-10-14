@@ -10,19 +10,35 @@ Each document has its own undo/redo history (DOC-002). The history is a sequence
 - **UNDO-004** `PROPOSED` Undo with nothing to undo (and redo with nothing to redo) returns `INVALID_STATE` without a version change. — *Verify:* CONF
 
 ```mermaid
-flowchart LR
-    U1["unit 1"] --> U2["unit 2"] --> U3["unit 3"]
-    cur(("current: after unit 3"))
-    U3 --> cur
-    UNDO["undo"] -. "applies inverse of unit 3, new version" .-> U2
-    REDO["redo"] -. "reapplies unit 3, new version" .-> U3
-    NEW["new edit while at unit 2"] -. "drops unit 3, creates unit 3'" .-> U3
+flowchart TB
+    subgraph A["1. three edits recorded, head after unit 3"]
+        direction LR
+        a1["unit 1"] --> a2["unit 2"] --> a3["unit 3<br/>head"]
+    end
+    subgraph B["2. undo: the inverse of unit 3 is applied as a new, higher version"]
+        direction LR
+        b1["unit 1"] --> b2["unit 2<br/>head"] -.-> b3["unit 3<br/>redoable"]
+    end
+    subgraph C["3a. redo: unit 3 is reapplied as a new, higher version"]
+        direction LR
+        c1["unit 1"] --> c2["unit 2"] --> c3["unit 3<br/>head"]
+    end
+    subgraph D["3b. a new edit instead: unit 3 is discarded (UNDO-003)"]
+        direction LR
+        d1["unit 1"] --> d2["unit 2"] --> d3["unit 3'<br/>head"]
+    end
+    A -- "undo" --> B
+    B -- "redo" --> C
+    B -- "new edit" --> D
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    class A,B,C,D group
 ```
 
 *Caption: `PROPOSED` linear history behaviour.*
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant C as Client
     participant K as Kernel
     C->>K: replace(range, bytes, expected v10)
@@ -64,7 +80,7 @@ Selection state is owned by the view and not the kernel (ARCH-051), yet undo sho
 
 ## 6. Undo and the selection (ownership summary)
 
-Selection and undo interplay (open item 5) is resolved as follows (`PROPOSED`): the *view* owns selections; the *kernel* owns history; the opaque blobs (UNDO-020) are the only coupling; the kernel never inspects them. See [ADR-0007](../decisions/ADR-0007-selection-ownership.md).
+Selection and undo interplay (open item 5) is resolved as follows (`PROPOSED`): the *view* owns selections; the *kernel* owns history; the opaque blobs (UNDO-020) are the only coupling; the kernel never inspects them. See [ADR-0007](../adr/ADR-0007-selection-ownership.md).
 
 ## 7. Existing behaviour
 

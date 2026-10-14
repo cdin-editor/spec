@@ -45,6 +45,12 @@ flowchart LR
     NOTE --> ABI
     ALLOC --> K
     REGEX --> SRCH
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    class ADM,ALLOC,BE,DOCS,NOTE,REGEX,SRCH comp
+    class ABI contract
+    class K group
 ```
 
 *Caption: components of the kernel (`PROPOSED` internal structure; the external boundary is the contract). The internal text store is not part of any public contract (KERNEL-012).*
@@ -60,11 +66,13 @@ flowchart LR
 - **KERNEL-007** `PROPOSED` The kernel is deterministic: it MUST NOT read the clock, the environment or the filesystem, and MUST NOT perform I/O. Time-dependent policies (for example grouping typing by elapsed time) belong to the caller. — *Verify:* STATIC, CONF
 - **KERNEL-008** `PROPOSED` The kernel allocates only through an allocator injected at creation (ABI-017). — *Verify:* SAN, INSPECT
 - **KERNEL-009** `PROPOSED` The kernel never terminates the process because of caller input or resource exhaustion; all failures are statuses (ABI-007, ERR-004, ERR-005). — *Verify:* FUZZ, SAN
-- **KERNEL-010** `PROPOSED` Regular expressions are provided by a third-party engine hidden behind an internal interface. The public API MUST NOT expose that engine's types or syntax identifiers. Selection of the engine is open ([OD-09](../decisions/open-decisions.md), [ADR-0009](../decisions/ADR-0009-regex-engine.md)). — *Verify:* STATIC, CONF
+- **KERNEL-010** `PROPOSED` Regular expressions are provided by a third-party engine hidden behind an internal interface. The public API MUST NOT expose that engine's types or syntax identifiers. Selection of the engine is open ([OD-09](../adr/open-decisions.md), [ADR-0009](../adr/ADR-0009-regex-engine.md)). — *Verify:* STATIC, CONF
 - **KERNEL-011** `ACCEPTED` The kernel is implemented in C11. Its public boundary is the C ABI and does not require C. — *Verify:* INSPECT
 - **KERNEL-012** `ACCEPTED` The internal text structure (a piece table or piece tree is preferred) MUST NOT be visible in or relied on by any public API or contract. Different implementations MUST behave identically through the contract. — *Verify:* CONF, STATIC
 - **KERNEL-013** `PROPOSED` Resource limits (maximum document size, maximum undo memory, maximum live snapshots, maximum open documents, maximum search steps) are set at creation. At a limit the operation fails with `LIMIT_EXCEEDED`; nothing is silently dropped (ARCH-021). — *Verify:* CONF, PERF
 - **KERNEL-014** `PROPOSED` The kernel MUST be usable from a single thread with no thread of its own, and MUST be correct when called from many (CONC-001). It MAY use internal threads only if documented and bounded. — *Verify:* SAN, INSPECT
+
+- **KERNEL-015** `PROPOSED` Architecture-specific optimized paths (SIMD intrinsics or assembly) MAY be added only if each has a portable C11 fallback selectable at build time, produces results identical to the fallback (verified by running all vectors under both and by differential fuzzing), is isolated from handles, locks and the public API, selects its path at kernel creation without hidden global state, and is justified by recorded benchmarks (at least 10% improvement on the targeted benchmark, no regression elsewhere). — *Verify:* CONF, FUZZ, PERF ([ADR-0016](../adr/ADR-0016-arch-specific-optimizations.md))
 
 ## 4. Document map
 
@@ -104,6 +112,12 @@ flowchart TB
     APPLY --> VER
     VER --> NOTIFY
     VER --> RES
+    classDef bad fill:#fee2e2,stroke:#b91c1c,color:#0f172a
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef ok fill:#dcfce7,stroke:#15803d,color:#0f172a
+    class REJ1,REJ2 bad
+    class ACC,APPLY,NOTIFY,REQ,VER comp
+    class RES ok
 ```
 
 *Caption: `PROPOSED` flow. Behaviour at the validation and version-check steps is `ACCEPTED` (EDIT-004, EDIT-006); acceptance-point placement is CONC-004.*

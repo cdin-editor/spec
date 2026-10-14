@@ -16,6 +16,7 @@ The mutation surface of the kernel and its rules for validity, versions and atom
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant C1 as Client 1
     participant C2 as Client 2
     participant K as Kernel
@@ -51,4 +52,4 @@ sequenceDiagram
 
 ## 6. Existing behaviour
 
-- **EXISTING** The current Lua document performs edits against its own buffer with undo and three hooks (`docs/architecture/internals.md`, "The document"). Those semantics are the starting point for the conformance vectors; where they differ from this specification, the difference is recorded in [STATUS.md](../../STATUS.md) and resolved by ADR. — *Anchor:* `data/core/doc/init.lua`, `docs/architecture/internals.md`
+- **EXISTING** The current Lua document performs edits against its own buffer with undo and three hooks (`docs/architecture/internals.md`, "The document"). Those semantics are the starting point for the conformance vectors; where they differ from this specification, the difference is recorded in [status.md](../reference/status.md) and resolved by ADR. — *Anchor:* `data/core/doc/init.lua`, `docs/architecture/internals.md`

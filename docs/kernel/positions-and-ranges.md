@@ -39,6 +39,10 @@ flowchart TB
     R -- "no" --> V
     V -- "yes" --> OK
     V -- "no" --> E2
+    classDef bad fill:#fee2e2,stroke:#b91c1c,color:#0f172a
+    classDef ok fill:#dcfce7,stroke:#15803d,color:#0f172a
+    class E1,E2 bad
+    class OK ok
 ```
 
 *Caption: `PROPOSED` validity rules for an edit position.*
@@ -51,7 +55,7 @@ flowchart TB
 
 - **POS-030** `PROPOSED` The kernel provides: byte offset to code-point index and back; byte offset to line and in-line byte offset and back; next and previous code-point boundary; next and previous grapheme boundary. — *Verify:* CONF
 - **POS-031** `PROPOSED` Code-point conversion is defined only for valid regions. A conversion that touches a raw region treats each raw byte as one unit and says so in the result. — *Verify:* CONF
-- **POS-032** `PROPOSED` Grapheme-boundary queries use the Unicode version pinned for the kernel release ([ADR-0010](../decisions/ADR-0010-unicode-version.md)). The version is queryable. — *Verify:* CONF
+- **POS-032** `PROPOSED` Grapheme-boundary queries use the Unicode version pinned for the kernel release ([ADR-0010](../adr/ADR-0010-unicode-version.md)). The version is queryable. — *Verify:* CONF
 - **POS-033** `PROPOSED` Raw bytes are each treated as their own grapheme for boundary queries. — *Verify:* CONF
 - **POS-034** `PROPOSED` Conversions are relative to a snapshot or a stated version; a conversion requested for a stale version fails with `STALE_VERSION` rather than answering for the new content. — *Verify:* CONF
 
@@ -64,7 +68,7 @@ flowchart TB
 Clients holding positions (views, selections, search results) need to adjust them when a document changes.
 
 - **POS-050** `PROPOSED` Change notifications describe every edit precisely enough for a client to transform its own positions (see [change-notifications.md](change-notifications.md), NOTIF-008). — *Verify:* CONF
-- **POS-051** `PROPOSED` Whether the kernel also offers a position-mapping helper (anchors or markers with a bias) is open ([OD-28](../decisions/open-decisions.md)). Clients MUST NOT assume it exists. — *Verify:* INSPECT
+- **POS-051** `PROPOSED` Whether the kernel also offers a position-mapping helper (anchors or markers with a bias) is open ([OD-28](../adr/open-decisions.md)). Clients MUST NOT assume it exists. — *Verify:* INSPECT
 - **POS-052** `PROPOSED` The kernel never transforms a stale position automatically (EDIT-004). — *Verify:* CONF
 
 ## 6. Existing behaviour

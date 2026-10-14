@@ -20,13 +20,15 @@ flowchart LR
     W1 --> D1["subscriber drains queue on its own thread"]
     Q2 --> D2["subscriber drains on its own thread"]
     Q1 -. "queue full" .-> R["overflow marker: RESYNC"]
+    classDef ext fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    class Q1,Q2 ext
 ```
 
 *Caption: `PROPOSED` queue-based delivery. No client code runs while the kernel holds its lock.*
 
 - **NOTIF-005** `PROPOSED` For each document and each subscriber, events are delivered in version order, each exactly once, unless the queue overflows (NOTIF-007). — *Verify:* CONF
 - **NOTIF-006** `PROPOSED` Notifications are delivered through per-subscriber queues. The kernel MAY invoke a *wakeup callback* when a queue becomes non-empty; that callback MUST do nothing except signal (ABI-016). The subscriber drains its queue on a thread of its choosing. — *Verify:* CONF, SAN
-- **NOTIF-007** `PROPOSED` Each queue is bounded by a configured size. When it would overflow, the kernel drops the *details* of pending events and replaces them by one `RESYNC` marker carrying the current version. A subscriber receiving `RESYNC` MUST discard cached state for the document and re-read from a snapshot. Events are never dropped without that marker. — *Verify:* CONF, PERF (answers open item 8, [OD-08](../decisions/open-decisions.md))
+- **NOTIF-007** `PROPOSED` Each queue is bounded by a configured size. When it would overflow, the kernel drops the *details* of pending events and replaces them by one `RESYNC` marker carrying the current version. A subscriber receiving `RESYNC` MUST discard cached state for the document and re-read from a snapshot. Events are never dropped without that marker. — *Verify:* CONF, PERF (answers open item 8, [OD-08](../adr/open-decisions.md))
 - **NOTIF-009** `PROPOSED` Subscribing returns the current version with the subscription, so a subscriber can synchronize a snapshot and the event stream with no gap or duplicate: events delivered are exactly those with `from_version >=` the returned version. — *Verify:* CONF
 - **NOTIF-010** `PROPOSED` A subscriber MAY unsubscribe at any time. Pending events are discarded. Closing a document delivers `closed` to each subscriber before the subscription ends (DOC-031). — *Verify:* CONF
 
@@ -38,6 +40,7 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant S as Subscriber (view cache)
     participant K as Kernel
     S->>K: subscribe(doc)

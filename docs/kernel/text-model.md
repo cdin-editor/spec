@@ -18,18 +18,26 @@ A document's bytes are, at any moment, partitioned into **valid regions** (well-
 
 - **TEXT-010** `PROPOSED` Region classification is a pure function of the current content. It is derived, not stored as authority, and is recomputed or incrementally maintained after every edit. — *Verify:* CONF, FUZZ
 - **TEXT-011** `PROPOSED` Because classification is derived, an edit can change the classification of neighbouring bytes. Example: inserting a continuation byte after a stray lead byte can turn a raw region into a valid character. The kernel MUST report such effects consistently through its queries and MUST NOT rely on cached classification being stale. — *Verify:* CONF, FUZZ
-- **TEXT-012** `PROPOSED` The definition of "maximal run of invalid bytes" follows the Unicode "maximal subpart" practice for ill-formed sequences, so that two implementations classify identically. The exact definition is stated in the conformance vectors. — *Verify:* CONF (boundary detail tracked in [OD-11](../decisions/open-decisions.md))
+- **TEXT-012** `PROPOSED` The definition of "maximal run of invalid bytes" follows the Unicode "maximal subpart" practice for ill-formed sequences, so that two implementations classify identically. The exact definition is stated in the conformance vectors. — *Verify:* CONF (boundary detail tracked in [OD-11](../adr/open-decisions.md))
 - **TEXT-013** `PROPOSED` Inserting bytes through the API stores exactly those bytes; the kernel does not validate or reject invalid UTF-8 in inserted data. — *Verify:* CONF
 
 ```mermaid
-flowchart LR
-    A["bytes: 'caf' 0xC3 0xA9 ' ' 0xFF ' x'"]
-    B["valid region: 'café '"]
-    C["raw region: 0xFF"]
-    D["valid region: ' x'"]
-    A --> B
-    A --> C
-    A --> D
+flowchart TB
+    subgraph BYTES["nine bytes, offsets 0 to 8"]
+        direction LR
+        b0["0<br/>c"] --- b1["1<br/>a"] --- b2["2<br/>f"] --- b3["3<br/>0xC3"] --- b4["4<br/>0xA9"] --- b5["5<br/>space"] --- b6["6<br/>0xFF"] --- b7["7<br/>space"] --- b8["8<br/>x"]
+    end
+    subgraph REGIONS["regions, derived from the content (half-open ranges)"]
+        direction LR
+        r1["valid [0, 6)<br/>'café '"] ~~~ r2["raw [6, 7)<br/>0xFF"] ~~~ r3["valid [7, 9)<br/>' x'"]
+    end
+    BYTES ~~~ REGIONS
+    classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    classDef ok fill:#dcfce7,stroke:#15803d,color:#0f172a
+    classDef raw fill:#ffedd5,stroke:#c2410c,color:#0f172a
+    class BYTES,REGIONS group
+    class b0,b1,b2,b3,b4,b5,b7,b8,r1,r3 ok
+    class b6,r2 raw
 ```
 
 *Caption: example classification. The raw byte 0xFF is kept exactly; neighbouring valid text is unaffected.*

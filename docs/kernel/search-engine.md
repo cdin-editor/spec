@@ -37,6 +37,10 @@ flowchart TB
     MODE -- "bytes" --> RAW --> LIM
     LIM -- "yes" --> CAN
     LIM -- "no" --> RES
+    classDef bad fill:#fee2e2,stroke:#b91c1c,color:#0f172a
+    classDef ok fill:#dcfce7,stroke:#15803d,color:#0f172a
+    class CAN,ERR bad
+    class RES ok
 ```
 
 *Caption: `PROPOSED` search lifecycle. Behaviour of regex and raw-byte modes at the boundaries of valid and invalid regions is `OPEN` (OD-11).*
@@ -51,13 +55,13 @@ flowchart TB
 
 ### Case
 
-- **SEARCH-020** `PROPOSED` Case-insensitive matching is Unicode-aware, locale-independent, and uses simple case folding by default, relative to the pinned Unicode version ([ADR-0010](../decisions/ADR-0010-unicode-version.md)). Full case folding is a separate explicit option. — *Verify:* CONF
+- **SEARCH-020** `PROPOSED` Case-insensitive matching is Unicode-aware, locale-independent, and uses simple case folding by default, relative to the pinned Unicode version ([ADR-0010](../adr/ADR-0010-unicode-version.md)). Full case folding is a separate explicit option. — *Verify:* CONF
 
 ### Persian and Arabic letters
 
 - **SEARCH-021** `ACCEPTED` The system MUST NOT automatically treat different Arabic and Persian letters as equivalent. For example Persian `ی` (U+06CC) and Arabic `ي` (U+064A) are different letters unless an explicit option says otherwise. — *Verify:* CONF
 - **SEARCH-022** `ACCEPTED` Unicode normalization, removal of diacritics (for example Arabic marks), character folding and language-specific equivalences MUST be separate, explicit capabilities, never implied by the case flag. — *Verify:* CONF
-- **SEARCH-023** `PROPOSED` Such capabilities are expressed as named options in the request (for example `normalize=nfc`, `ignore_marks`, `fold_profile=<name>`). All are off by default. The set offered in the first version is an open scope item ([OD-29](../decisions/open-decisions.md)). — *Verify:* CONF
+- **SEARCH-023** `PROPOSED` Such capabilities are expressed as named options in the request (for example `normalize=nfc`, `ignore_marks`, `fold_profile=<name>`). All are off by default. The set offered in the first version is an open scope item ([OD-29](../adr/open-decisions.md)). — *Verify:* CONF
 - **SEARCH-024** `PROPOSED` Each such option is defined by a published table or algorithm tied to the pinned Unicode version, so two implementations agree. — *Verify:* CONF
 
 ### Multiline
@@ -74,7 +78,7 @@ flowchart TB
 
 ## 4. Regular-expression engine
 
-- **SEARCH-050** `PROPOSED` The engine is an existing portable library, not written from scratch (preferred direction), chosen through [ADR-0009](../decisions/ADR-0009-regex-engine.md). Candidates and the selection criteria are recorded there. — *Verify:* INSPECT
+- **SEARCH-050** `PROPOSED` The engine is an existing portable library, not written from scratch (preferred direction), chosen through [ADR-0009](../adr/ADR-0009-regex-engine.md). Candidates and the selection criteria are recorded there. — *Verify:* INSPECT
 - **SEARCH-051** `PROPOSED` The contract MUST specify: supported syntax (a documented subset that the engine guarantees), invalid-pattern errors (`PATTERN_INVALID` with a position), zero-length match behaviour, multiline mode, resource limits, and cancellation. — *Verify:* CONF, INSPECT
 - **SEARCH-052** `PROPOSED` Catastrophic patterns are bounded by the step limit (SEARCH-013), not by the clock. — *Verify:* CONF, FUZZ
 - **SEARCH-053** `PROPOSED` Zero-length matches: a find-all MUST advance by one code point (or one raw byte) after a zero-length match to guarantee progress. — *Verify:* CONF
