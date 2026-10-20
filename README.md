@@ -117,11 +117,27 @@ Unresolved questions are not requirements. They live in the [Open Decisions Regi
 **A `PROPOSED` item is never promoted to `ACCEPTED` without an owner decision.** For `cdin-kernel`, package `1.1.0` retains the public C ABI and supported behaviour `1.0.0`; that ABI is checked against a separate implementation and its conformance suite. No such implementation claim is made for runtime, backend or frontend-protocol features that remain unbuilt.
 
 
-## Checking it
+## Release reporting
+
+Generate a current inventory and status summary (this reports counts; it does not lint or test the specification):
 
 ```sh
-python3 scripts/check.py     # every requirement ID, link, reference and diagram
-psx check                    # the repository's own structure, against psx.yml
+python3 scripts/spec_report.py
+```
+
+Preview release notes for a version already documented in `CHANGELOG.md`:
+
+```sh
+python3 scripts/spec_report.py --release-version 1.1.0 --output release-notes.md
+```
+
+GitHub Actions is intentionally release-only. Pushing a `vX.Y.Z` tag creates a GitHub Release whose body contains the Spec inventory and the matching version's Changelog entry. The workflow does not run on ordinary branch pushes or pull requests.
+
+For example, after updating `CHANGELOG.md` and the version in `docs/reference/status.md`:
+
+```sh
+git tag -a v1.1.0 -m "CDIN Spec v1.1.0"
+git push origin v1.1.0
 ```
 
 ## License

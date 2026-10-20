@@ -2,9 +2,7 @@
 
 ## Scope
 
-This repository contains design documents only: no executable code besides `scripts/check.py`.
-A security issue here means a design flaw in a contract (ABI, Frontend Protocol, extension
-contract) that would make a conforming implementation unsafe. Implementation bugs belong in the
+This repository contains design documents and a small reporting script (`scripts/spec_report.py`); it does not contain product implementation code. A security issue here means a design flaw in a contract (ABI, Frontend Protocol, extension contract) that would make a conforming implementation unsafe. Implementation bugs belong in the
 `cdin` repository's policy.
 
 ## Reporting a Vulnerability

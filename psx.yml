@@ -21,8 +21,6 @@ rules:
   issue_templates: info
   scripts_folder: info
 
-  ci_config: info
-  workflow_ci: info
   editorconfig: info
 
   # Deliberately not checked: src_folder, tests_folder, package_manager, lockfile,

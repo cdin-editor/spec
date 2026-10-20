@@ -14,12 +14,19 @@ The specification version is defined in `docs/reference/status.md` (SPEC-010). T
 - Clarify the roles and boundaries of `cdin`, `cdin-x`, frontend, Frontend Protocol, backend, Lua runtime, Runtime Host API, kernel host adapter, C ABI, `cdin-kernel`, and the Spec repository.
 - Document the Runtime Host API and Lua-to-native bridge as open integration decisions; Lua C API, LuaJIT FFI, and MetaCall remain options rather than mandatory dependencies.
 - Add a cross-repository synchronization report for `cdin-kernel` package `1.1.0`.
+- Add `scripts/spec_report.py` to summarize unique requirement statuses, ADRs, open decisions, document inventory, diagrams and version labels.
+- Add a tag-triggered GitHub Release workflow that combines the generated Spec summary with the exact version's Changelog entry.
 
 ### Changed
 
 - Record Spec release `1.1.0` while explicitly retaining the kernel's declared Spec compatibility target `1.0.0` and public C ABI `1.0.0`. The Spec release number does not imply that the kernel implements the proposed runtime, backend, or frontend integration.
 - Align architecture, status, and release documentation with the current kernel package: its internal literal-search fast paths do not introduce a new public complexity guarantee or change the ABI contract.
 - Distinguish the current implementation from target architecture throughout the diagrams and component descriptions.
+- Keep GitHub Actions release-only: publish on a pushed `vX.Y.Z` tag, without per-push or pull-request validation jobs. Treat generated counts as release metadata, not as a pass/fail quality gate.
+
+### Removed
+
+- Remove `scripts/check.py` and its structural-checking CI workflow. The Spec repository no longer runs automated link, index, reference or Mermaid validation.
 
 ### Fixed
 
@@ -87,5 +94,4 @@ First release.
 - The Spec baseline is `1.0.0`. The synchronized kernel implementation advertises ABI `1.0.0`; unimplemented components and unresolved lower-level decisions remain explicitly marked.
 - Paths changed, so external links to `CONVENTIONS.md`, `GLOSSARY.md`, `STATUS.md` and
   `docs/decisions/` no longer resolve; documents in `cdin` and `cdin-x` that link here need updating.
-- `docs/reference/status.md` now names `scripts/check.py` as the structural check (it was a script
-  kept outside t
+- `docs/reference/status.md` documented the release-era `scripts/check.py` structural check; that historical tooling was removed in Spec 1.1.0 in favour of a report-only script.

@@ -10,14 +10,14 @@ This file is the authoritative status report for Spec release `1.1.0` and the `c
 |---|---|---|
 | `cdin` archive | Source/build/test directory structure; README and architecture notes; Makefile and build includes; public UI/API headers; Lua API tables; SDL3 references; test baseline and test invocation | This is an archive snapshot, not a checkout with history. The full test/build gate could not pass in the current environment: SDL3 development headers are missing and the archived test baseline is empty/unusable. This is an environment/baseline blocker, not evidence that every source file fails to compile. |
 | `cdin-kernel` archive | Public C header, implementation modules, ABI/limits docs, conformance runner and vectors, C regression tests, fuzz targets, Makefile/release workflow, package 1.1.0 docs and Docker SDK recipe | Working tree only; no Git commit ancestry or upstream CI results available. The source release notes report the project checks; the Docker workflow is configured, but a successful push to a specific Docker Hub namespace is not established by the archive. |
-| `spec` archive | Full Markdown requirement set, ADRs, open-decision register, status/conventions pages, structural checker, CI/build configuration | Spec is intentionally design-only; implementation tests live in the `cdin-kernel` repository. |
+| `spec` archive | Full Markdown requirement set, ADRs, open-decision register, status/conventions pages, and the release-reporting script/workflow | Spec is intentionally design-only; implementation tests live in the `cdin-kernel` repository. |
 | `cdin-x` | Only references from supplied `cdin`/Spec material | The `cdin-x` archive/source itself was not supplied, so no claim is made about its current implementation. |
 
 A previous status report said `cdin-kernel` did not exist and the kernel API names were open. That is now superseded by the standalone kernel snapshot and its public ABI header `include/cdin/kernel.h` declaring C ABI `1.0.0`.
 
 ## 2. Current Spec structure counts
 
-The final structural-checker output for this release is: 65 Markdown files; 396 normative requirements (96 ACCEPTED, 31 EXISTING, 262 PROPOSED, 7 DEFERRED); 17 ADRs; and 41 Mermaid diagrams. Re-run `python3 scripts/check.py --stats` to recompute these counts after any status or document change.
+The current inventory report records 65 Markdown files; 396 unique normative requirements (96 ACCEPTED, 31 EXISTING, 262 PROPOSED, 7 DEFERRED); 17 ADRs; 32 Open Decisions Register entries (9 OPEN, 16 PROPOSED, 3 DEFERRED, 4 RESOLVED); and 41 Mermaid diagrams. Run `python3 scripts/spec_report.py` to recompute the inventory. This script reports counts only; it does not validate documentation quality or implementation behaviour.
 
 ## 3. Stable decisions inherited from the 1.0.0 compatibility baseline
 
@@ -61,9 +61,10 @@ Implemented kernel features, package-only changes, and deliberately unsupported 
 
 ### Spec repository
 
-- `python3 scripts/check.py`: **PASS** — requirement IDs, links, references, index completeness and diagram types. Final local stats: 65 Markdown files, 396 normative requirements, 17 ADRs and 41 Mermaid diagrams.
-- `python3 scripts/check.py --render`: structural checks **PASS**; diagram rendering was **skipped** because `mmdc` (Mermaid CLI) is not installed in this environment. Mermaid source has not been rendered in a browser here.
-- The Spec repository contains no executable product test runner by design. Its structural check does not verify implementation behaviour.
+- `python3 scripts/spec_report.py`: **PASS** — generated the inventory report (65 Markdown files, 396 unique normative requirements, 17 ADRs, 32 open-decision entries and 41 Mermaid diagrams).
+- The former `scripts/check.py` structural validator and PR/push CI workflow were removed at the project owner's request. The current repository does not run automated link/index/reference checks or Mermaid rendering; reviewers inspect document changes manually.
+- `python3 scripts/spec_report.py --release-version 1.1.0 --output /tmp/cdin-spec-release-notes.md`: **PASS** — generated a report and included the matching `CHANGELOG.md` section.
+- The Spec repository contains no executable product test runner by design. The reporting script does not verify implementation behaviour.
 
 ### Kernel repository
 

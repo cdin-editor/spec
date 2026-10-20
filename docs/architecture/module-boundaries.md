@@ -69,7 +69,7 @@ Read as rules:
 - **ARCH-043** `PROPOSED` A frontend MUST depend only on the Frontend Protocol (and its own toolkit). It MUST NOT include kernel, runtime or backend internal headers. — *Verify:* STATIC
 - **ARCH-044** `PROPOSED` `cdin-x` MUST depend only on the extension contract. — *Verify:* INSPECT, STATIC
 - **ARCH-045** `PROPOSED` The composition root MAY depend on everything at build time and MUST NOT be depended on by any component. — *Verify:* STATIC
-- **ARCH-046** `PROPOSED` Include-direction rules (ARCH-040 to ARCH-045) are enforced by an automated check in the implementation repositories (the current `scripts/check.py` is the natural home). — *Verify:* STATIC
+- **ARCH-046** `PROPOSED` Include-direction rules (ARCH-040 to ARCH-045) are enforced by static checks owned by the implementation repositories. The Spec repository release-reporting script does not inspect source dependencies. — *Verify:* STATIC
 
 ## 2. State ownership
 

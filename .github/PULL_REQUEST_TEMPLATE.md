@@ -115,7 +115,7 @@ Contradictions found:
 - [ ] Uses the vocabulary in `docs/reference/conventions.md` §4 (component, contract, external, deferred, outcome)
 - [ ] A `PROPOSED` flow says so in its caption; an `OPEN` behaviour is not drawn as settled (SPEC-006)
 - [ ] The diagram and the surrounding prose agree
-- [ ] Rendered locally: `python3 scripts/check.py --render`
+- [ ] Mermaid source reviewed manually; rendered locally if a Mermaid renderer is available
 
 ## Documentation hygiene
 
@@ -123,26 +123,25 @@ Contradictions found:
 - [ ] New pages are linked from `docs/README.md` (or their directory index)
 - [ ] New terms are in `docs/reference/glossary.md`, with exactly one meaning
 - [ ] The written spec change is committed before or together with any code that depends on it (SPEC-022)
-- [ ] No claim of a passing test: none has been run here (SPEC-008)
+- [ ] Do not claim an implementation test passed unless it was actually run (SPEC-008)
 - [ ] No component named in a way that contradicts `docs/architecture/repositories.md`
 
 ## Version and changelog
 
 - [ ] `CHANGELOG.md` has an entry under `[Unreleased]`
 - [ ] If this is a release: version bumped in `docs/reference/status.md` (SPEC-010), changelog dated, tag `vX.Y.Z` planned
-- [ ] Counts in `docs/reference/status.md` match `python3 scripts/check.py --stats`
+- [ ] Current inventory reviewed with `python3 scripts/spec_report.py`
 
 ## How was this checked?
 
-<!-- Paste the output, or say what you could not run and why. -->
+<!-- Describe any manual review or external tests actually performed. No automated Spec validation workflow runs. -->
 
 ```text
-$ python3 scripts/check.py
+$ python3 scripts/spec_report.py
 ```
 
-- [ ] `python3 scripts/check.py` passes (ids, links, refs, index, diagrams)
-- [ ] `python3 scripts/check.py --render` passes, if a diagram changed
-- [ ] `psx check` passes, if files were added, moved or removed
+- [ ] Manual review of affected links, requirement IDs, status transitions and diagram/prose alignment completed
+- [ ] `scripts/spec_report.py` output reviewed (informational only; it is not a validation gate)
 
 Not run, and why:
 

@@ -26,7 +26,7 @@
 - **ROOT-005** `EXISTING` The `bare` build target produces a tree with the core, fonts and themes and no plugins, used to measure startup and idle behaviour without any extension. — *Verify:* INTEG — *Anchor:* `mk/bundle.mk` (`bare`)
 - **ROOT-006** `PROPOSED` The launcher selects a frontend by name and passes it the backend's endpoint (in-process or serialized transport). Adding a frontend MUST NOT require changing the backend. — *Verify:* INTEG
 - **ROOT-007** `PROPOSED` The composition root MUST check ABI compatibility of the components it assembles (ABI-020) and refuse an incompatible set at build or start. — *Verify:* INTEG
-- **ROOT-008** `PROPOSED` Include-direction rules (ARCH-046) are enforced by tooling hosted here (today `scripts/check.py`). — *Verify:* STATIC
+- **ROOT-008** `PROPOSED` Include-direction rules (ARCH-046) are enforced by static tooling in the implementation repositories; the Spec repository only reports document inventory metadata. — *Verify:* STATIC
 - **ROOT-009** `EXISTING` Product release workflows for Linux, Windows and macOS and the website deployment are defined in the `cdin` repository. — *Verify:* INSPECT — *Anchor:* `.github/workflows/`
 - **ROOT-010** `PROPOSED` The standalone `cdin-kernel` repository is consumed by `cdin` as a pinned version (a release or a submodule at a tag), never as a floating branch. — *Verify:* INSPECT
 

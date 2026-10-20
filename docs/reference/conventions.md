@@ -74,7 +74,7 @@ Every requirement names how it will be verified. Because this repository is desi
 | `PERF` | Verified by a measured budget against a recorded baseline. |
 | `INTEG` | Verified by an end-to-end scenario across components. |
 
-No requirement may be reported as verified unless its verification has actually been run. The Spec structural checker and the separate `cdin-kernel` implementation suite are different verification targets and must be reported independently.
+No requirement may be reported as verified unless its verification has actually been run. `scripts/spec_report.py` only counts and summarizes the documentation; it does not verify requirements. The separate `cdin-kernel` implementation suite is an independent verification target and must be reported separately.
 
 ## 4. Diagrams
 

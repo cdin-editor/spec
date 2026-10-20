@@ -116,16 +116,15 @@ An ID's prefix tells you which page owns it.
 
 ## Working on the specification
 
-**[../CONTRIBUTING.md](../CONTRIBUTING.md)** — how a change is made, and the checklist.
-**[../AGENTS.md](../AGENTS.md)** — the same, for agents: what to run after touching what.
-**[../scripts/README.md](../scripts/README.md)** — `scripts/check.py`, the structural
-checks every change has to pass.
+**[../CONTRIBUTING.md](../CONTRIBUTING.md)** — how to make a specification change.
+**[../AGENTS.md](../AGENTS.md)** — editing and status rules.
+**[../scripts/README.md](../scripts/README.md)** — the release-reporting script and its output.
 
-## The short version
+## Release report
 
 ```sh
-python3 scripts/check.py            # IDs, links, references, index, diagram types
-python3 scripts/check.py --stats    # the counts reference/status.md quotes
-python3 scripts/check.py --render   # also render every diagram (needs mmdc)
-psx check                           # repository structure, against psx.yml
+python3 scripts/spec_report.py
+python3 scripts/spec_report.py --release-version 1.1.0 --output release-notes.md
 ```
+
+The report is informational and does not validate links, indexes, Mermaid rendering, or implementation behaviour. GitHub Actions is used only to publish a release after a `vX.Y.Z` tag is pushed.

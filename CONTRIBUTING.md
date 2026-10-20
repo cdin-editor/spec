@@ -11,9 +11,10 @@ IDs and verification methods are the whole grammar; a change that ignores them w
 
 1. Branch from `develop` (`feature/…` or `bugfix/…`; the flow is in `.gix/config`).
 2. Edit the page that owns the requirement ([where an ID lives](docs/README.md)).
-3. Run `python3 scripts/check.py`.
-4. If counts changed, update [docs/reference/status.md](docs/reference/status.md) from `--stats`.
-5. Commit as `<type>(<scope>): <subject>` (`docs`, `fix`, `feat`, `chore`, `refactor`).
+3. Review relative links, requirement IDs, status transitions and diagrams affected by the change manually; this repository intentionally has no automated content-validation job.
+4. Run `python3 scripts/spec_report.py` to see the current inventory and status counts. Update `docs/reference/status.md` if the release record changes.
+5. Add or update the appropriate `CHANGELOG.md` entry.
+6. Commit as `<type>(<scope>): <subject>` (`docs`, `fix`, `feat`, `chore`, `refactor`).
 
 ## Rules
 

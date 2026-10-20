@@ -9,7 +9,7 @@ This repository is the design specification of cdin and uses the same license
 as the cdin repository, so that text and code written against it can move
 between the two without a license change.
 
-It contains documents and one standard-library Python script (scripts/check.py).
+It contains documents and one standard-library Python script (scripts/spec_report.py) used to generate release inventory metadata.
 No third-party source code is bundled. Names of third-party components that
 appear in the text (SDL, Lua, libuv, Unicode, regular-expression libraries) are
 references to those projects, not copies of them; each keeps its own license.
