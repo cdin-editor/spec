@@ -1,7 +1,7 @@
 # ADR-0010: Unicode version policy
 
 - **ID:** ADR-0010
-- **Status:** `PROPOSED`. Approved in principle by the owner; detailed text awaits review.
+- **Status:** `ACCEPTED`. Each kernel release pins a queryable Unicode data version.
 
 ## Context
 Open decision OD-10. Grapheme boundaries, case folding and any normalization or mark-removal option depend on a Unicode version. Different versions give different results for the same text.
@@ -9,14 +9,14 @@ Open decision OD-10. Grapheme boundaries, case folding and any normalization or 
 ## Problem
 Which Unicode version does the kernel use, and can callers rely on it?
 
-## Decision (proposed)
+## Decision
 - Each kernel release **pins** one Unicode version.
 - The pinned version is queryable at run time (POS-032).
 - Every Unicode-dependent behaviour (grapheme segmentation, case folding, normalization, mark handling) is defined against that version.
 - Changing the pinned version is a MINOR change of the kernel, documented in release notes, and conformance vectors that depend on it state the version they target.
 
 ## Options
-- **A. Pin per release (proposed).** Pros: reproducible; two implementations can agree. Cons: periodic table updates.
+- **A. Pin per release (accepted).** Pros: reproducible; two implementations can agree. Cons: periodic table updates.
 - **B. Track the latest at build time.** Pros: no manual updates. Cons: results change silently between builds.
 - **C. Runtime-selectable version.** Pros: maximum control. Cons: large tables, complex testing.
 

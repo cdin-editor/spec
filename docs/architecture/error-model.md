@@ -10,7 +10,7 @@ One error vocabulary for every ABI boundary and for the Frontend Protocol.
 - **ERR-004** `PROPOSED` Invalid input from a caller is an error status, never undefined behaviour. This includes invalid handles, out-of-range positions, malformed requests and unknown flags. — *Verify:* FUZZ, SAN
 - **ERR-005** `PROPOSED` Out-of-memory is reported as `NO_MEMORY` with the operation left unapplied. — *Verify:* CONF (with an injected failing allocator), SAN
 
-## 2. Status codes (`PROPOSED`; final numeric values and names are in [OD-17](../adr/open-decisions.md))
+## 2. Status codes (kernel ABI 1.0.0; protocol mapping remains `PROPOSED`)
 
 | Code | Meaning | Details |
 |---|---|---|
@@ -24,7 +24,7 @@ One error vocabulary for every ABI boundary and for the Frontend Protocol.
 | `BUSY` | Document has an active transaction that is not the caller's | |
 | `LIMIT_EXCEEDED` | A configured cap was reached | which limit |
 | `NO_MEMORY` | Allocation failed | |
-| `PATTERN_INVALID` | Search pattern failed to compile | position in pattern |
+| `PATTERN_INVALID` | Invalid literal search pattern where reported | pattern position where available |
 | `CANCELLED` | Cancelled by the caller | |
 | `SHUTDOWN` | Component is shutting down or stopped | |
 | `UNSUPPORTED` | Unknown flag, enum value, feature or version | |

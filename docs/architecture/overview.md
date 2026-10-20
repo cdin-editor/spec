@@ -64,7 +64,7 @@ flowchart TB
     class Core,FEs group
 ```
 
-*Caption: `PROPOSED` target architecture. Today the GUI and the backend are fused in one process and one repository; see [migration.md](migration.md).*
+*Caption: accepted target architecture baseline. The current GUI/backend/runtime code is still integrated in `cdin`; `cdin-kernel` is a separate repository with ABI 1.0.0. Backend integration and the frontend protocol remain work items; see [migration.md](migration.md).*
 
 ## 4. Components
 
@@ -89,12 +89,12 @@ flowchart TB
 - **ARCH-006** `ACCEPTED` Extensions MUST NOT have direct access to the kernel; they use only the extension contract. — *Verify:* INSPECT, STATIC
 - **ARCH-007** `PROPOSED` Components MUST obey the dependency directions in [module-boundaries.md](module-boundaries.md). — *Verify:* STATIC
 - **ARCH-008** `PROPOSED` A component is not necessarily a repository. Repositories are created in stages according to [repositories.md](repositories.md). — *Verify:* INSPECT
-- **ARCH-009** `PROPOSED` Frontends MUST be peers: no frontend MAY use a channel to the backend that other frontends cannot use. — *Verify:* INSPECT, INTEG
+- **ARCH-009** `ACCEPTED` Frontends MUST be peers: no frontend MAY use a channel to the backend that other frontends cannot use. — *Verify:* INSPECT, INTEG
 - **ARCH-010** `EXISTING` `cdin` builds and runs without `cdin-x` (`make bin` needs no `cdin-x`; a bare tree runs with an empty site directory). — *Verify:* INTEG — *Anchor:* `AGENTS.md §1`, `mk/bundle.mk` (targets `bin`, `bare`)
 - **ARCH-011** `EXISTING` No code under `src/` or `data/core/` depends on `cdin-x`. References are comments only. The single build coupling is the variable `CDINX_DIR`. — *Verify:* STATIC — *Anchor:* `mk/bundle.mk` header; comment-only matches in `src/lua/error.h`, `src/api/system.c`, `src/main.c`, `data/core/config.lua`, `data/core/keymaps/default.lua`
 - **ARCH-012** `DEFERRED` General hot-swap of modules is not part of this phase. Only modules explicitly designed for it MAY be swapped live, later. — *Verify:* INSPECT
-- **ARCH-013** `PROPOSED` Every component document MUST state which state it owns, and no component MAY expose mutable state shared with another. — *Verify:* INSPECT
-- **ARCH-014** `PROPOSED` Every component MUST declare the specification version it claims to conform to. — *Verify:* INSPECT
+- **ARCH-013** `ACCEPTED` Every component document MUST state which state it owns, and no component MAY expose mutable state shared with another. — *Verify:* INSPECT
+- **ARCH-014** `ACCEPTED` Every component MUST declare the specification version it claims to conform to; the kernel header declares Spec 1.0.0. — *Verify:* INSPECT
 
 ### Invariants inherited from the current project rules
 

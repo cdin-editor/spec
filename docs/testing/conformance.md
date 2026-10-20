@@ -1,6 +1,6 @@
 # Conformance and verification design
 
-This document designs how the requirements will be verified. **It contains no tests and no runner**; none exist yet and none have been run. The aim is that when implementation starts, the first tests are already specified and independent of any implementation.
+This document defines a language-neutral conformance approach. The Spec repository contains no executable runner, while the separate `cdin-kernel` repository already has a C vector parser/runner, vector corpus and regression tests for its ABI 1.0.0 surface. Kernel results are recorded in [implementation status](../kernel/implementation-status.md); protocol and whole-editor tests remain planned.
 
 ## 1. Principles
 
@@ -27,7 +27,7 @@ flowchart LR
     IMPL2 --> REP
 ```
 
-*Caption: the planned verification pipeline. Only the left-most boxes exist, as design.*
+*Caption: the target verification pipeline. The kernel implementation provides its own runner and vectors; protocol and integrated-editor stages remain future work.*
 
 ## 2. Vector families
 
@@ -42,8 +42,8 @@ flowchart LR
 | `txn` | kernel | begin, commit, abort, rollback, `BUSY`, nesting rejection |
 | `undo` | kernel | linear history, coalescing, metadata blobs, caps, clean marker |
 | `notif` | kernel | order, exactly-once, versions, overflow and resync, subscribe-and-snapshot |
-| `search.literal`, `search.regex`, `search.bytes` | kernel | modes, case, Persian letter distinctness, multiline, invalid UTF-8, limits, cancellation |
-| `conc` | kernel | FIFO across threads, acceptance point, snapshot isolation, shutdown modes |
+| `search.literal`, `search.bytes` | kernel | supported literal/byte modes, case behavior, Persian letter distinctness, multiline literal matching, invalid UTF-8, configured limits; regex is explicitly unsupported in ABI 1.0.0. Cancellation is not advertised by the current ABI |
+| `conc` | kernel | caller serialization, sequence/linearization semantics, snapshot immutability, shutdown behavior; no wall-clock FIFO or queued shutdown modes |
 | `abi` | kernel | struct size, unknown flags, version and feature queries, buffer-size pattern |
 | `proto.handshake` | protocol | hello, capabilities, version mismatch |
 | `proto.updates` | protocol | flush atomicity, backpressure, versioned lines, invalidation |
@@ -68,15 +68,15 @@ Shown as prose steps so no format is fixed.
 > 4. Serialize → expect exactly `0x61 0xFF 0x62`.
 > Covers: TEXT-001, TEXT-004, TEXT-010, TEXT-042.
 
-> **search.regex / persian-distinct**
+> **search.literal / persian-distinct**
 > 1. Create a document containing Persian `ی` (U+06CC) and Arabic `ي` (U+064A) in separate words.
 > 2. Literal search for `ی` with default options → only the Persian occurrences match.
-> 3. The same with an explicit folding option that treats them as equal (when one exists) → both match.
+> 3. No default option normalizes or equates those letters; an optional named folding profile remains a separate open decision.
 > Covers: SEARCH-021, SEARCH-022, SEARCH-023.
 
 ## 4. Non-conformance methods
 
-- **TEST-010** `PROPOSED` **Fuzzing**: the ABI input boundary (struct sizes, flags, ranges, byte strings including random invalid UTF-8), the protocol decoder, the regex front end, and the line-ending and region classifiers. Targets run under sanitizers. — *Verify:* FUZZ
+- **TEST-010** `PROPOSED` **Fuzzing**: the kernel ABI input boundary (struct sizes, flags, ranges, arbitrary byte strings), the vector parser, protocol decoder when implemented, and line-ending/region classifiers. Regex fuzzing applies only if a future ABI adds regex. Targets run under sanitizers. — *Verify:* FUZZ
 - **TEST-011** `PROPOSED` **Sanitizers**: address and undefined-behaviour sanitizers on every test run; thread sanitizer on all `conc` vectors. — *Verify:* SAN
 - **TEST-012** `PROPOSED` **Failure injection**: an allocator that fails after N allocations, to verify `NO_MEMORY` handling leaves state unchanged (ERR-005, TXN-016). The existing runtime already has allocation-failure hooks that serve as precedent. — *Verify:* CONF
 - **TEST-013** `PROPOSED` **Performance budgets**: benchmarks with recorded baselines; a regression of more than 10% fails the phase, as the current project rule already states (`AGENTS.md §8`). Budgets are chosen by the 1 GB document case, not the 1 KB case. — *Verify:* PERF
@@ -96,3 +96,8 @@ Shown as prose steps so no format is fixed.
 ## 7. Reporting
 
 - **TEST-030** `PROPOSED` A verification report lists, per requirement ID: method, vector family, implementation and version, date run, result. A requirement with no entry is *unverified*, and is reported as such. — *Verify:* INSPECT
+
+
+## 8. Executed implementation evidence
+
+The Spec repository contains no executable product-test runner by design. The separate `cdin-kernel` ABI 1.0.0 repository contains the executable vector parser/runner, data-driven vectors and C regression tests. The synchronization record in [kernel implementation status](../kernel/implementation-status.md) and the release report gives exact commands and results run against the supplied kernel snapshot. Planned Frontend Protocol, backend integration, runtime and GUI/TUI/CLI integration vectors remain unimplemented and must not be reported as passing.

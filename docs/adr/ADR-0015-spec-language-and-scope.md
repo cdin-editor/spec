@@ -11,7 +11,7 @@ In which language is the specification written, and does it contain implementati
 
 ## Decision
 - English first for all normative text (SPEC-001). A Persian summary may be added later; it is never normative.
-- Design and architecture only: no implementation and no test runner in this repository (SPEC-002). Verification is *designed* (methods, vector families, reporting) and not written.
+- Design and architecture only: no product implementation or test runner in this repository (SPEC-002). Verification methods and vectors are designed here; separate implementation repositories own executable runners and report actual results.
 
 ## Options
 - **A. English only for now (decision).** Pros: one source of truth; broadest audience. Cons: slower for the owner to review.
@@ -22,7 +22,7 @@ In which language is the specification written, and does it contain implementati
 One normative language avoids drift; discussion can still happen in either language.
 
 ## Consequences
-Conformance vectors, when written, live with the implementation or in a dedicated place decided later; the design in [conformance.md](../testing/conformance.md) fixes their shape. The specification stays honest about this: no tests are claimed (SPEC-008).
+Conformance vectors live with the relevant implementation when that is the practical owner. `cdin-kernel` includes vectors and a runner for ABI 1.0.0; the Spec only claims results recorded with exact commands and versions (SPEC-008).
 
 ## References
 SPEC-001, SPEC-002, [spec.md](../components/spec.md).

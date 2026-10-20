@@ -10,7 +10,7 @@ A working editor exists (about 15 thousand lines of C and Lua core plus tooling)
 Rewrite or evolve?
 
 ## Decision
-Evolve incrementally in the phases of [migration.md](../architecture/migration.md): spec, kernel inside `cdin`, Lua document as kernel client, protocol in-process around the GUI, headless frontend and serialized transport, then repository extraction.
+Evolve incrementally in the phases of [migration.md](../architecture/migration.md): Spec baseline; integrate the already-extracted `cdin-kernel` ABI 1.0.0 into `cdin`; migrate the Lua document layer into a kernel client; define the Frontend Protocol and integrate it in-process; add headless/serialized transport; extract `cdin-runtime` only after its host API is stable.
 
 ## Options
 - **A. Big-bang rewrite.** Pros: a clean slate. Cons: long period without a working editor; no way to compare against existing behaviour.

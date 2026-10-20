@@ -4,22 +4,25 @@ A **component** has one responsibility and a contract. A **repository** is a uni
 
 ## 1. Today and target
 
-### Today
+### Current archive baseline
 
 ```mermaid
 flowchart TB
-    cdinnow["cdin (repo)<br/>C runtime in src/, Lua core in data/core/,<br/>scripts/, mk/, docs/"]
-    xnow["cdin-x (repo)<br/>separate ecosystem"]
-    specnow["spec (repo)<br/>this repository: contracts only"]
-    xnow -. "four things bundled at build time (CDINX_DIR)" .-> cdinnow
-    specnow -. "defines the contracts, contains no code" .-> cdinnow
+    cdinrepo["cdin (repo)<br/>composition root, backend/UI source,<br/>build and integration"]
+    kernelrepo["cdin-kernel (repo)<br/>native text engine, C ABI 1.0.0"]
+    xnow["cdin-x (repo)<br/>separate extension ecosystem"]
+    specnow["spec (repo)<br/>architecture and contracts"]
+    specnow -. "defines contracts" .-> cdinrepo
+    specnow -. "defines ABI 1.0.0 contract" .-> kernelrepo
+    kernelrepo -. "to be integrated / version-checked" .-> cdinrepo
+    xnow -. "extension input at build time" .-> cdinrepo
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
-    class cdinnow,specnow,xnow comp
+    class cdinrepo,kernelrepo,specnow,xnow comp
 ```
 
-*Caption: what exists now, per [status.md](../reference/status.md). One implementation repository holds the C runtime, the Lua core and the tooling; `cdin-x` is already separate; this repository holds contracts only.*
+*Caption: archive snapshots inspected for the 1.0.0 synchronization. The uploads contain working trees but not Git history, so this report cannot verify commit ancestry or whether an extraction preserved history. `cdin-kernel` exists as a standalone source tree and publishes C ABI 1.0.0; its integration into `cdin` remains a separate gate.*
 
-### Target (`PROPOSED`)
+### Stable architecture baseline and target
 
 ```mermaid
 flowchart TB
@@ -52,14 +55,14 @@ flowchart TB
     class cdinrepo group
 ```
 
-*Caption: `PROPOSED` end state. Arrows are build or link dependencies; dotted arrows are contract relationships.*
+*Caption: accepted repository boundaries and target composition. The `cdin-runtime` extraction remains gated on the runtime host API being stable. Arrows are build or link dependencies; dotted arrows are contract relationships.*
 
 ## 2. Component to repository map
 
 | Component | Repository now | Repository target | Status |
 |---|---|---|---|
-| spec | `cdin-editor/spec` | same | `ACCEPTED` that it exists; contents `PROPOSED` |
-| kernel | does not exist | `cdin-kernel`, created after its ABI is stable (phase 2 of [migration.md](migration.md)); until then a directory inside `cdin` | `PROPOSED` |
+| spec | `cdin-editor/spec` | same | `ACCEPTED`; Spec baseline `1.0.0` |
+| kernel | standalone `cdin-kernel` archive snapshot | same; stable C ABI `1.0.0` | `ACCEPTED` |
 | runtime | inside `cdin` (`data/core/`, `src/lua/`, `src/api/`) | `cdin-runtime`, created after the runtime host API is stable | `PROPOSED` |
 | backend | inside `cdin` (`src/`) | stays in `cdin` | `PROPOSED` |
 | frontend: gui-sdl | inside `cdin` (`src/ui/`, `src/core/window.*`, SDL parts of `src/api/system.c`) | directory in `cdin`, extractable | `PROPOSED` |
@@ -74,7 +77,7 @@ There is deliberately **no** `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin
 
 - **ARCH-030** `PROPOSED` A new repository MUST be justified by at least one of: a second consumer of the component that is not the current repository; an independent release cadence; a different implementation language or toolchain; a separation of ownership. — *Verify:* INSPECT
 - **ARCH-031** `PROPOSED` A component MUST NOT be extracted into its own repository until its contract has a version number and a written compatibility policy. — *Verify:* INSPECT
-- **ARCH-032** `PROPOSED` Extraction MUST preserve history (`git mv` then split with history retained), and the editor MUST build and start before and after extraction. — *Verify:* INTEG
+- **ARCH-032** `PROPOSED` Extraction SHOULD preserve source history using a subtree/filter-repo method or an equivalent mapping; `git mv` alone does not preserve history across repositories. The editor MUST build and start before and after extraction. — *Verify:* INTEG
 - **ARCH-033** `PROPOSED` Frontends MAY live outside the `cdin` repository at any time, because they depend only on the Frontend Protocol. No change to other components is required for that. — *Verify:* INSPECT
 - **ARCH-034** `ACCEPTED` No `cdin-common` or `cdin-shared` repository is created without explicit approval and a stated reason (same as ARCH-005; restated here as the rule for this document). — *Verify:* INSPECT
 - **ARCH-035** `PROPOSED` A protocol client library (a binding of the Frontend Protocol for frontend authors) is the one shared artifact with an architectural justification. Whether it is a separate repository is `OPEN`: see [OD-23](../adr/open-decisions.md). — *Verify:* INSPECT
@@ -111,4 +114,4 @@ There is deliberately **no** `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin
 
 ## 5. Why the current layout is not simply split
 
-The current `cdin` source is small (roughly 7.2 thousand lines of C and 7.3 thousand of Lua core, measured on the inspected tree) and the C API and the Lua core change together. A split without a stable contract would force every change into several coordinated pull requests. The target topology therefore creates contracts first (this repository), repositories second. See [migration.md](migration.md).
+The current `cdin` archive still contains backend, runtime and GUI-related code together; its SDL3-dependent build/test path could not be verified in the available environment because SDL3 headers are absent and the archived test baseline is empty. The standalone `cdin-kernel` ABI is now stable, but its composition-root integration must be gated by an integration test. The next justified repository extraction is `cdin-runtime` only after its host API is stable. The supplied archives have no Git history, so migration history preservation cannot be assessed here. See [migration.md](migration.md).

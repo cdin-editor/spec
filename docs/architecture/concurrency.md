@@ -1,82 +1,71 @@
 # Concurrency
 
-How threads interact across components. The kernel may receive requests from several threads; mutations are serialized in FIFO order; reads use immutable snapshots. The Lua state stays single-threaded.
+The `cdin-kernel` 1.0.0 API is synchronous: each function runs on the calling thread and returns before that call completes. There is no hidden mutation executor or request FIFO. A caller-provided lock vtable can serialize API entries; without one, the application must ensure only one thread at a time calls a given kernel. The Lua state remains single-threaded.
 
 ## 1. Threads in the system
 
 | Thread kind | Where | May call |
 |---|---|---|
-| Main/event thread | backend | everything; owns the Lua state and the frontend connections |
-| Worker threads | backend job system | kernel ABI (read via snapshots, search); never Lua |
+| Main/event thread | backend | kernel and runtime APIs; owns the Lua state |
+| Worker threads | backend job system | kernel API only when a lock vtable is configured, or under application-level serialization; never Lua |
 | Frontend threads | frontend | the Frontend Protocol only |
 
-- **CONC-009** `EXISTING` The Lua state is single-threaded and workers never touch it; workers operate on immutable, reference-counted snapshots. — *Verify:* SAN, INSPECT — *Anchor:* `AGENTS.md §2.3`; the job layer is `src/loop/loop.c` and `src/loop/loop.h`
+- **CONC-009** `EXISTING` The Lua state is single-threaded and worker code must not touch it; worker results intended for Lua are posted to the main/event thread. — *Verify:* INSPECT — *Anchor:* `AGENTS.md §2.3`; `src/loop/loop.c` and `src/loop/loop.h` in the supplied `cdin` snapshot.
 
 ## 2. Kernel concurrency model
 
 ```mermaid
 flowchart TB
-    T1["thread A: edit request"]
-    T2["thread B: edit request"]
-    T3["thread C: search request"]
-    Q["acceptance point: sequence number assigned under queue lock"]
-    M["mutation executor: one at a time, FIFO"]
-    S[("committed snapshot, immutable, ref-counted")]
-    N["notification queues, per subscriber"]
-
-    T1 --> Q
-    T2 --> Q
-    Q --> M
-    M -- "commit publishes new version" --> S
-    T3 -- "acquire snapshot" --> S
+    A["caller A: synchronous API call"]
+    B["caller B: synchronous API call"]
+    L{"caller-provided lock configured?"}
+    S["serialize calls with shared lock<br/>or by application owner"]
+    V["validate handle, state, expected version"]
+    M["apply mutation atomically"]
+    D[("committed document state / immutable block pins")]
+    N["bounded notification queues"]
+    A --> L
+    B --> L
+    L -- "yes" --> S
+    L -- "no" --> V
+    S --> V
+    V --> M --> D
     M --> N
-    classDef ext fill:#f1f5f9,stroke:#64748b,color:#0f172a
-    class S ext
 ```
 
-*Caption: `PROPOSED` model. Mutations are serialized by the executor; readers never wait for it beyond the instant of snapshot acquisition.*
+*Caption: implemented ABI 1.0.0 call model. Calls execute inline. When configured, the caller-supplied lock serializes kernel entry; otherwise the caller must serialize access. The order is lock/linearization order, not a promise of FIFO by wall-clock arrival or thread start time.*
 
-- **CONC-001** `ACCEPTED` The kernel MUST accept requests from multiple threads. — *Verify:* SAN, CONF
-- **CONC-002** `ACCEPTED` Mutations MUST execute serially, one at a time. — *Verify:* SAN, CONF
-- **CONC-003** `ACCEPTED` Accepted mutation requests MUST execute in FIFO order. — *Verify:* CONF
-- **CONC-004** `PROPOSED` The *acceptance point* is the moment a request is assigned a sequence number under the queue lock. Order is by sequence number. The successful return of a submit call reports that sequence number. A request that fails validation before acceptance has no sequence number and does not take part in the order. — *Verify:* CONF, INSPECT
-- **CONC-005** `PROPOSED` Reads MUST use immutable, reference-counted snapshots of a committed version. A read MUST NOT observe a partially applied mutation or a tentative transaction state of another caller. — *Verify:* CONF, SAN
-- **CONC-006** `PROPOSED` Acquiring a snapshot is the only point where a reader synchronizes with mutations. The number of live snapshots per document is bounded by configuration; exceeding it returns `LIMIT_EXCEEDED`. Snapshots are released explicitly. — *Verify:* CONF, PERF
-- **CONC-007** `PROPOSED` Long operations (search, large conversions) run on a snapshot, MUST be cancellable, and MUST have a resource limit expressed in steps, not time (the kernel does not read the clock). — *Verify:* CONF
-- **CONC-010** `PROPOSED` Version checks are atomic with mutation: the expected-version comparison and the application of the edit occur within the same serialized step. — *Verify:* CONF (see EDIT-006)
-- **CONC-011** `PROPOSED` A caller that holds a snapshot while submitting a mutation sees the mutation only in snapshots acquired after it commits. — *Verify:* CONF
+- **CONC-001** `ACCEPTED` The kernel MUST support calls made from multiple threads when a valid caller-provided lock/unlock pair serializes entry; without that pair the caller MUST ensure calls do not overlap. — *Verify:* SAN, CONF
+- **CONC-002** `ACCEPTED` Mutations MUST execute serially, one at a time, with each successful mutation exposing an atomic committed state. — *Verify:* SAN, CONF
+- **CONC-003** `ACCEPTED` Accepted mutation sequence numbers identify the order established at the kernel's serialized acceptance point. ABI 1.0.0 MUST NOT claim FIFO by wall-clock request arrival, scheduler order or thread start time. — *Verify:* CONF, INSPECT
+- **CONC-004** `ACCEPTED` For a version-checked mutation, the stale-version check occurs atomically while the API call is serialized and before mutation preparation. A stale request is rejected without a document change. Sequence values are implementation ordering metadata, not a cross-thread arrival-time guarantee; later preparation failures may leave gaps. — *Verify:* CONF, INSPECT
+- **CONC-005** `ACCEPTED` Explicit snapshots expose immutable content and a fixed document version until released. APIs operating on a document directly synchronize through the kernel lock; clients needing stable multi-call reads MUST acquire a snapshot. — *Verify:* CONF, SAN
+- **CONC-006** `ACCEPTED` Snapshot and notification allocations are bounded by the per-kernel/per-document limits documented in the ABI header; excess requests fail or notifications collapse to `RESYNC` rather than allowing an unbounded event queue. — *Verify:* CONF, PERF
+- **CONC-007** `PROPOSED` Future long-running operations SHOULD accept deterministic step limits and cancellation rather than wall-clock timeouts; the kernel must not read the clock for editor policy. — *Verify:* CONF
+- **CONC-010** `ACCEPTED` A version check and its associated mutation are atomic with respect to other calls serialized on the same kernel. — *Verify:* CONF (see EDIT-006)
+- **CONC-011** `ACCEPTED` A snapshot acquired before a mutation remains unchanged; a later snapshot may observe the committed mutation. — *Verify:* CONF
 
 ### Reads during an active transaction
 
-- **CONC-012** `PROPOSED` While a transaction is active on a document, reads by other callers observe the last committed version. Only the transaction's own handle MAY read tentative content. (Closes the proposed answer to open item 7 of the original list; see [OD-07](../adr/open-decisions.md).) — *Verify:* CONF
+- **CONC-012** `ACCEPTED` While a transaction is active on a document, ordinary reads by other callers observe the last committed version. Only the transaction handle reads tentative content. — *Verify:* CONF
 
 ### Transactions and other writers
 
-- **CONC-013** `PROPOSED` While a transaction is active on a document, mutation requests on that document that do not belong to the transaction are rejected with `BUSY` rather than queued, so that no long transaction can stall every other writer silently. Other documents are unaffected. This is `PROPOSED`; the alternative (queue behind the transaction) is recorded in [OD-21](../adr/open-decisions.md). — *Verify:* CONF
+- **CONC-013** `ACCEPTED` While a transaction is active on a document, an unrelated mutation on that document is rejected with `BUSY`; mutations on other documents are not blocked by the active transaction merely because they share a kernel. — *Verify:* CONF
 
 ## 3. Shutdown
 
-```mermaid
-stateDiagram-v2
-    [*] --> Running
-    Running --> Draining: shutdown graceful
-    Running --> Aborting: shutdown abort
-    Draining --> Stopped: accepted requests finished
-    Aborting --> Stopped: pending requests failed with SHUTDOWN
-    Stopped --> [*]
-```
+Kernel ABI 1.0.0 has no internal pending request queue to drain. `cdin_kernel_shutdown` stops new content mutations and aborts active transactions; allowed teardown/read operations remain available until handles are explicitly released or the kernel is destroyed. The graceful/abort enum values are accepted for API compatibility, but both modes have the same behavior in this release.
 
-*Caption: `PROPOSED`. Pending requests at shutdown are the subject of [OD-18](../adr/open-decisions.md).*
-
-- **CONC-020** `PROPOSED` Shutdown has two modes. *Graceful*: stop accepting new requests (they return `SHUTDOWN`), finish every accepted request in FIFO order, then stop. *Abort*: stop accepting, fail every request not yet started with `SHUTDOWN`, finish only the request currently executing, then stop. — *Verify:* CONF
-- **CONC-021** `PROPOSED` Active transactions at shutdown are aborted and rolled back in both modes. — *Verify:* CONF
-- **CONC-022** `PROPOSED` After shutdown completes, all handles are invalid and all snapshots MUST have been released by their holders; the kernel reports leaked snapshots at destruction as a diagnostic status, never by crashing. — *Verify:* SAN, CONF
+- **CONC-020** `ACCEPTED` Shutdown MUST reject new content mutations, abort active transactions and provide deterministic teardown; graceful and abort mode values are behaviorally equivalent in ABI 1.0.0 because API calls execute synchronously and there is no queued work to drain or cancel. — *Verify:* CONF
+- **CONC-021** `ACCEPTED` Active transactions are aborted and rolled back during shutdown. — *Verify:* CONF
+- **CONC-022** `PROPOSED` After kernel destruction all handles are invalid; callers MUST release snapshots and stop concurrent API calls before destruction. — *Verify:* SAN, CONF
 
 ## 4. Backend concurrency
 
-- **CONC-030** `PROPOSED` The backend serializes its interaction with the runtime on the main thread. Anything a worker produces for Lua is posted to the main thread as a message. — *Verify:* SAN, INSPECT (restates CONC-009 from the backend's side)
-- **CONC-031** `PROPOSED` Frontend connections are serviced without blocking the main thread; a slow frontend MUST NOT stall the backend (see PROTO-021). — *Verify:* PERF, INTEG
+- **CONC-030** `PROPOSED` The backend serializes its interaction with the runtime on the main/event thread. Worker results intended for Lua are posted to the main/event thread. — *Verify:* SAN, INSPECT
+- **CONC-031** `PROPOSED` Frontend connections SHOULD be serviced without blocking the main thread; a slow frontend MUST NOT indefinitely stall unrelated backend work. — *Verify:* PERF, INTEG
 
 ## 5. Frontend concurrency
 
-- **CONC-040** `PROPOSED` The protocol is message-ordered per connection. Messages from one connection are processed in the order sent. Ordering across connections is by arrival at the backend and is not otherwise guaranteed. — *Verify:* CONF, INTEG
+- **CONC-040** `PROPOSED` The protocol is message-ordered per connection. Messages from one connection are processed in send order. Ordering across connections is established by backend serialization and is not otherwise guaranteed. — *Verify:* CONF, INTEG

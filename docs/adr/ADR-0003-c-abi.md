@@ -24,7 +24,7 @@ What interface style do binary boundaries between components use, and what does 
 Manual discipline is the price of universality. The rules reduce it to a small, checkable set (STATIC checks on headers, sanitizers, fuzzing).
 
 ## Consequences
-- Exact function names and struct layouts are not yet fixed ([OD-17](open-decisions.md)); the rules are.
+- The exact Kernel C API, numeric constants and structure layouts are frozen for ABI 1.0.0 in the public kernel header. The Frontend Protocol serialized encoding remains a separate open decision.
 - The Frontend Protocol uses the same discipline for its in-process transport and offers a serialized transport for language-neutral use ([ADR-0005](ADR-0005-frontend-protocol.md)).
 - The runtime (Lua) is behind the backend's host API, not a C ABI boundary.
 

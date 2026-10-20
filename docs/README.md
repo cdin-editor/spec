@@ -1,6 +1,6 @@
 # Documentation
 
-Forty-nine pages, in six places. Most readers need three of them.
+The authoritative CDIN architecture and contract index. Most readers need three pages to begin.
 
 This is the index of the CDIN specification. The repository-level picture is in the
 [README](../README.md); this page tells you which of the pages below to open for what
@@ -46,7 +46,7 @@ System-level design: who owns what, how components talk, how they start and stop
 | [module-boundaries](architecture/module-boundaries.md) | who may depend on whom; who owns which state |
 | [abi-and-compatibility](architecture/abi-and-compatibility.md) | the C ABI rules every binary boundary follows |
 | [frontend-protocol](architecture/frontend-protocol.md) | how GUI, TUI, CLI and future frontends attach |
-| [concurrency](architecture/concurrency.md) | threads, the FIFO acceptance point, snapshots, shutdown |
+| [concurrency](architecture/concurrency.md) | synchronous kernel calls, lock-order semantics, snapshots, shutdown |
 | [lifecycle](architecture/lifecycle.md) | process, module, plugin and document lifecycles |
 | [error-model](architecture/error-model.md) | status codes and error structure |
 | [extension-model](architecture/extension-model.md) | how `cdin-x` and plugins relate to the core |
@@ -75,17 +75,18 @@ The text engine in full, from the document down to a byte.
 | [transactions](kernel/transactions.md) | grouping, commit, rollback |
 | [undo-redo](kernel/undo-redo.md) | linear history, coalescing, bounds |
 | [change-notifications](kernel/change-notifications.md) | ordered events, queues, resync |
-| [search-engine](kernel/search-engine.md) | literal, regex and byte search with limits |
+| [search-engine](kernel/search-engine.md) | literal and byte search, limits; regex deferred |
 
 ## Testing
 
-Verification *design*. No test code lives here and none has been run.
-[conformance](testing/conformance.md) designs the data-driven suite;
-[test-matrix](testing/test-matrix.md) maps every requirement group to its methods.
+Verification plan and external test evidence. This repository contains no executable test suite.
+[conformance](testing/conformance.md) describes the data-driven contract;
+[test-matrix](testing/test-matrix.md) maps requirement groups;
+[kernel implementation status](kernel/implementation-status.md) records actual `cdin-kernel` checks.
 
 ## Decisions
 
-[adr/README.md](adr/README.md) indexes the sixteen ADRs and says how owner approval is
+[adr/README.md](adr/README.md) indexes the seventeen ADRs and says how owner approval is
 recorded. [adr/open-decisions.md](adr/open-decisions.md) is the register of every
 unresolved question, with options and trade-offs. Unresolved questions are never
 requirements.

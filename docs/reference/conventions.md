@@ -8,7 +8,7 @@ Every requirement, decision and diagram element carries exactly one status.
 
 | Label | Meaning | Who may set it |
 |---|---|---|
-| `EXISTING` | Behaviour verified in the current `cdin` source or documents. Must cite a **code anchor** (file, and symbol or section). | Anyone, after verifying. |
+| `EXISTING` | Behaviour verified against an identified supplied repository/archive snapshot or its documents. Must cite a **code/document anchor** (file, symbol or section), with snapshot identity and inspection limits recorded in `docs/reference/status.md`. It does not imply access to upstream Git history or CI. | Anyone, after verifying. |
 | `ACCEPTED` | A decision explicitly made by the project owner. | Project owner only. |
 | `PROPOSED` | A recommendation awaiting a decision. Never to be treated as settled. | Anyone. |
 | `OPEN` | An unresolved question. Appears only in the [Open Decisions Register](../adr/open-decisions.md), never as a requirement. | Anyone. |
@@ -74,7 +74,7 @@ Every requirement names how it will be verified. Because this repository is desi
 | `PERF` | Verified by a measured budget against a recorded baseline. |
 | `INTEG` | Verified by an end-to-end scenario across components. |
 
-No requirement may be reported as verified unless a verification has actually been run. This specification reports none as run.
+No requirement may be reported as verified unless its verification has actually been run. The Spec structural checker and the separate `cdin-kernel` implementation suite are different verification targets and must be reported independently.
 
 ## 4. Diagrams
 

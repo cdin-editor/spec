@@ -19,7 +19,7 @@ flowchart TB
         RTH{{"runtime host API<br/>provided by backend"}}
         BE["backend"]
         OSS["OS services<br/>inside backend"]
-        K["kernel<br/>depends on libc, an injected allocator,<br/>an internal regex library"]
+        K["kernel<br/>depends on C11/libc and injected services"]
     end
 
     ROOT -. "ARCH-045: build time only" .-> TOP
@@ -39,11 +39,11 @@ flowchart TB
     class CORE,TOP group
 ```
 
-*Caption: `PROPOSED`. An arrow `A --> B` means A depends on B. Nothing depends on a frontend; nothing below the kernel exists.*
+*Caption: target dependency direction, with the kernel C ABI implemented as a separate repository. An arrow `A --> B` means A depends on B. Frontends depend on the protocol; the kernel depends on neither frontend nor runtime.*
 
 Read as rules:
 
-- **ARCH-040** `PROPOSED` The kernel MUST depend on nothing except the C standard library, an injected allocator and, internally, a regular-expression library. — *Verify:* STATIC
+- **ARCH-040** `ACCEPTED` The kernel MUST depend only on the C11/platform C runtime and explicitly injected services; it MUST NOT depend on the GUI, runtime, backend, OS file APIs or third-party regex engine in ABI 1.0.0. — *Verify:* STATIC
 - **ARCH-041** `PROPOSED` The runtime MUST reach documents only through the runtime host API that the backend provides; it MUST NOT link to or load the kernel directly. — *Verify:* STATIC, INSPECT
 - **ARCH-042** `PROPOSED` The backend MUST NOT include any display-toolkit header (SDL, terminal libraries). — *Verify:* STATIC
 - **ARCH-043** `PROPOSED` A frontend MUST depend only on the Frontend Protocol (and its own toolkit). It MUST NOT include kernel, runtime or backend internal headers. — *Verify:* STATIC
@@ -67,8 +67,8 @@ Read as rules:
 | Session (open documents, attached frontends) | backend | handles |
 
 - **ARCH-050** `PROPOSED` The runtime MUST NOT hold an independent copy of document content or undo history (restates KERNEL-005 from the runtime's side). — *Verify:* INSPECT
-- **ARCH-051** `PROPOSED` Selections MUST be owned by the view and not by the kernel. The kernel MAY store an opaque caller-supplied blob per undo unit so selections can be restored. — *Verify:* INSPECT, CONF
-- **ARCH-052** `PROPOSED` Visual layout MUST be owned by frontends. — *Verify:* INSPECT
+- **ARCH-051** `ACCEPTED` Selections MUST be owned by the view and not by the kernel. The kernel MAY store an opaque caller-supplied blob per undo unit so selections can be restored. — *Verify:* INSPECT, CONF
+- **ARCH-052** `ACCEPTED` Visual layout MUST be owned by frontends. — *Verify:* INSPECT
 
 ## 3. Communication matrix
 

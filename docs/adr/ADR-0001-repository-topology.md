@@ -1,39 +1,35 @@
 # ADR-0001: Repository topology
 
 - **ID:** ADR-0001
-- **Status:** `PROPOSED`. The following parts are `ACCEPTED`: `cdin` is the composition root; `cdin-x` is fully separate; no `cdin-common` or `cdin-shared` repository without approval (see [ADR-0014](ADR-0014-no-shared-repositories.md)).
+- **Status:** `ACCEPTED`
 
 ## Context
-The `cdin` repository mixes C, Lua and tooling. The owner wants it split so it is easier to manage and develop. Candidate repositories named: engine or kernel, frontend, backend, runtime, data, and `cdin-x` (already separate, top level, unrelated to `cdin`'s internals). Questions raised: whether `cdin-scripts` or `cdin-shared` are needed.
-
-Inspected facts (see [status.md](../reference/status.md)): about 7.2 thousand lines of C, about 7.3 thousand lines of Lua core, about 6.6 thousand lines of tooling; the C API and the Lua core change together; the only coupling to `cdin-x` is the `CDINX_DIR` build input.
+The supplied working-tree archives identify four current repositories: `cdin`, `cdin-kernel`, `spec`, and `cdin-x`. The archive snapshots contain no Git history, so this ADR records the target topology, not historical commit ancestry. `cdin` still contains the composition root, backend and frontend/runtime source; `cdin-kernel` is already a standalone C11 implementation with ABI 1.0.0; `cdin-x` remains a separate extension ecosystem.
 
 ## Problem
-Which components become separate repositories, and when?
+Which components are separate repositories now, and what should be extracted next?
 
-## Decision (proposed)
-Stage the split. Define contracts first (this repository), then extract:
-
-1. `spec` now.
-2. `cdin-kernel` after its ABI has a stable version and two consumers; until then a directory in `cdin`.
-3. `cdin-runtime` after the runtime host API is stable.
-4. The backend stays in `cdin` with the composition root.
-5. Frontends are directories in `cdin` and are extractable at any time because they depend only on the protocol.
-6. `data` has no repository (see [data.md](../components/data.md)).
-7. No `cdin-scripts`, `cdin-shared`, `cdin-common`, `cdin-backend`, `cdin-frontend` or `cdin-data` repositories.
+## Decision
+1. `spec` is the authoritative architecture/contracts repository; its stable baseline is version `1.0.0`.
+2. `cdin-kernel` is a separate repository now, with a stable C ABI `1.0.0`; integration into `cdin` must be verified as its own gate.
+3. `cdin` remains the composition root and retains build/bundle/release/launcher tooling, backend, frontends, and the current runtime code until the next boundary is stable.
+4. `cdin-runtime` is the next justified repository extraction, but only after its host API is versioned, documented, and tested through an integration spike.
+5. GUI-SDL, TUI, CLI and headless reference frontends remain directories in `cdin` until independent release cadence or ownership justifies a split.
+6. No `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin-scripts`, `cdin-common` or `cdin-shared` repository is created without a new explicit decision.
+7. `cdin-x` remains fully separate and interacts with the runtime extension contract; the kernel remains unaware of extensions.
 
 ## Options
-- **A. Split everything into five repositories now.** Pros: matches the owner's first sketch. Cons: C API and Lua core change together, so every change becomes several coordinated pull requests; contracts do not yet exist; the build rule "editor builds and starts after every step" (ARCH-026) becomes harder to hold.
-- **B. Stage the split behind contracts (proposed).** Pros: repositories appear when they have an owner-visible reason; contracts get exercised first. Cons: the `cdin` repository stays larger for longer.
-- **C. Keep one repository and restructure directories only.** Pros: simplest. Cons: does not provide the independent kernel the architecture wants.
+- **A. Split every component immediately.** Rejected: too many untested boundaries and a multi-repository coordination burden.
+- **B. Extract on stable contracts and independently justified release/ownership boundaries.** Accepted: the kernel boundary is stable; the runtime boundary is next but gated.
+- **C. Keep everything in `cdin`.** Rejected for the kernel, whose stable public ABI and independent tests now justify its repository.
 
 ## Trade-offs
-Early repositories give clean boundaries on day one but multiply coordination cost; late repositories keep velocity but defer the boundary. Staging with explicit entry conditions ([repositories.md](../architecture/repositories.md), ARCH-030 to ARCH-035) gets the boundary from contracts rather than from repository walls.
+Staged extraction puts integration tests before repository separation. It does not assert that the supplied archive preserved Git history; that requires access to the actual repositories/history.
 
 ## Consequences
-- `cdin-scripts` is not created: the tooling depends on the Makefile and the layout of `src/`, so a separate repository would break whenever the layout changes.
-- `cdin-shared` is not created: nothing is shared between two repositories today; the only shared artifact with an architectural reason is a protocol client library (ARCH-035, [OD-23](open-decisions.md)).
-- Extraction rules and the migration order are in [migration.md](../architecture/migration.md).
+- The next repo to build is `cdin-runtime`, after a small host-API integration spike confirms that the current Lua/runtime surface can be separated without duplicating canonical document state.
+- The immediate integration task is wiring `cdin-kernel` into `cdin` through the published header, checking ABI major 1, and proving the editor starts/builds without reimplementing document/history logic.
+- No shared/common repository is introduced without approval ([ADR-0014](ADR-0014-no-shared-repositories.md)).
 
 ## References
 [repositories.md](../architecture/repositories.md), [migration.md](../architecture/migration.md), [ADR-0014](ADR-0014-no-shared-repositories.md).

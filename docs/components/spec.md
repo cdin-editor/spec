@@ -20,11 +20,11 @@ It is **design only**: no implementation, no test runner, no code beyond non-nor
 - **SPEC-005** `PROPOSED` Unresolved items appear only in the Open Decisions Register, never as requirements. — *Verify:* STATIC
 - **SPEC-006** `PROPOSED` Diagrams and prose agree; a diagram never shows `OPEN` behaviour as settled. — *Verify:* INSPECT
 - **SPEC-007** `PROPOSED` No history or date is invented. A claim about the state of any repository names the snapshot it was drawn from ([status.md](../reference/status.md)). — *Verify:* INSPECT
-- **SPEC-008** `PROPOSED` No test is reported as passing unless it was run. The specification currently reports none run. — *Verify:* INSPECT
+- **SPEC-008** `ACCEPTED` No test is reported as passing unless it was run. Spec-only checks and cross-repository implementation tests MUST be reported separately, with command, implementation version, date and result. — *Verify:* INSPECT
 
 ## 3. Versioning of the specification
 
-- **SPEC-010** `PROPOSED` The specification has a semantic version recorded in [status.md](../reference/status.md). MAJOR increments when an `ACCEPTED` requirement changes meaning; MINOR when requirements are added or promoted; PATCH for editorial fixes. — *Verify:* INSPECT
+- **SPEC-010** `ACCEPTED` This specification has a semantic version recorded in [status.md](../reference/status.md). MAJOR increments when a stable contract changes incompatibly; MINOR adds compatible contract content or promotes decisions; PATCH contains corrections that do not change normative meaning. — *Verify:* INSPECT
 - **SPEC-011** `PROPOSED` A component states the specification version it claims to conform to (ARCH-014). A conformance claim is meaningful only for requirements that were `ACCEPTED` at that version. — *Verify:* INSPECT
 - **SPEC-012** `PROPOSED` Requirement IDs are permanent. A withdrawn requirement keeps its ID, with a note, and is never reused. — *Verify:* STATIC
 
@@ -50,16 +50,16 @@ flowchart LR
 
 ## 5. Implementation feedback gates
 
-This is how the specification stays honest against real code although it contains none.
+This is how the specification stays honest against real code while keeping implementation code in its own repositories.
 
-- **SPEC-030** `PROPOSED` Before a component's `PROPOSED` requirements are promoted, a **prototype spike** MUST exercise them against real code: a throwaway implementation of the riskiest parts, run against the planned conformance vectors. — *Verify:* INSPECT
+- **SPEC-030** `PROPOSED` Before a component's `PROPOSED` requirements are promoted, a **prototype or production implementation** MUST exercise the relevant contract against conformance checks. A production implementation with public-API tests may satisfy this gate; the project MUST record where the implementation does not match the proposal. — *Verify:* INSPECT
 - **SPEC-031** `PROPOSED` The spike's findings are written back: either the specification is confirmed, or the contradicting requirement returns to `PROPOSED` with a note and an ADR. — *Verify:* INSPECT
 - **SPEC-032** `PROPOSED` Each phase of [migration.md](../architecture/migration.md) begins with a spike and ends with a gate; the gates are listed there. — *Verify:* INSPECT
-- **SPEC-033** `PROPOSED` The riskiest parts to spike first, in order: handle and generation scheme and the FIFO acceptance point (ABI and concurrency); the replace primitive with undo and the version check; region classification under edits (text model); notification queue overflow; the protocol handshake and one `view.lines` round trip; regular-expression step limits. — *Verify:* INSPECT
+- **SPEC-033** `PROPOSED` The remaining implementation spikes, in order, are: integrate `cdin-kernel` into the backend; validate its ABI-1 compatibility in the composition root; define the serialized Frontend Protocol and one `view.lines` round trip; stabilize the runtime host API; then decide whether and how regex search is added. The Kernel ABI, versioned handles, replace/version check, text-region classification, transactions and notification overflow already have implementation-backed checks. — *Verify:* INSPECT
 
 ## 6. Traceability
 
-- **SPEC-040** `PROPOSED` [status.md](../reference/status.md) lists, per area, the count of requirements by status and the count with a recorded verification run. — *Verify:* INSPECT
+- **SPEC-040** `PROPOSED` [status.md](../reference/status.md) lists requirement counts by status and identifies verification that was actually executed, separating Spec structure checks from implementation tests. — *Verify:* INSPECT
 - **SPEC-041** `PROPOSED` The matrix in [test-matrix.md](../testing/test-matrix.md) maps each requirement group to its verification methods and to the planned conformance-vector families. — *Verify:* INSPECT
 
 ## 7. Repository layout and flow

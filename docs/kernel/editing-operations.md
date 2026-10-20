@@ -22,15 +22,15 @@ sequenceDiagram
     participant K as Kernel
     C1->>K: replace(range A, expected v7)
     C2->>K: replace(range B, expected v7)
-    K->>K: accept C1 (seq 41), accept C2 (seq 42)
-    K->>K: execute seq 41: version is 7 and matches, apply, now v8
+    K->>K: serialize calls; validate expected version
+    K->>K: first serialized call matches v7; apply, now v8
     K-->>C1: ok, new version 8
-    K->>K: execute seq 42: expected 7, current 8, mismatch
+    K->>K: next call sees v8; expected v7 mismatches
     K-->>C2: STALE_VERSION (expected 7, current 8), no change
     Note over C2: client re-reads, recomputes, retries with expected v8
 ```
 
-*Caption: two clients race on the same version. FIFO decides who wins; the loser changes nothing and is told why.*
+*Caption: two clients race on the same version. Kernel serialization/linearization decides which call applies first; the stale caller changes nothing and is told why. ABI 1.0.0 makes no wall-clock FIFO promise.*
 
 ## 3. Atomicity and validity
 

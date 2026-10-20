@@ -1,6 +1,6 @@
 # Migration from the current code
 
-How today's `cdin` becomes the target architecture without ever breaking the editor. Strategy: **incremental** (`ACCEPTED`). After every step the editor builds and starts (ARCH-026).
+How the supplied `cdin` snapshot is integrated with the already-existing standalone `cdin-kernel` repository, then evolved toward the target architecture without breaking the editor. Strategy: **incremental** (`ACCEPTED`). Every integration phase must preserve a build/start gate (ARCH-026).
 
 ## 1. What exists today (inspected)
 
@@ -20,10 +20,10 @@ This mapping is a **plan to be verified during migration review**, not a stateme
 
 | Current location | Target | Notes |
 |---|---|---|
-| `src/base/*` | backend (internal), kernel gets its own via injected allocator | The kernel MUST NOT depend on `base/` (ARCH-040). Candidate to share later only with an ADR. |
+| `src/base/*` | backend (internal); kernel uses injected allocator/lock/log services | `cdin-kernel` is already a separate repository and MUST NOT depend on `cdin/src/base` (ARCH-040). Candidate sharing requires a new ADR. |
 | `src/loop/*` | backend OS services (jobs) | libuv-based; stays |
 | `src/fs/*`, `src/platform/*` | backend OS services | SDL appears in `platform.*`; see the next section |
-| `src/search/find.c` | superseded by kernel search | about 155 lines; the kernel search engine replaces it |
+| `src/search/find.c` | migrate callers to supported kernel search modes | about 155 lines; regex is not supported by Kernel ABI 1.0.0 and must remain explicitly deferred rather than silently emulated |
 | `src/lua/*`, `src/api/*` | runtime host API (backend side) | `api/system.c` is split by owner |
 | `src/api/system.c` | split: OS services, frontend requests, debug hooks | grab-bag today |
 | `src/api/renderer_*.c`, `src/ui/*` | gui-sdl frontend | renderer already behaves as a cached command list |
@@ -41,32 +41,32 @@ This mapping is a **plan to be verified during migration review**, not a stateme
 
 ```mermaid
 flowchart LR
-    M0["M0<br/>spec: this repository"]
-    M1["M1<br/>kernel inside cdin,<br/>behind its ABI"]
+    M0["M0<br/>Spec 1.0.0 baseline"]
+    M1["M1<br/>integrate standalone<br/>Kernel ABI 1.0.0 into cdin"]
     M2["M2<br/>Lua document layer<br/>becomes a kernel client"]
-    M3["M3<br/>Frontend Protocol,<br/>in-process around the GUI"]
-    M4["M4<br/>headless frontend,<br/>then serialized transport"]
-    M5["M5<br/>extract repositories as<br/>contracts stabilize"]
-    M0 -- "kernel sections unblocked" --> M1
-    M1 -- "conformance vectors pass" --> M2
-    M2 -- "no content outside the kernel" --> M3
-    M3 -- "no private backend call" --> M4
-    M4 -- "a second frontend attaches" --> M5
+    M3["M3<br/>in-process Frontend Protocol<br/>around the GUI"]
+    M4["M4<br/>headless frontend<br/>and serialized transport"]
+    M5["M5<br/>extract cdin-runtime<br/>after host API stabilizes"]
+    M0 -- "ABI and ownership gates clear" --> M1
+    M1 -- "integrated create/edit/notify vectors pass" --> M2
+    M2 -- "one canonical document/history store" --> M3
+    M3 -- "no private backend calls" --> M4
+    M4 -- "second frontend attaches" --> M5
 ```
 
-*Caption: `PROPOSED` order. Each box ends with the editor building and starting.*
+*Caption: `PROPOSED` order. The kernel already exists as a standalone repository; phases now describe integration and higher-layer extraction, not a second kernel extraction.*
 
 | Phase | Outcome | Entry gate | Exit gate |
 |---|---|---|---|
-| M0 | Specification complete enough to implement the kernel | owner accepts ADR-0001 to 0003 | kernel sections have no blocking `OPEN` items |
-| M1 | `src/kernel/` with a C ABI header and its own tests; not yet used by the editor | M0 | kernel passes its conformance vectors; editor still runs unchanged |
-| M2 | `data/core/doc` calls the kernel instead of holding its own buffer and history | M1 | no document content or history held outside the kernel (KERNEL-005) |
-| M3 | GUI talks to the core through the protocol, in-process | M2, protocol ADR accepted | the GUI uses no private backend call (FE-001) |
-| M4 | A headless frontend exists; then the serialized transport | M3 | a second implementation attaches successfully |
-| M5 | `cdin-kernel`, `cdin-runtime` extracted when ABI versions are stable | ARCH-030, ARCH-031 | editor builds and starts before and after (ARCH-032) |
+| M0 | Stable Spec baseline and frozen Kernel C ABI 1.0.0 contract | Spec checker passes; ABI header reviewed | ownership and version boundaries documented |
+| M1 | `cdin` builds against sibling `cdin-kernel` through its public header; ABI major is checked | M0 | editor starts; create/edit/read/notification path passes integrated tests; no private kernel header is included |
+| M2 | `data/core/doc` calls the kernel instead of holding its own buffer and history | M1 | no document content or undo history duplicated outside the kernel (KERNEL-005) |
+| M3 | GUI talks to the core through the semantic Frontend Protocol, in-process | M2; protocol contract accepted | GUI uses no private backend call (FE-001) |
+| M4 | Headless frontend exists, followed by a versioned serialized transport | M3 | a second frontend implementation attaches through the same protocol |
+| M5 | `cdin-runtime` extracted after its host API is versioned and tested | ARCH-030, ARCH-031; M4 integration evidence | editor builds/starts before and after extraction; tests and source-history mapping preserved (ARCH-032) |
 
 - **ARCH-060** `PROPOSED` Migration proceeds in the order above. A later phase MUST NOT begin until the previous phase's exit gate holds. — *Verify:* INSPECT
-- **ARCH-061** `PROPOSED` During M1 and M2 the kernel is a directory in `cdin`, with its public header being the only thing the rest of the tree may include (ARCH-043 applies from M1). — *Verify:* STATIC
+- **ARCH-061** `ACCEPTED` The kernel is a standalone `cdin-kernel` repository, not a directory duplicated under `cdin`. Consumers include only `include/cdin/kernel.h`; ABI-specific internals stay private. — *Verify:* STATIC
 - **ARCH-062** `PROPOSED` Each phase begins with a prototype spike that exercises the design (see "Implementation feedback gates" in [spec.md](../components/spec.md)). A spike that contradicts the specification changes the specification first. — *Verify:* INSPECT
 
 ## 4. The hardest steps

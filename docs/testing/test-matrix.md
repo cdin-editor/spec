@@ -15,10 +15,10 @@ Methods are defined in [conventions.md](../reference/conventions.md): `INSPECT`,
 | 5 | Position conversion | POS-001 to POS-052 | CONF | `pos.convert` | planned |
 | 6 | Transactions, rollback, undo/redo | TXN-001 to TXN-021, UNDO-001 to UNDO-040 | CONF, PERF | `txn`, `undo` | planned |
 | 7 | Atomic changes and notification ordering | EDIT-010 to EDIT-020, NOTIF-001 to NOTIF-012 | CONF | `edit.replace`, `notif` | planned |
-| 8 | Concurrent requests and FIFO | CONC-001 to CONC-040 | CONF, SAN | `conc` | planned |
+| 8 | Synchronous kernel concurrency and snapshots | CONC-001 to CONC-040 | CONF, SAN | `conc` | kernel unit/conformance checks exist; backend/protocol integration planned |
 | 9 | Stale-request rejection without mutation | EDIT-003, EDIT-004, EDIT-006, ERR-002, ERR-010 | CONF | `edit.version` | planned |
-| 10 | Literal and regex search | SEARCH-001 to SEARCH-014, SEARCH-050 to SEARCH-053 | CONF, FUZZ | `search.literal`, `search.regex` | planned |
-| 11 | Multiline search | SEARCH-006, SEARCH-030 to SEARCH-032 | CONF | `search.literal`, `search.regex` | planned |
+| 10 | Literal and byte search; regex deferred | SEARCH-001 to SEARCH-014, SEARCH-050 to SEARCH-053 | CONF, FUZZ | `search.literal`, `search.bytes` | Kernel vectors exist for supported modes; regex unsupported/deferred |
+| 11 | Multiline literal search | SEARCH-006, SEARCH-030 to SEARCH-032 | CONF | `search.literal` | Kernel vector coverage exists; regex behavior deferred |
 | 12 | Unicode behaviour; `ی` versus `ي` | SEARCH-005, SEARCH-020 to SEARCH-024 | CONF | `search.literal` | planned |
 | 13 | Raw-byte search | SEARCH-008, SEARCH-040 to SEARCH-042 | CONF | `search.bytes` | planned |
 | 14 | Results bound to a document version | SEARCH-007, SEARCH-010 | CONF | `search.*` | planned |
@@ -57,5 +57,5 @@ Per requirement ID: method, vector family, implementation and version, date run,
 
 ## 5. Honest status
 
-- No conformance vector exists. No runner exists. No test in this matrix has been executed against any implementation.
+- Kernel vectors and a runner exist in the separate `cdin-kernel` repository; supported ABI 1.0.0 functionality has been exercised. The remaining rows describe planned checks for backend integration, the Frontend Protocol, runtime and frontends. See [kernel implementation status](../kernel/implementation-status.md) for the boundary between executed and unverified scope.
 - Existing tests in the `cdin` repository were not run as part of producing this specification.

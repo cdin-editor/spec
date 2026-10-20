@@ -4,7 +4,7 @@
 - **Status:** `OPEN`. The direction (use an existing portable engine; do not write one from scratch) is approved in principle. The engine itself is not chosen.
 
 ## Context
-The kernel includes regex search with Unicode text (including Persian), multiline mode, invalid-UTF-8 behaviour, resource limits and cancellation (SEARCH-004, SEARCH-050 to SEARCH-053). The kernel is deterministic and has no clock (KERNEL-007), so bounds are in steps. The public API MUST NOT expose the engine's types or syntax identifiers (KERNEL-010).
+Kernel ABI 1.0.0 deliberately does not implement regex search: `CDIN_SEARCH_REGEX` returns `CDIN_UNSUPPORTED`. If regex is proposed for a future ABI, it must have a documented syntax, Unicode and invalid-UTF-8 contract, resource limits and cancellation (SEARCH-004, SEARCH-050 to SEARCH-053). The kernel is deterministic and has no clock (KERNEL-007), so bounds are in steps. The public API MUST NOT expose the engine's types or syntax identifiers (KERNEL-010).
 
 ## Problem
 Which library, and which guaranteed syntax subset?

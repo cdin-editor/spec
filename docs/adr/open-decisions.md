@@ -2,7 +2,7 @@
 
 Every unresolved or not-yet-confirmed question, with importance, options, trade-offs and dependencies.
 
-**Columns.** *Importance*: how much else depends on it (High / Medium / Low). *Disposition*: `OPEN` (no proposal), `PROPOSED` (a proposal is written into the requirements), `DEFERRED`. "Approved in principle" means the owner agreed to the proposal in discussion; the written text still needs review (see [README.md](README.md)).
+**Columns.** *Importance*: how much else depends on it (High / Medium / Low). *Disposition*: `OPEN`, `PROPOSED`, `DEFERRED`, or `RESOLVED` (the contract decision is recorded; implementation gaps may still exist). A resolved high-level decision does not close separate lower-level decisions.
 
 ## Summary
 
@@ -12,19 +12,19 @@ Every unresolved or not-yet-confirmed question, with importance, options, trade-
 | [OD-02](#od-02) | Final position representation and byte-to-code-point conversion contract | High | `PROPOSED`, approved in principle |
 | [OD-03](#od-03) | Nested transactions and rollback details | Low | `PROPOSED` (not in v1) |
 | [OD-04](#od-04) | Grouping consecutive typing for undo | Medium | `PROPOSED` |
-| [OD-05](#od-05) | Selection ownership and interaction with undo | High | `PROPOSED`, approved in principle |
+| [OD-05](#od-05) | Selection ownership and interaction with undo | High | `RESOLVED` by ADR-0007 |
 | [OD-06](#od-06) | Document id reuse and stale handles | High | `PROPOSED` |
 | [OD-07](#od-07) | Reads during an active transaction | Medium | `PROPOSED`, approved in principle |
 | [OD-08](#od-08) | Subscriber recovery after lost notifications | Medium | `PROPOSED` |
 | [OD-09](#od-09) | Regex engine and guaranteed syntax | High | `OPEN` (direction proposed) |
-| [OD-10](#od-10) | Unicode version policy | Medium | `PROPOSED`, approved in principle |
+| [OD-10](#od-10) | Unicode version policy | Medium | `RESOLVED` by ADR-0010 |
 | [OD-11](#od-11) | Search at the boundary of valid and invalid UTF-8 | Medium | `PROPOSED` |
 | [OD-12](#od-12) | Frontend repository structure; GUI and TUI separation | Medium | `PROPOSED` |
 | [OD-13](#od-13) | General hot-swap policy | Low | `DEFERRED` |
 | [OD-14](#od-14) | State transfer on module swap | Low | `DEFERRED` |
 | [OD-15](#od-15) | Backend/host responsibilities from source review | High | `PROPOSED` |
 | [OD-16](#od-16) | Persistence, serialization and storage responsibility | Medium | `PROPOSED`, approved in principle |
-| [OD-17](#od-17) | Final API names and public C ABI layout | High | `OPEN` (first spike) |
+| [OD-17](#od-17) | Final API names and public C ABI layout | High | `RESOLVED` by Kernel ABI 1.0.0 |
 | [OD-18](#od-18) | Shutdown with operations in flight | Medium | `PROPOSED` |
 | [OD-19](#od-19) | Resource limits, cancellation, expensive regex | High | `PROPOSED`, approved in principle |
 | [OD-20](#od-20) | Identifier behaviour in a close-versus-new-request race | High | `PROPOSED` |
@@ -33,7 +33,7 @@ Every unresolved or not-yet-confirmed question, with importance, options, trade-
 | [OD-23](#od-23) | Protocol client library and where it lives | Medium | `OPEN` |
 | [OD-24](#od-24) | Several frontends attached: who may mutate | Medium | `OPEN` |
 | [OD-25](#od-25) | Plugin UI: declarative widgets and canvas | High | `PROPOSED` |
-| [OD-26](#od-26) | Visual layout ownership confirmation | High | `PROPOSED` |
+| [OD-26](#od-26) | Visual layout ownership confirmation | High | `RESOLVED` by ADR-0006 |
 | [OD-27](#od-27) | Parallel mutation of different documents | Low | `DEFERRED` |
 | [OD-28](#od-28) | Position-mapping helper (anchors, markers) in the kernel | Medium | `OPEN` |
 | [OD-29](#od-29) | Search normalization and folding options in the first version | Medium | `OPEN` |
@@ -65,7 +65,7 @@ Importance: Medium. Proposal: caller supplies a coalesce key; the kernel merges 
 
 ## OD-05
 **Selection ownership and interaction with undo.**
-Importance: High. Proposal: view owns selections; the kernel stores opaque before/after blobs per undo unit (UNDO-020; [ADR-0007](ADR-0007-selection-ownership.md)). Options: kernel owns selections (couples kernel to editor behaviour and multi-view semantics); kernel offers markers. Trade-off: kernel stays generic against slightly more caller work.
+Importance: High. `RESOLVED` by [ADR-0007](ADR-0007-selection-ownership.md): the view owns selections; the kernel stores opaque before/after blobs per undo unit (UNDO-020). Kernel-managed markers remain a separate question (OD-28). Options considered: kernel-owned selections (couples the kernel to editor behaviour and multi-view semantics); kernel-managed markers. Trade-off: kernel stays generic against slightly more caller work.
 
 ## OD-06
 **Document id reuse and stale handles.**
@@ -81,11 +81,11 @@ Importance: Medium. Proposal: bounded queues; overflow collapses to one `RESYNC`
 
 ## OD-09
 **Regex engine and guaranteed syntax.**
-Importance: High. See [ADR-0009](ADR-0009-regex-engine.md). Direction approved in principle: an existing portable engine, not from scratch; the specific library is open.
+Importance: High. `OPEN` for a future version. Kernel ABI 1.0.0 does not support regex (`CDIN_SEARCH_REGEX` returns `CDIN_UNSUPPORTED`); any later adoption needs a portable engine decision, a syntax contract and resource-limit/cancellation vectors. See [ADR-0009](ADR-0009-regex-engine.md).
 
 ## OD-10
 **Unicode version policy.**
-Importance: Medium. Proposal: each kernel release pins one Unicode version, queryable (POS-032; [ADR-0010](ADR-0010-unicode-version.md)). Options: track latest at build time (non-reproducible), runtime-selectable version (large tables).
+Importance: Medium. `RESOLVED` by [ADR-0010](ADR-0010-unicode-version.md): each kernel release pins a queryable Unicode data version (POS-032). Tracking latest at build time and runtime-selectable versions were rejected for reproducibility/complexity reasons.
 
 ## OD-11
 **Search at the boundary of valid and invalid UTF-8.**
@@ -111,7 +111,7 @@ Importance: Medium. Proposal: bytes in and out of the kernel; I/O and policy in 
 
 ## OD-17
 **Final API names and public C ABI layout.**
-Importance: High. `OPEN`. Resolve in the first spike (SPEC-033). Constraint: ABI-001 to ABI-022 and the illustrative shape in [abi-and-compatibility.md](../architecture/abi-and-compatibility.md).
+Importance: High. `RESOLVED` for the kernel by the published `cdin-kernel` C ABI `1.0.0` and its public `include/cdin/kernel.h` header. Function names, fixed-width public enum-like fields, field order, constants and prototypes are frozen for ABI major 1. Frontend Protocol wire encoding and the runtime host API are separate contracts and remain open.
 
 ## OD-18
 **Shutdown with operations in flight.**
@@ -139,7 +139,7 @@ Importance: Medium. A library that encodes and decodes the protocol helps fronte
 
 ## OD-24
 **Several frontends attached: who may mutate.**
-Importance: Medium. Proposal for now: one driver and observers (PROTO-013). Options: all equal with last-writer ordering by FIFO; a lease or token for the driver role. Depends on use cases (remote pairing, mirrored views).
+Importance: Medium. Proposal for now: one driver and observers (PROTO-013). Options: all equal with last-writer ordering by serialized kernel call order; a lease or token for the driver role. Depends on use cases (remote pairing, mirrored views).
 
 ## OD-25
 **Plugin UI: declarative widgets and canvas.**
@@ -147,11 +147,11 @@ Importance: High. See [ADR-0011](ADR-0011-extension-ui.md). Changes the extensio
 
 ## OD-26
 **Visual layout ownership confirmation.**
-Importance: High. See [ADR-0006](ADR-0006-visual-layout-ownership.md). Proposed in discussion; the owner has not yet confirmed or rejected it explicitly.
+Importance: High. `RESOLVED` by [ADR-0006](ADR-0006-visual-layout-ownership.md): frontends own visual layout, shaping, bidi, wrapping and scroll state; kernel positions remain logical/byte-based.
 
 ## OD-27
 **Parallel mutation of different documents.**
-Importance: Low. `DEFERRED` (DOC-050). Option: executor runs different documents in parallel with per-document FIFO. Trade-off: throughput against a weaker global order.
+Importance: Low. `DEFERRED` (DOC-050). Option: a future API may allow different documents to execute in parallel, but it would need an explicit order contract. ABI 1.0.0 serializes entry through the configured lock or caller-side serialization; there is no internal executor or FIFO queue. Trade-off: throughput against a weaker global order.
 
 ## OD-28
 **Position-mapping helper in the kernel.**

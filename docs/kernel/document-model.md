@@ -59,4 +59,4 @@ stateDiagram-v2
 
 ## 8. Multi-document behaviour
 
-- **DOC-050** `PROPOSED` Mutation order is a single FIFO per kernel instance by sequence number, and mutations execute one at a time (CONC-002, CONC-003). Executing mutations of *different* documents in parallel while keeping each document's own order FIFO is not part of this phase; it is recorded as [OD-27](../adr/open-decisions.md). Reads are never blocked by this order (CONC-005). — *Verify:* CONF, SAN
+- **DOC-050** `PROPOSED` Mutations execute synchronously and serially according to the kernel lock/linearization order, with ordering metadata attached to accepted mutations (CONC-002, CONC-003). ABI 1.0.0 does not promise FIFO by wall-clock arrival. Executing mutations of *different* documents in parallel is not part of this phase; it is recorded as [OD-27](../adr/open-decisions.md). Immutable snapshot readers retain a stable view; ordinary document reads synchronize through the configured caller lock and may briefly wait for a mutation to finish (CONC-005). — *Verify:* CONF, SAN

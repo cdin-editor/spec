@@ -2,7 +2,7 @@
 
 The kernel (`cdin-kernel`) is a **generic text engine**. It owns the canonical state of documents and the operations on them. It is independent of GUI, TUI, runtime and operating-system details, and it does not know who its clients are.
 
-Status: scope items are `ACCEPTED`; mechanisms are `PROPOSED` where marked.
+Status: Kernel ABI 1.0.0 implements the subset listed in [implementation status](implementation-status.md); remaining mechanisms retain their explicit `PROPOSED`/`DEFERRED` labels.
 
 ## 1. Responsibilities
 
@@ -16,8 +16,8 @@ The kernel is responsible for:
 6. document versioning;
 7. change notification;
 8. document lifecycle;
-9. admission and ordering of edit requests;
-10. the advanced search engine.
+9. synchronous, version-checked mutation entry points;
+10. literal and byte search with cancellation and step limits.
 
 The kernel is **not** responsible for display logic, layout, scrolling, rendering, file I/O, syntax highlighting, text shaping, bidi reordering, key handling, commands, selections, or anything specific to a frontend, to Lua or to the operating system.
 
@@ -28,32 +28,29 @@ flowchart LR
     BE["backend (client of the kernel)"]
     ABI{{"Kernel C ABI"}}
     subgraph K["kernel"]
-        ADM["admission and FIFO ordering"]
+        CALL["synchronous API entry<br/>caller lock or owner serialization"]
         DOCS["documents: text store, version, undo history"]
         SRCH["search engine"]
         NOTE["notification queues"]
     end
     ALLOC["injected allocator"]
-    REGEX["regex library (internal)"]
-
     BE --> ABI
-    ABI --> ADM
-    ADM --> DOCS
+    ABI --> CALL
+    CALL --> DOCS
     ABI --> SRCH
     SRCH --> DOCS
     DOCS --> NOTE
     NOTE --> ABI
     ALLOC --> K
-    REGEX --> SRCH
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
-    class ADM,ALLOC,BE,DOCS,NOTE,REGEX,SRCH comp
+    class ALLOC,BE,CALL,DOCS,NOTE,SRCH comp
     class ABI contract
     class K group
 ```
 
-*Caption: components of the kernel (`PROPOSED` internal structure; the external boundary is the contract). The internal text store is not part of any public contract (KERNEL-012).*
+*Caption: ABI 1.0.0 implementation model. Calls execute synchronously and require either caller-provided locking or caller serialization. Regex search is explicitly unsupported in 1.0.0. The internal text store is not part of the public contract (KERNEL-012).*
 
 ## 3. Requirements
 
@@ -66,7 +63,7 @@ flowchart LR
 - **KERNEL-007** `PROPOSED` The kernel is deterministic: it MUST NOT read the clock, the environment or the filesystem, and MUST NOT perform I/O. Time-dependent policies (for example grouping typing by elapsed time) belong to the caller. — *Verify:* STATIC, CONF
 - **KERNEL-008** `PROPOSED` The kernel allocates only through an allocator injected at creation (ABI-017). — *Verify:* SAN, INSPECT
 - **KERNEL-009** `PROPOSED` The kernel never terminates the process because of caller input or resource exhaustion; all failures are statuses (ABI-007, ERR-004, ERR-005). — *Verify:* FUZZ, SAN
-- **KERNEL-010** `PROPOSED` Regular expressions are provided by a third-party engine hidden behind an internal interface. The public API MUST NOT expose that engine's types or syntax identifiers. Selection of the engine is open ([OD-09](../adr/open-decisions.md), [ADR-0009](../adr/ADR-0009-regex-engine.md)). — *Verify:* STATIC, CONF
+- **KERNEL-010** `DEFERRED` Regex search is not implemented in ABI 1.0.0 and MUST return `CDIN_UNSUPPORTED`. If added in a future ABI, the engine MUST stay behind an internal interface and its syntax/limits require a new accepted contract ([OD-09](../adr/open-decisions.md), [ADR-0009](../adr/ADR-0009-regex-engine.md)). — *Verify:* STATIC, CONF
 - **KERNEL-011** `ACCEPTED` The kernel is implemented in C11. Its public boundary is the C ABI and does not require C. — *Verify:* INSPECT
 - **KERNEL-012** `ACCEPTED` The internal text structure (a piece table or piece tree is preferred) MUST NOT be visible in or relied on by any public API or contract. Different implementations MUST behave identically through the contract. — *Verify:* CONF, STATIC
 - **KERNEL-013** `PROPOSED` Resource limits (maximum document size, maximum undo memory, maximum live snapshots, maximum open documents, maximum search steps) are set at creation. At a limit the operation fails with `LIMIT_EXCEEDED`; nothing is silently dropped (ARCH-021). — *Verify:* CONF, PERF
@@ -94,11 +91,11 @@ flowchart LR
 flowchart TB
     REQ["edit request arrives"]
     VAL{"valid? handle, range, flags"}
-    ACC["accepted: sequence number assigned (FIFO point)"]
+    ACC["validate handle/state/range/flags under serialization"]
     CHK{"expected version matches current?"}
     REJ1["reject: INVALID_* , no change"]
     REJ2["reject: STALE_VERSION, report expected and current, no change"]
-    APPLY["apply edit atomically"]
+    APPLY["accept mutation; allocate sequence; apply atomically"]
     VER["new version published, undo unit recorded or merged"]
     NOTIFY["notify subscribers in version order"]
     RES["return result: new version, edit description"]
