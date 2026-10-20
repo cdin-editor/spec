@@ -27,8 +27,8 @@
 - **ROOT-006** `PROPOSED` The launcher selects a frontend by name and passes it the backend's endpoint (in-process or serialized transport). Adding a frontend MUST NOT require changing the backend. — *Verify:* INTEG
 - **ROOT-007** `PROPOSED` The composition root MUST check ABI compatibility of the components it assembles (ABI-020) and refuse an incompatible set at build or start. — *Verify:* INTEG
 - **ROOT-008** `PROPOSED` Include-direction rules (ARCH-046) are enforced by tooling hosted here (today `scripts/check.py`). — *Verify:* STATIC
-- **ROOT-009** `EXISTING` Release workflows exist for Linux, Windows and macOS, with Docker and a website deployment; the composition root keeps ownership of them. — *Verify:* INSPECT — *Anchor:* `.github/workflows/`
-- **ROOT-010** `PROPOSED` The kernel, when it becomes its own repository, is consumed by `cdin` as a pinned version (a release or a submodule at a tag), never as a floating branch. — *Verify:* INSPECT
+- **ROOT-009** `EXISTING` Product release workflows for Linux, Windows and macOS and the website deployment are defined in the `cdin` repository. — *Verify:* INSPECT — *Anchor:* `.github/workflows/`
+- **ROOT-010** `PROPOSED` The standalone `cdin-kernel` repository is consumed by `cdin` as a pinned version (a release or a submodule at a tag), never as a floating branch. — *Verify:* INSPECT
 
 ## 4. Existing layout mapped here
 
@@ -66,3 +66,33 @@ sequenceDiagram
 ```
 
 *Caption: `PROPOSED`. Today the GUI and backend are one process and the launcher is `src/main.c`.*
+
+
+## 6. Build and release boundaries
+
+```mermaid
+flowchart LR
+    SPEC["spec<br/>contracts and design"]
+    CDIN["cdin repository<br/>product build, bundle, launcher"]
+    KERNEL["cdin-kernel repository<br/>package 1.1.0 · C ABI 1.0.0"]
+    X["cdin-x repository<br/>extension assets"]
+    APP["assembled CDIN product"]
+    REL["Kernel release assets<br/>Linux · macOS · Windows"]
+    DOCKER["Docker SDK image<br/>linux/amd64 + linux/arm64"]
+
+    SPEC -. "defines contract" .-> CDIN
+    SPEC -.-> KERNEL
+    CDIN -. "pins / consumes kernel release" .-> KERNEL
+    CDIN -. "bundles selected assets" .-> X
+    CDIN --> APP
+    KERNEL --> REL
+    KERNEL --> DOCKER
+
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef output fill:#dcfce7,stroke:#15803d,color:#0f172a
+    classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    class SPEC,CDIN,KERNEL,X comp
+    class APP,REL,DOCKER output
+```
+
+*Caption: repository responsibility map, not a claim that every release asset has been published. The `cdin-kernel` 1.1.0 source snapshot contains a tag-triggered multi-architecture Docker publishing workflow, but a successful push to a named public Docker Hub repository was not verified as part of this Spec review.*

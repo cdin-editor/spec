@@ -2,7 +2,30 @@
 
 All notable changes to this specification are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-The specification version is defined in `docs/reference/status.md` (SPEC-010).
+The specification version is defined in `docs/reference/status.md` (SPEC-010). The kernel package release version is tracked independently from the public ABI and the Spec release or compatibility target.
+
+## [Unreleased]
+
+## [1.1.0] - 2026-10-20
+
+### Added
+
+- Add layered system maps covering the target system topology, dependency ownership, the end-to-end edit path, application startup/shutdown, and independent version labels.
+- Clarify the roles and boundaries of `cdin`, `cdin-x`, frontend, Frontend Protocol, backend, Lua runtime, Runtime Host API, kernel host adapter, C ABI, `cdin-kernel`, and the Spec repository.
+- Document the Runtime Host API and Lua-to-native bridge as open integration decisions; Lua C API, LuaJIT FFI, and MetaCall remain options rather than mandatory dependencies.
+- Add a cross-repository synchronization report for `cdin-kernel` package `1.1.0`.
+
+### Changed
+
+- Record Spec release `1.1.0` while explicitly retaining the kernel's declared Spec compatibility target `1.0.0` and public C ABI `1.0.0`. The Spec release number does not imply that the kernel implements the proposed runtime, backend, or frontend integration.
+- Align architecture, status, and release documentation with the current kernel package: its internal literal-search fast paths do not introduce a new public complexity guarantee or change the ABI contract.
+- Distinguish the current implementation from target architecture throughout the diagrams and component descriptions.
+
+### Fixed
+
+- Fix the startup/compatibility/shutdown Mermaid sequence diagram by removing semicolons from message labels and making each shutdown action a separate, parser-safe message.
+- Clarify that the kernel's graceful and abort shutdown mode values have the behavior documented for ABI `1.0.0`; the diagram's full application lifecycle remains a target requirement.
+- Keep `docs/adr/` as the canonical decision directory and remove stale references to the former `docs/decisions/` path where present.
 
 ## [1.0.0] - 2026-10-14
 

@@ -1,6 +1,6 @@
 # Frontends
 
-A frontend presents the editor and collects input for one environment: an SDL window, a terminal, a command line, a headless test harness, later perhaps a web page. It speaks the [Frontend Protocol](../architecture/frontend-protocol.md) and nothing else. Frontends are **peers**; none is privileged.
+A frontend presents the editor and collects input for one environment: an SDL window, a terminal, a command line, a headless test harness, later perhaps a web page. It speaks the [Frontend Protocol](../architecture/frontend-protocol.md) and nothing else. Frontends are **peers**; none is privileged. The protocol is an accepted semantic boundary, but serialized wire encoding and a shared protocol client library remain open decisions.
 
 ## 1. Responsibilities
 
@@ -36,6 +36,26 @@ flowchart TB
 ```
 
 *Caption: `PROPOSED`. Adding a frontend means writing one more box on the left; nothing on the right changes.*
+
+### Request and render flow
+
+```mermaid
+flowchart LR
+    ENV["Window / terminal / test driver"] --> INPUT["Input adapter<br/>keys, text, paste, resize"]
+    INPUT --> FP{{"Frontend Protocol"}}
+    FP <--> BE["Backend protocol server"]
+    BE --> MODEL["Semantic UI model<br/>from runtime"]
+    MODEL --> LAYOUT["Frontend layout<br/>wrapping, shaping, bidi, scroll"]
+    LAYOUT --> RENDER["Pixels / terminal cells / test trace"]
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    class ENV external
+    class INPUT,BE,MODEL,LAYOUT,RENDER comp
+    class FP contract
+```
+
+The protocol carries **semantic state and intent**, not toolkit objects or pixels. The frontend may cache derived layout, but it must invalidate that cache against document versions and may discard it without losing canonical document state. The actual serialized framing and protocol client library are still open (OD-22 and OD-23).
 
 ## 3. Requirements
 

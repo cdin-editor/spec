@@ -2,6 +2,17 @@
 
 Every native binary boundary between CDIN components uses the **C ABI** (`ACCEPTED`). The standalone `cdin-kernel` repository has published the first stable ABI, `1.0.0`; its exact public prototypes, constants and structure field order are frozen in the sibling `cdin-kernel` repository. In this Spec archive that relative link is a repository-map reference, not a local file; a mirrored snapshot is described by [implementation status](../kernel/implementation-status.md). The Frontend Protocol is a separate contract and its serialized representation is still open.
 
+## Version labels are independent
+
+| Label | Value for this sync | Source of truth |
+|---|---:|---|
+| Kernel package release | `1.1.0` | `cdin-kernel/CHANGELOG.md` and release tag |
+| C ABI | `1.0.0` | `cdin-kernel/include/cdin/kernel.h` |
+| Spec release | `1.1.0` | `docs/reference/status.md` |
+| Kernel-declared Spec target | `1.0.0` | The header's `CDIN_KERNEL_SPEC_VERSION_*` macros |
+
+Package 1.1.0 adds documentation/distribution assets and internal literal-search fast paths. It does not change ABI field layouts, public function signatures, status values or result-range semantics. Do not derive the ABI version from the package tag. If the accepted contract changes, version the contract deliberately and update its declaration and conformance evidence together.
+
 ## 1. Which boundaries are binary
 
 | Boundary | Binary C ABI? | Notes |

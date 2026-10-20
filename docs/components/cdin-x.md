@@ -32,7 +32,26 @@ flowchart LR
 
 *Caption: the build takes a directory path; installs download single plugins. Nothing clones the whole repository.*
 
-## 3. Requirements
+## 3. Runtime boundary
+
+```mermaid
+flowchart LR
+    X["cdin-x plugin / theme"] --> EXT{{"Lua Extension Contract"}}
+    EXT --> LOADER["Runtime extension loader"]
+    LOADER --> RT["Lua runtime APIs"]
+    RT --> RHA{{"Runtime Host API"}}
+    RHA --> BE["Backend services"]
+    BE --> ABI{{"Kernel C ABI"}}
+    ABI --> K["cdin-kernel"]
+    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    class X,LOADER,RT,BE,K comp
+    class EXT,RHA,ABI contract
+```
+
+*Caption: target extension invocation path. An extension may request behavior exposed by the runtime contract; it must not load the kernel library, import private C symbols, or access the Frontend Protocol directly. The Runtime Host API is a separate, proposed backend-to-Lua boundary.*
+
+## 4. Requirements
 
 - **EXT-050** `ACCEPTED` `cdin-x` is fully separate from `cdin` and `cdin` is fully separate from `cdin-x`; `cdin` builds alone. — *Verify:* INTEG (ARCH-010)
 - **EXT-051** `ACCEPTED` The vim plugin is mandatory in a standalone `cdin` build. Its source lives in `cdin-x`; the build bundles it. — *Verify:* INTEG (EXT-010)
@@ -43,14 +62,14 @@ flowchart LR
 - **EXT-056** `PROPOSED` The `cdin-x` repository declares the extension-contract version range it targets (EXT-040). — *Verify:* INSPECT
 - **EXT-057** `EXISTING` The current process rule: work on `cdin` never edits `cdin-x`; what `cdin-x` must do is reported separately. — *Verify:* INSPECT — *Anchor:* `AGENTS.md §2.1`
 
-## 4. What `cdin-x` is allowed to assume
+## 5. What `cdin-x` is allowed to assume
 
 Only what is in the extension contract, and the contract's own statement of what is **not** guaranteed ("What is not guaranteed" section). A behaviour not in the contract can change without notice.
 
-## 5. Not part of this specification
+## 6. Not part of this specification
 
 The internal organisation of `cdin-x`, the extension manager's design, the packaging format of plugins and the registry for availability checks belong to `cdin-x` itself. This specification constrains only the boundary.
 
-## 6. Status of what was inspected
+## 7. Status of what was inspected
 
 The `cdin-x` repository has **not** been inspected for this specification. Statements here come from `cdin`'s own documents and build scripts (`docs/architecture/extension-contract.md`, `mk/bundle.mk`, `scripts/assemble_data.py`) and from the owner's stated requirements.

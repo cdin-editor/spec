@@ -2,7 +2,7 @@
 
 The kernel (`cdin-kernel`) is a **generic text engine**. It owns the canonical state of documents and the operations on them. It is independent of GUI, TUI, runtime and operating-system details, and it does not know who its clients are.
 
-Status: Kernel ABI 1.0.0 implements the subset listed in [implementation status](implementation-status.md); remaining mechanisms retain their explicit `PROPOSED`/`DEFERRED` labels.
+Status: the current package release is `1.1.0`; it exposes the unchanged C ABI `1.0.0` and declares Spec baseline `1.0.0`. Implemented behavior is listed in [implementation status](implementation-status.md); remaining mechanisms retain their explicit `PROPOSED`/`DEFERRED` labels.
 
 ## 1. Responsibilities
 
@@ -21,36 +21,49 @@ The kernel is responsible for:
 
 The kernel is **not** responsible for display logic, layout, scrolling, rendering, file I/O, syntax highlighting, text shaping, bidi reordering, key handling, commands, selections, or anything specific to a frontend, to Lua or to the operating system.
 
-## 2. Context
+## 2. Context and internal layers
 
 ```mermaid
-flowchart LR
-    BE["backend (client of the kernel)"]
-    ABI{{"Kernel C ABI"}}
-    subgraph K["kernel"]
-        CALL["synchronous API entry<br/>caller lock or owner serialization"]
-        DOCS["documents: text store, version, undo history"]
-        SRCH["search engine"]
-        NOTE["notification queues"]
+flowchart TB
+    CLIENT["Backend kernel host / native consumer"]
+    ABI{{"Public C ABI<br/>include/cdin/kernel.h<br/>ABI 1.0.0"}}
+    subgraph K["cdin-kernel implementation"]
+        direction TB
+        API["Public API families<br/>lifecycle · document · edit · transaction · undo/redo"]
+        TEXT["Text and position services<br/>bytes · UTF-8 regions · lines · positions"]
+        SEARCH["Literal / byte search<br/>bounded steps · cancellation"]
+        DOC["Document engine<br/>version · history · snapshots"]
+        NOTIF["Bounded change notifications"]
+        API --> DOC
+        API --> TEXT
+        API --> SEARCH
+        SEARCH --> DOC
+        DOC --> NOTIF
     end
-    ALLOC["injected allocator"]
-    BE --> ABI
-    ABI --> CALL
-    CALL --> DOCS
-    ABI --> SRCH
-    SRCH --> DOCS
-    DOCS --> NOTE
-    NOTE --> ABI
-    ALLOC --> K
+    ALLOC["Injected allocator"]
+    LOCK["Optional caller lock pair"]
+    OS["C11 + platform C runtime"]
+
+    CLIENT --> ABI --> API
+    ALLOC -. "injected at create" .-> K
+    LOCK -. "optional serialization callback pair" .-> K
+    OS --> K
+
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
-    class ALLOC,BE,CALL,DOCS,NOTE,SRCH comp
+    class CLIENT,API,DOC,NOTIF,SEARCH,TEXT comp
     class ABI contract
+    class ALLOC,LOCK,OS external
     class K group
 ```
 
-*Caption: ABI 1.0.0 implementation model. Calls execute synchronously and require either caller-provided locking or caller serialization. Regex search is explicitly unsupported in 1.0.0. The internal text store is not part of the public contract (KERNEL-012).*
+*Caption: package 1.1.0 implementation view. The public header, not this diagram, is authoritative for every type and function signature. Calls execute synchronously; the caller either supplies a valid lock/unlock pair or serializes access itself. The kernel owns document truth and bounded notification state, but no frontend or runtime policy.*
+
+### Package-only search fast path
+
+Package 1.1.0 improves forward literal-search execution without changing the public match contract. A platform-specific fast path may be selected only for a safe subset of requests; cancellation-aware and step-limited paths remain incremental. The internal algorithm is not ABI surface and does not imply constant-time search or a stable performance guarantee. See [search-engine.md](search-engine.md) and [implementation status](implementation-status.md).
 
 ## 3. Requirements
 

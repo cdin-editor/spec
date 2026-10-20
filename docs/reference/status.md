@@ -1,15 +1,15 @@
 # Status and verification record
 
-This file is the authoritative status report for the Spec `1.0.0` baseline. It distinguishes archive facts, accepted architectural decisions, unresolved choices and commands that were actually executed. All inspected input was a working-tree archive snapshot; none of the supplied RAR files contains Git history.
+This file is the authoritative status report for Spec release `1.1.0` and the `cdin-kernel` package `1.1.0` synchronization. It distinguishes archive facts, accepted architectural decisions, unresolved choices and commands that were actually executed. All inspected input was a working-tree archive snapshot; none of the supplied RAR files contains Git history.
 
-**Specification version: `1.0.0` (stable architecture baseline).** It freezes the high-level repository and ownership model, and synchronizes the standalone `cdin-kernel` ABI 1.0.0 contract. It does not claim that backend integration, the runtime host API, Frontend Protocol wire encoding or every proposed requirement is implemented.
+**Specification release: `1.1.0` (compatible architecture and documentation release).** The previous `1.0.0` baseline remains the specification compatibility target declared by `cdin-kernel` in its public header. This release clarifies system maps, component boundaries, and current-versus-target status; it does not claim that backend integration, the Runtime Host API, Frontend Protocol wire encoding or every proposed requirement is implemented. The kernel's C ABI remains `1.0.0`.
 
 ## 1. Source snapshots inspected
 
 | Snapshot | What was examined | Limits of the evidence |
 |---|---|---|
 | `cdin` archive | Source/build/test directory structure; README and architecture notes; Makefile and build includes; public UI/API headers; Lua API tables; SDL3 references; test baseline and test invocation | This is an archive snapshot, not a checkout with history. The full test/build gate could not pass in the current environment: SDL3 development headers are missing and the archived test baseline is empty/unusable. This is an environment/baseline blocker, not evidence that every source file fails to compile. |
-| `cdin-kernel` archive | Public C header, implementation modules, ABI/limits docs, conformance runner and vectors, C regression tests, fuzz targets, Makefile/release workflow | Working tree only; no Git commit ancestry or upstream CI results available. Local commands below are the evidence for this synchronization. |
+| `cdin-kernel` archive | Public C header, implementation modules, ABI/limits docs, conformance runner and vectors, C regression tests, fuzz targets, Makefile/release workflow, package 1.1.0 docs and Docker SDK recipe | Working tree only; no Git commit ancestry or upstream CI results available. The source release notes report the project checks; the Docker workflow is configured, but a successful push to a specific Docker Hub namespace is not established by the archive. |
 | `spec` archive | Full Markdown requirement set, ADRs, open-decision register, status/conventions pages, structural checker, CI/build configuration | Spec is intentionally design-only; implementation tests live in the `cdin-kernel` repository. |
 | `cdin-x` | Only references from supplied `cdin`/Spec material | The `cdin-x` archive/source itself was not supplied, so no claim is made about its current implementation. |
 
@@ -17,9 +17,9 @@ A previous status report said `cdin-kernel` did not exist and the kernel API nam
 
 ## 2. Current Spec structure counts
 
-The final structural-checker output for this release is: 64 Markdown files; 396 normative requirements (96 ACCEPTED, 31 EXISTING, 262 PROPOSED, 7 DEFERRED); 17 ADRs; and 34 Mermaid diagrams. Re-run `python3 scripts/check.py --stats` to recompute these counts after any status or document change.
+The final structural-checker output for this release is: 65 Markdown files; 396 normative requirements (96 ACCEPTED, 31 EXISTING, 262 PROPOSED, 7 DEFERRED); 17 ADRs; and 41 Mermaid diagrams. Re-run `python3 scripts/check.py --stats` to recompute these counts after any status or document change.
 
-## 3. Stable decisions for the 1.0.0 baseline
+## 3. Stable decisions inherited from the 1.0.0 compatibility baseline
 
 - `cdin` remains the composition root: build, bundle, release, launcher and integration stay here; domain logic is not reimplemented there.
 - `cdin-kernel` is a standalone repository with stable C ABI `1.0.0`; its header is the authority for exact ABI names, fixed-width enum-like types, field order, constants and function signatures.
@@ -31,15 +31,15 @@ The final structural-checker output for this release is: 64 Markdown files; 396 
 - The kernel supports literal and raw-byte search in ABI 1.0.0. Regex is explicitly deferred/unsupported, not part of the stable 1.0.0 conformance claim. Unicode data is pinned/queryable per kernel release.
 - The next candidate repository is `cdin-runtime`, but extraction is gated on a versioned/tested runtime host API and an integration path through the kernel.
 
-## 4. Kernel 1.0.0 implementation boundary
+## 4. Kernel package 1.1.0 / ABI 1.0.0 implementation boundary
 
-Implemented kernel features and deliberately unsupported items are recorded in [kernel/implementation-status.md](../kernel/implementation-status.md). In particular, do not infer full Spec implementation from green kernel tests: backend/frontend protocol/runtime/plugin integration is not covered by the kernel repository.
+Implemented kernel features, package-only changes, and deliberately unsupported items are recorded in [kernel/implementation-status.md](../kernel/implementation-status.md). Kernel package `1.1.0` adds distribution/documentation improvements and an internal literal-search fast path without changing public C ABI `1.0.0`; its header continues to declare the Spec `1.0.0` compatibility target. This repository's Spec release `1.1.0` is a compatible clarification and documentation release; it does not retroactively claim that the kernel implements application-level architecture. Do not infer full Spec implementation from green kernel tests: backend/frontend protocol/runtime/plugin integration is not covered by the kernel repository.
 
 ## 5. Remaining open or proposed work
 
 - **Frontend Protocol serialization** and codec/client library: [OD-22](../adr/open-decisions.md), [OD-23](../adr/open-decisions.md).
 - **Multi-frontend mutation/control ownership:** [OD-24](../adr/open-decisions.md).
-- **Regex engine and syntax for a future ABI:** [OD-09](../adr/open-decisions.md); Kernel 1.0.0 returns `CDIN_UNSUPPORTED`.
+- **Regex engine and syntax for a future ABI:** [OD-09](../adr/open-decisions.md); Kernel ABI 1.0.0 (also in package 1.1.0) returns `CDIN_UNSUPPORTED`.
 - **Search normalization and named fold profiles:** [OD-29](../adr/open-decisions.md); Persian/Arabic letter equivalence remains explicit and off by default.
 - **Runtime host API / Lua-core boundary:** [OD-30](../adr/open-decisions.md) and the runtime integration gate in [repositories.md](../architecture/repositories.md).
 - **Extension UI and canvas capabilities:** [ADR-0011](../adr/ADR-0011-extension-ui.md).
@@ -49,7 +49,7 @@ Implemented kernel features and deliberately unsupported items are recorded in [
 
 | Finding | Resolution in this release |
 |---|---|
-| Earlier docs described a FIFO mutation executor and queued shutdown semantics, but Kernel 1.0.0 executes API calls synchronously. | Corrected concurrency and editing diagrams/requirements; recorded [ADR-0017](../adr/ADR-0017-kernel-synchronous-concurrency.md). |
+| Earlier docs described a FIFO mutation executor and queued shutdown semantics, but Kernel ABI 1.0.0 executes API calls synchronously (now shipped in package 1.1.0). | Corrected concurrency and editing diagrams/requirements; recorded [ADR-0017](../adr/ADR-0017-kernel-synchronous-concurrency.md). |
 | Kernel API names and exact layouts were called open despite a concrete published header. | Resolved OD-17 against the v1.0.0 header; Frontend Protocol encoding remains separate. |
 | Regex was labelled accepted/provided in parts of the Spec, but the kernel explicitly returns `CDIN_UNSUPPORTED`. | SEARCH-004 is retained and marked `DEFERRED`; no regex support claim is made. |
 | Notification unsubscribe documentation claimed subscriptions remained allocated until kernel destruction. | Kernel code/docs and regression vector now specify invalidation/free on unsubscribe and `CDIN_INVALID_HANDLE` on subsequent use. |
@@ -61,12 +61,13 @@ Implemented kernel features and deliberately unsupported items are recorded in [
 
 ### Spec repository
 
-- `python3 scripts/check.py`: structural checks for requirement IDs, links, references, index completeness and Mermaid diagram types. The result is recorded by the final run/release report.
+- `python3 scripts/check.py`: **PASS** — requirement IDs, links, references, index completeness and diagram types. Final local stats: 65 Markdown files, 396 normative requirements, 17 ADRs and 41 Mermaid diagrams.
+- `python3 scripts/check.py --render`: structural checks **PASS**; diagram rendering was **skipped** because `mmdc` (Mermaid CLI) is not installed in this environment. Mermaid source has not been rendered in a browser here.
 - The Spec repository contains no executable product test runner by design. Its structural check does not verify implementation behaviour.
 
 ### Kernel repository
 
-The accompanying release report lists exact commands and outcomes run against the supplied archive snapshot. The intended local gates include the normal conformance/regression suite, ASan/UBSan, TSan, shared/FFI builds, quickstart and fuzz target compilation/smoke runs. Any command blocked by environment constraints will be marked as such; no CI result is inferred from the archive.
+Against the supplied `cdin-kernel` package 1.1.0 source snapshot, `make clean && make all shared ffi-shared quickstart check` **PASS** on this Linux workspace; this includes the normal conformance vectors and P1/P3 regression/concurrency tests. `bash scripts/check-public-header.sh` **PASS** (C11/C++17 header compile). These are local results only; they do not establish macOS/Windows CI, sanitizer/fuzzer smoke coverage, a Docker image build, or a Docker Hub push in this run.
 
 ### CDIN composition repository
 

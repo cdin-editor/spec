@@ -4,42 +4,62 @@ Who may depend on whom, who owns what, and how components talk. This is the cont
 
 ## 1. Dependency directions
 
+The diagram is a **dependency map**, not a call timeline. Arrows mean “uses the contract or service provided by”; dotted arrows are composition or contract-governance relationships. A runtime call sequence is shown in [system-maps.md](system-maps.md#3-detailed-request-path--one-edit-from-input-to-pixels).
+
 ```mermaid
 flowchart TB
-    ROOT["cdin root<br/>composition: build, bundle, launch"]
-    subgraph TOP["consumers"]
-        direction LR
-        FE["frontends"]
-        X["cdin-x"]
-    end
-    PROTO{{"Frontend Protocol"}}
-    subgraph CORE["cdin core"]
-        direction TB
-        RT["runtime (Lua)"]
-        RTH{{"runtime host API<br/>provided by backend"}}
-        BE["backend"]
-        OSS["OS services<br/>inside backend"]
-        K["kernel<br/>depends on C11/libc and injected services"]
+    ROOT["cdin<br/>composition root"]
+    SPEC["spec<br/>architecture and contracts"]
+
+    subgraph CONSUMERS["Consumers"]
+        FE["Frontend implementations<br/>gui-sdl / headless / future tui"]
+        X["cdin-x extensions"]
     end
 
-    ROOT -. "ARCH-045: build time only" .-> TOP
+    FP{{"Frontend Protocol<br/>semantic contract; wire encoding OPEN"}}
+    EXT{{"Lua Extension Contract"}}
+    RHA{{"Runtime Host API<br/>PROPOSED"}}
+    ABI{{"Kernel C ABI 1.0.0"}}
+
+    subgraph CORE["Target CDIN core"]
+        BE["Backend<br/>protocol server, session, OS services"]
+        RT["Runtime · Lua<br/>commands, views, UI model"]
+        KH["Kernel host / adapter<br/>backend-owned"]
+        K["cdin-kernel<br/>package 1.1.0"]
+    end
+    OS[("Operating system")]
+
+    FE --> FP
+    BE --> FP
+    X --> EXT
+    RT --> EXT
+    RT --> RHA
+    BE --> RHA
+    BE --> KH
+    KH -- "uses" --> ABI
+    K -- "implements" --> ABI
+    BE --> OS
+
+    ROOT -. "build / bundle / launch" .-> CONSUMERS
     ROOT -.-> CORE
-    FE -- "ARCH-043" --> PROTO
-    BE --> PROTO
-    X -- "ARCH-044" --> RT
-    RT -- "ARCH-041" --> RTH
-    BE --> RTH
-    BE --> OSS
-    BE -- "Kernel C ABI" --> K
+    ROOT -. "may bundle extension assets" .-> X
+    SPEC -. "defines and versions contracts" .-> FP
+    SPEC -.-> EXT
+    SPEC -.-> RHA
+    SPEC -.-> ABI
+
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
-    class BE,FE,K,OSS,ROOT,RT,X comp
-    class PROTO,RTH contract
-    class CORE,TOP group
+    class ROOT,SPEC,FE,X,BE,RT,KH,K comp
+    class FP,EXT,RHA,ABI contract
+    class OS external
+    class CORE,CONSUMERS group
 ```
 
-*Caption: target dependency direction, with the kernel C ABI implemented as a separate repository. An arrow `A --> B` means A depends on B. Frontends depend on the protocol; the kernel depends on neither frontend nor runtime.*
+*Caption: target architecture. The Runtime Host API is proposed, while the kernel ABI `1.0.0` is the published native boundary. `cdin-runtime` and frontends do not link directly to the kernel. The package release version `1.1.0` does not change ABI version `1.0.0`.*
+
 
 Read as rules:
 

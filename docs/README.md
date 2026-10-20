@@ -20,6 +20,9 @@ always the obvious one.
 **[architecture/overview.md](architecture/overview.md)** — goals, principles and the
 system context. Read this before touching anything.
 
+**[architecture/system-maps.md](architecture/system-maps.md)** — diagrams from the highest-level
+landscape down to dependency boundaries, a single edit request, startup/shutdown and versioning.
+
 **[reference/status.md](reference/status.md)** — what was inspected, what is decided,
 what is open, and what contradicts what. Read it before trusting any claim about the
 current `cdin` code.
@@ -42,6 +45,7 @@ System-level design: who owns what, how components talk, how they start and stop
 | Page | What it settles |
 | --- | --- |
 | [overview](architecture/overview.md) | goals, principles, system context, the component list |
+| [system-maps](architecture/system-maps.md) | layered landscape, dependency map, edit sequence, lifecycle and version map |
 | [repositories](architecture/repositories.md) | which component lives in which repository, today and at the target |
 | [module-boundaries](architecture/module-boundaries.md) | who may depend on whom; who owns which state |
 | [abi-and-compatibility](architecture/abi-and-compatibility.md) | the C ABI rules every binary boundary follows |

@@ -2,6 +2,10 @@
 
 Advanced search is part of the kernel, not UI logic of a search box (`ACCEPTED`).
 
+## Implementation note — package 1.1.0
+
+The public contract remains the one declared by ABI 1.0.0. The 1.1.0 implementation adds forward literal-search fast paths: Linux may use `memmem` only for byte-exact, uncancellable requests with a full candidate-window budget; other supported platforms use a selective-byte anchor to skip unnecessary full comparisons. Requests that need cancellation, step accounting or partial-result behavior remain on the incremental path. These are private implementation choices, not promises of O(1) complexity or a specific latency. Any optimization must return the same ranges and statuses as the portable path.
+
 ## 1. Required capabilities (`ACCEPTED`)
 
 - **SEARCH-001** `ACCEPTED` Literal search. — *Verify:* CONF

@@ -39,6 +39,7 @@ Every unresolved or not-yet-confirmed question, with importance, options, trade-
 | [OD-29](#od-29) | Search normalization and folding options in the first version | Medium | `OPEN` |
 | [OD-30](#od-30) | UI core stays in Lua or becomes native | Medium | `PROPOSED` (Lua) |
 | [OD-31](#od-31) | Name of the specification repository | Low | `OPEN` |
+| [OD-32](#od-32) | Lua-to-native bridge behind the Runtime Host API | Medium | `OPEN` |
 
 ---
 
@@ -168,3 +169,12 @@ Importance: Medium. Proposal: stays in Lua (it is about 7.3 thousand lines of po
 ## OD-31
 **Name of the specification repository.**
 Importance: Low. The repository is `cdin-editor/spec`; the owner has also called it "cdin-spec" in conversation. Proposal: keep `spec` (the organization already scopes it).
+
+
+## OD-32
+**Lua-to-native bridge behind the Runtime Host API.**
+Importance: Medium. The stable `cdin-kernel` boundary is a C ABI, but the target architecture does not allow the Lua runtime or `cdin-x` extensions to call private kernel functions directly. The backend owns the kernel adapter and exposes a versioned Runtime Host API.
+
+Options to evaluate: (1) native binding functions implemented with the Lua C API, suitable for standard Lua 5.4; (2) LuaJIT FFI, only if LuaJIT is an explicit runtime target; (3) MetaCall or another multi-language loader, if loading/invoking several languages is a product requirement. Compare platform availability, deployment footprint, debugging, error mapping, memory ownership, reentrancy, and startup/per-call overhead with a minimal end-to-end prototype.
+
+No option is selected here. MetaCall is not required by `cdin-kernel` and must not become a dependency of the kernel itself. A decision requires the runtime target (PUC Lua vs LuaJIT), a tested C call round-trip, and confirmation that plugins still see only the extension contract and Runtime Host API.

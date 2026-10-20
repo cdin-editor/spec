@@ -9,7 +9,7 @@ A **component** has one responsibility and a contract. A **repository** is a uni
 ```mermaid
 flowchart TB
     cdinrepo["cdin (repo)<br/>composition root, backend/UI source,<br/>build and integration"]
-    kernelrepo["cdin-kernel (repo)<br/>native text engine, C ABI 1.0.0"]
+    kernelrepo["cdin-kernel (repo)<br/>package 1.1.0 · C ABI 1.0.0"]
     xnow["cdin-x (repo)<br/>separate extension ecosystem"]
     specnow["spec (repo)<br/>architecture and contracts"]
     specnow -. "defines contracts" .-> cdinrepo
@@ -20,7 +20,7 @@ flowchart TB
     class cdinrepo,kernelrepo,specnow,xnow comp
 ```
 
-*Caption: archive snapshots inspected for the 1.0.0 synchronization. The uploads contain working trees but not Git history, so this report cannot verify commit ancestry or whether an extraction preserved history. `cdin-kernel` exists as a standalone source tree and publishes C ABI 1.0.0; its integration into `cdin` remains a separate gate.*
+*Caption: archive snapshots inspected for the package 1.1.0 / ABI 1.0.0 synchronization (Spec release 1.1.0; the kernel declares Spec target 1.0.0). The uploads contain working trees but not Git history, so this report cannot verify commit ancestry or whether an extraction preserved history. `cdin-kernel` exists as a standalone source tree and packages release 1.1.0 while publishing C ABI 1.0.0; its integration into `cdin` remains a separate gate.*
 
 ### Stable architecture baseline and target
 
@@ -61,8 +61,8 @@ flowchart TB
 
 | Component | Repository now | Repository target | Status |
 |---|---|---|---|
-| spec | `cdin-editor/spec` | same | `ACCEPTED`; Spec baseline `1.0.0` |
-| kernel | standalone `cdin-kernel` archive snapshot | same; stable C ABI `1.0.0` | `ACCEPTED` |
+| spec | `cdin-editor/spec` | same | `ACCEPTED`; Spec release `1.1.0`, compatible with the established `1.0.0` baseline |
+| kernel | standalone `cdin-kernel` source archive, package `1.1.0` | same; stable C ABI `1.0.0` | `ACCEPTED` |
 | runtime | inside `cdin` (`data/core/`, `src/lua/`, `src/api/`) | `cdin-runtime`, created after the runtime host API is stable | `PROPOSED` |
 | backend | inside `cdin` (`src/`) | stays in `cdin` | `PROPOSED` |
 | frontend: gui-sdl | inside `cdin` (`src/ui/`, `src/core/window.*`, SDL parts of `src/api/system.c`) | directory in `cdin`, extractable | `PROPOSED` |

@@ -20,51 +20,78 @@ Non-goals for this phase: implementation, general hot-swap of modules, a network
 6. **Bounded everything.** Every cache, queue, buffer and history has a cap and a defined behaviour at the cap.
 7. **Specify first, then prove with a prototype.** A decision is not settled until code has exercised it.
 
-## 3. System context
+## 3. System context: planes and boundaries
+
+The architecture is easier to read as three related planes: **delivery** assembles the product, **runtime interaction** carries requests, and **contracts** keep implementations replaceable. This is a target view; implementation status is recorded separately.
 
 ```mermaid
 flowchart TB
-    User(["User"])
-    subgraph FEs["Frontends: peers"]
-        direction LR
-        GUI["gui-sdl"]
-        TUI["tui"]
-        CLI["cli / headless"]
+    subgraph DELIVERY["Delivery and governance — outside the runtime call path"]
+        ROOT["cdin<br/>composition root: build, bundle, launch, release"]
+        SPEC["spec<br/>requirements, ADRs, contracts"]
+        XREPO["cdin-x repository<br/>extension assets and metadata"]
     end
-    PROTO{{"Frontend Protocol"}}
-    subgraph Core["cdin core"]
-        direction LR
-        BE["backend"]
-        RT["runtime (Lua)"]
-        KABI{{"Kernel C ABI"}}
-        K["kernel"]
-        BE -- "hosts, Lua" --> RT
-        BE --> KABI --> K
-    end
-    X["cdin-x ecosystem"]
-    OS[("OS: files, processes, clipboard,<br/>terminal, window system")]
-    Root["cdin composition root<br/>build, bundle, release, launcher"]
 
-    User --> FEs
-    FEs -- "speak only" --> PROTO
-    PROTO --> BE
-    X -- "extension contract" --> RT
-    BE -- "OS services" --> OS
-    FEs -- "toolkit and terminal calls" --> OS
-    Root -.-> Core
-    Root -.-> FEs
-    Root -.-> X
-    classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
+    subgraph TARGET["CDIN product — target architecture"]
+        direction TB
+        subgraph UI["Presentation"]
+            direction LR
+            GUI["gui-sdl"]
+            TUI["tui — DEFERRED"]
+            HL["headless / cli"]
+        end
+        FP{{"Frontend Protocol<br/>semantic contract; wire format OPEN"}}
+        subgraph CORE["Headless core"]
+            direction LR
+            BE["backend<br/>session + protocol server + OS services"]
+            RHA{{"Runtime Host API<br/>PROPOSED"}}
+            RT["cdin-runtime<br/>Lua policy and extension host"]
+            KH["kernel host / adapter"]
+            ABI{{"Kernel C ABI 1.0.0"}}
+            K["cdin-kernel<br/>package 1.1.0"]
+        end
+        EXT{{"Lua Extension Contract"}}
+        OS[("Operating system")]
+    end
+
+    GUI <--> FP
+    TUI <--> FP
+    HL <--> FP
+    FP <--> BE
+    RT --> RHA
+    BE --- RHA
+    BE --> KH --> ABI --> K
+    XREPO --> EXT --> RT
+    BE --> OS
+    ROOT -. "build / bundle / launch" .-> UI
+    ROOT -.-> CORE
+    ROOT -. "bundles assets" .-> XREPO
+    SPEC -. "defines contracts" .-> TARGET
+
+    classDef component fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
-    classDef ext fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
-    class BE,CLI,GUI,K,RT,Root,TUI,X comp
-    class KABI,PROTO contract
-    class OS,User ext
-    class Core,FEs group
+    classDef deferred fill:#f8fafc,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
+    class ROOT,SPEC,XREPO,GUI,HL,BE,RT,KH,K component
+    class FP,RHA,ABI,EXT contract
+    class OS external
+    class TUI deferred
+    class DELIVERY,UI,CORE,TARGET group
 ```
 
-*Caption: accepted target architecture baseline. The current GUI/backend/runtime code is still integrated in `cdin`; `cdin-kernel` is a separate repository with ABI 1.0.0. Backend integration and the frontend protocol remain work items; see [migration.md](migration.md).*
+*Caption: target architecture. Solid arrows in this context view show message or call paths; dotted arrows are build-time, bundling or contract-governance relationships. A box marked `PROPOSED`, `OPEN` or `DEFERRED` is not evidence of an implementation.*
+
+### The four main contracts
+
+| Boundary | Caller / consumer | Provider / authority | What it deliberately does not define |
+|---|---|---|---|
+| Frontend Protocol | GUI, TUI, headless and future frontends | Backend protocol server | Kernel C types; pixel/cell layout; serialized wire encoding until OD-22 is resolved |
+| Runtime Host API | Lua runtime and extensions through the runtime | Backend runtime host | Kernel internals; it is still a proposed, versioned API |
+| Kernel C ABI | Backend kernel host / adapters | `cdin-kernel` | Filesystem policy, rendering, Lua, plugins and persistence |
+| Lua Extension Contract | `cdin-x` extensions | Runtime/extension host | Direct kernel calls, backend internals or private frontend channels |
+
+For the larger dependency graph and the detailed edit flow, see [system-maps.md](system-maps.md). The [migration plan](migration.md) distinguishes the existing integrated source tree from this target topology.
 
 ## 4. Components
 

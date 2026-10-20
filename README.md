@@ -2,7 +2,7 @@
 
 This repository is the formal architecture and system-design specification of **CDIN**, a modular text editor. It defines component ownership, the stable kernel boundary, the Frontend Protocol model, and the rules that keep those contracts compatible.
 
-**Specification version: `1.0.0` (stable architecture baseline).** This is not a claim that every planned component is implemented: `cdin-kernel` has a stable C ABI `1.0.0`; the runtime, backend integration, Frontend Protocol wire encoding and several advanced features remain proposed or deferred where explicitly marked. This repository stays design-only and contains no production implementation or executable test suite. Cross-repository verification evidence is recorded in [implementation status](docs/kernel/implementation-status.md).
+**Specification release: `1.1.0` (compatible architecture and documentation release).** The `cdin-kernel` package still publishes C ABI `1.0.0` and declares compatibility with the Spec `1.0.0` baseline. This repository remains design-only: the runtime, backend integration, Frontend Protocol wire encoding and several advanced features are proposed or deferred where explicitly marked. It contains no production implementation or executable test suite. Cross-repository verification evidence is recorded in [implementation status](docs/kernel/implementation-status.md).
 
 Language: English. Normative text is English only for now.
 
@@ -10,45 +10,85 @@ Language: English. Normative text is English only for now.
 
 ## What CDIN is
 
-CDIN is an editor built from components with explicit ownership boundaries and stable contracts. Any component can be reimplemented, in any language, behind its contract, without touching the others.
+CDIN is a modular text editor with intentionally separate **presentation**, **policy**, **coordination**, and **document-engine** responsibilities. Contracts—not private headers—connect the layers. The diagram below is the target architecture; dashed relationships are build-time or packaging relationships, not runtime calls.
 
 ```mermaid
-flowchart LR
-    ROOT["cdin composition root<br/>build, bundle, release, launcher"]
-    GUI["gui-sdl"]
-    TUI["tui"]
-    HL["cli / headless"]
-    PROTO{{"Frontend Protocol<br/>versioned"}}
-    subgraph CORE["cdin core: headless, runs with no frontend"]
-        direction TB
-        BE["backend<br/>session, OS services,<br/>protocol server, runtime host"]
-        RT["runtime (Lua)<br/>commands, keymaps,<br/>UI model, plugin loader"]
-        KABI{{"Kernel C ABI"}}
-        K["kernel<br/>documents, text, undo, search"]
-        BE <-- "hosts / host API" --> RT
-        BE --- KABI --- K
-    end
-    X["cdin-x<br/>optional extension ecosystem"]
+flowchart TB
+    USER(["User"])
 
-    GUI --- PROTO
-    TUI --- PROTO
-    HL --- PROTO
-    PROTO --- BE
-    X -. "extension contract (Lua)" .-> RT
-    ROOT -.-> GUI
-    ROOT -.-> TUI
-    ROOT -.-> HL
-    ROOT -.-> CORE
-    ROOT -.-> X
+    subgraph PRESENTATION["Presentation layer"]
+        direction LR
+        GUI["gui-sdl<br/>window, input, layout, rendering"]
+        TUI["tui<br/>terminal cells — DEFERRED"]
+        HEADLESS["headless / cli<br/>automation and tests"]
+    end
+    FP{{"Frontend Protocol<br/>versioned semantic contract<br/>wire encoding: OPEN"}}
+
+    subgraph PRODUCT["CDIN runtime system — target topology"]
+        direction TB
+        BE["backend<br/>session, protocol server,<br/>runtime host, OS services"]
+        RHA{{"Runtime Host API<br/>provided by backend — PROPOSED"}}
+        RT["cdin-runtime<br/>Lua policy, commands, keymaps,<br/>plugins and semantic UI model"]
+        KHOST["kernel host / adapter<br/>inside backend"]
+        KABI{{"Kernel C ABI 1.0.0"}}
+        K["cdin-kernel<br/>package 1.1.0 · C11 document engine"]
+        BE --- RHA
+        RT --> RHA
+        BE --> KHOST --> KABI --> K
+    end
+
+    EXTAPI{{"Lua Extension Contract"}}
+    X["cdin-x<br/>plugins, themes, fonts, workflows"]
+    OS[("Operating system<br/>filesystem, processes, clock, devices")]
+    ROOT["cdin composition root<br/>build, bundle, release, launcher"]
+    SPEC["spec repository<br/>architecture and contracts"]
+
+    USER --> GUI
+    USER --> TUI
+    USER --> HEADLESS
+    GUI <--> FP
+    TUI <--> FP
+    HEADLESS <--> FP
+    FP <--> BE
+    X --> EXTAPI --> RT
+    BE --> OS
+    ROOT -. "build / bundle / launch" .-> PRESENTATION
+    ROOT -.-> PRODUCT
+    ROOT -. "bundle extension assets" .-> X
+    SPEC -. "defines contracts; not a runtime dependency" .-> PRODUCT
+    SPEC -.-> PRESENTATION
+
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
-    class BE,GUI,HL,K,ROOT,RT,TUI,X comp
-    class KABI,PROTO contract
-    class CORE group
+    classDef deferred fill:#f8fafc,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
+    class TUI deferred
+    class GUI,HEADLESS,BE,K,KHOST,RT,ROOT,SPEC,X comp
+    class FP,RHA,KABI,EXTAPI contract
+    class OS,USER external
+    class PRESENTATION,PRODUCT group
 ```
 
-The picture in one paragraph: the **kernel** owns documents and knows nothing about who uses it. The **backend** hosts the kernel, the **runtime** (Lua) and the OS services, and talks to any number of **frontends** through one versioned **Frontend Protocol**. **cdin** is the composition root that builds and bundles all of it. **cdin-x** is a completely separate ecosystem that only sees the Lua extension contract.
+**Read the diagram in four passes:**
+
+1. **Presentation:** frontends own visual layout and environment-specific input/output. They use the Frontend Protocol; they never call the kernel or Lua runtime directly.
+2. **Policy:** `cdin-runtime` owns commands, keymaps, plugins, logical views and the semantic UI model. It reaches document operations through the backend-provided Runtime Host API—not through private kernel symbols.
+3. **Coordination and document state:** the backend hosts the runtime, manages sessions and OS services, and is the direct client of the kernel C ABI. `cdin-kernel` alone owns canonical document bytes, versions and undo/redo history.
+4. **Composition and extensions:** `cdin` assembles and releases the product. `cdin-x` provides extension assets through the Lua extension contract and is not a privileged part of the core.
+
+The drawing is a **target model**, not a claim that every layer has already been extracted. The current GUI, Lua runtime and much of the backend remain integrated in `cdin`; the Frontend Protocol's wire encoding and the Runtime Host API remain proposed/open where called out in the component pages. For a dependency map, an end-to-end edit sequence and lifecycle detail, see [System maps](docs/architecture/system-maps.md).
+
+### Version map for the current kernel release
+
+| Version label | Value | Meaning |
+|---|---:|---|
+| `cdin-kernel` package | `1.1.0` | Distribution, documentation and internal search-path improvements in this package release. |
+| Public C ABI | `1.0.0` | Stable binary contract; public names, layouts and status values remain governed by `include/cdin/kernel.h`. |
+| CDIN Spec release | `1.1.0` | Current compatible specification release; see `CHANGELOG.md`. |
+| Kernel-declared Spec target | `1.0.0` | Compatibility target declared by the current kernel public header. This does not claim conformance to unimplemented application-level components. |
+
+The full release-specific evidence and limits are recorded in [kernel implementation status](docs/kernel/implementation-status.md).
 
 ## Where to start
 
@@ -74,7 +114,7 @@ This specification mixes four kinds of statement and always labels them (see [co
 
 Unresolved questions are not requirements. They live in the [Open Decisions Register](docs/adr/open-decisions.md) with options and trade-offs.
 
-**A `PROPOSED` item is never promoted to `ACCEPTED` without an owner decision.** For `cdin-kernel`, the public C ABI and the supported v1.0.0 behaviour are now checked against a separate implementation and its conformance suite. No such implementation claim is made for runtime, backend or frontend-protocol features that remain unbuilt.
+**A `PROPOSED` item is never promoted to `ACCEPTED` without an owner decision.** For `cdin-kernel`, package `1.1.0` retains the public C ABI and supported behaviour `1.0.0`; that ABI is checked against a separate implementation and its conformance suite. No such implementation claim is made for runtime, backend or frontend-protocol features that remain unbuilt.
 
 
 ## Checking it

@@ -1,6 +1,6 @@
 # Runtime
 
-The runtime (`cdin-runtime`) is the **policy layer**: the Lua 5.4 application that is "the editor" from a user's point of view, and the host environment that extensions run in. It executes scripts and customizable behaviours.
+The runtime (`cdin-runtime`) is the **policy layer**: the proposed Lua 5.4 application that is "the editor" from a user's point of view, and the host environment that extensions run in. It executes scripts and customizable behaviours. The runtime is a separate component in the target topology, but it is not yet claimed to be a separately extracted or versioned repository.
 
 ## 1. Responsibilities
 
@@ -38,16 +38,19 @@ flowchart TB
     KEY --> CMD
     UIM --> DOC
     SYN --> DOC
-    RT --> HOST
+    RT --> BRIDGE --> HOST
+    BRIDGE["Lua ↔ native binding mechanism<br/>implementation choice: OPEN"]
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
+    classDef open fill:#f8fafc,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
     class CFG,CMD,DOC,KEY,PLG,SYN,THEME,UIM,X comp
     class HOST contract
+    class BRIDGE open
     class RT group
 ```
 
-*Caption: `PROPOSED` structure; the existing Lua core already follows this shape (`data/core/`).*
+*Caption: `PROPOSED` structure; the existing Lua core already follows part of this shape (`data/core/`). The binding mechanism is not a public contract and is unresolved (OD-32).*
 
 ## 4. Requirements
 
@@ -79,7 +82,19 @@ The Lua-visible environment the runtime and plugins can rely on. It is **partial
 | `system` (OS part) | backend OS services | `EXISTING` names, to be split |
 | `renderer` | frontend-private (gui-sdl) during transition | `EXISTING`; retired with shims |
 
-## 6. Transition rules
+## 6. Native boundary and language bridge
+
+The stable native boundary is the kernel's public C ABI. The **runtime must not depend directly on the kernel ABI in the target architecture**: the backend owns the kernel host/adapter and provides a versioned Runtime Host API to Lua. This keeps document policy and plugin APIs independent from C implementation details.
+
+The bridge that exposes backend host functions to Lua is an implementation decision, not part of the kernel contract. Options to evaluate include:
+
+- a small native module using the Lua C API (compatible with standard Lua builds);
+- LuaJIT FFI when the deployment intentionally targets LuaJIT;
+- MetaCall or another multi-language bridge if the project needs cross-language loading beyond Lua↔C.
+
+None is accepted by this Spec as the current implementation. Any bridge must preserve explicit ownership/lifetimes, version checks, stable errors, and the rule that extensions cannot reach private kernel functions. See [OD-32](../adr/open-decisions.md). The optional `examples/ffi` material in `cdin-kernel` is sample code and does not extend the public ABI.
+
+## 7. Transition rules
 
 - **RT-020** `PROPOSED` Every Lua API that is removed or changed during migration stays as a shim that logs one deprecation per process (ARCH-027). — *Verify:* INTEG
 - **RT-021** `PROPOSED` During M2 the document layer (`data/core/doc/`) becomes a thin client of the kernel; behaviour visible through the extension contract does not change. — *Verify:* INTEG — see [migration.md](../architecture/migration.md)

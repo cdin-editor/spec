@@ -10,7 +10,7 @@ The supplied working-tree archives identify four current repositories: `cdin`, `
 Which components are separate repositories now, and what should be extracted next?
 
 ## Decision
-1. `spec` is the authoritative architecture/contracts repository; its stable baseline is version `1.0.0`.
+1. `spec` is the authoritative architecture/contracts repository; its initial stable compatibility baseline is version `1.0.0`; compatible specification releases may clarify and extend the architecture without changing the kernel ABI.
 2. `cdin-kernel` is a separate repository now, with a stable C ABI `1.0.0`; integration into `cdin` must be verified as its own gate.
 3. `cdin` remains the composition root and retains build/bundle/release/launcher tooling, backend, frontends, and the current runtime code until the next boundary is stable.
 4. `cdin-runtime` is the next justified repository extraction, but only after its host API is versioned, documented, and tested through an integration spike.

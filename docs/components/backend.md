@@ -13,37 +13,51 @@ The backend is the headless core of CDIN. It hosts the kernel and the runtime, p
 5. **Protocol server**: handshake, capability negotiation, input routing to the runtime, UI-model relay, backpressure.
 6. **Diagnostics**: logging, memory accounting.
 
-## 2. Structure
+The native bridge is deliberately hidden behind the Runtime Host API. Direct Lua-to-kernel linking is not the target boundary. Candidate bridge mechanisms (Lua C API, LuaJIT FFI, MetaCall) remain an open implementation choice in [OD-32](../adr/open-decisions.md); none is a kernel dependency.
+
+## 2. Internal structure
 
 ```mermaid
 flowchart TB
-    subgraph BE["backend"]
-        SES["session manager"]
-        PS["protocol server"]
-        KH["kernel host"]
-        RH["runtime host (Lua state, host API)"]
-        OSS["OS services: fs, path, process, jobs, clock"]
-        LOG["logging and memory accounting"]
+    FE["Frontend(s)"]
+    FP{{"Frontend Protocol"}}
+    subgraph BE["backend — headless coordinator"]
+        PS["Protocol server<br/>handshake, capabilities, backpressure"]
+        SES["Session manager<br/>documents, views, attached clients"]
+        RH["Runtime host<br/>Lua state + Runtime Host API"]
+        KH["Kernel host / adapter<br/>version checks, handle mapping, notifications"]
+        OSS["OS services<br/>fs, path, process, jobs, clock"]
+        DIAG["Diagnostics and memory accounting"]
     end
-    FE["frontends"] --> PS
+    RT["cdin-runtime · Lua policy"]
+    RHA{{"Runtime Host API<br/>PROPOSED"}}
+    ABI{{"Kernel C ABI 1.0.0"}}
+    K["cdin-kernel · package 1.1.0"]
+    OS[("Operating system")]
+
+    FE <--> FP <--> PS
     PS --> SES
-    SES --> KH
     SES --> RH
-    RH --> KH
+    RH --- RHA
+    RT --> RHA
+    SES --> KH
+    KH --> ABI --> K
+    OSS --> OS
     RH --> OSS
-    KH --> K[("kernel via C ABI")]
-    OSS --> OS[("operating system")]
-    LOG -.-> KH
-    LOG -.-> RH
+    DIAG -. "observes host-level events" .-> RH
+    DIAG -.-> KH
+
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
-    classDef ext fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
+    classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
-    class FE,KH,LOG,OSS,PS,RH,SES comp
-    class K,OS ext
+    class FE,PS,SES,RH,KH,OSS,DIAG,RT,K comp
+    class FP,RHA,ABI contract
+    class OS external
     class BE group
 ```
 
-*Caption: `PROPOSED` internal structure. Boxes are not repositories and not necessarily separate libraries.*
+*Caption: target internal structure. These boxes are logical responsibilities, not promises of separate binaries or repositories. The Backend is the direct client of the kernel; the Lua runtime depends on the Runtime Host API, not on `include/cdin/kernel.h`. The runtime host API remains proposed.*
 
 ## 3. Requirements
 
@@ -71,26 +85,35 @@ OS services are an internal C API of the backend, not an ABI. Their behaviour is
 | jobs | run on a worker, cancel, post result to the main thread | the only way off-main-thread work reaches Lua |
 | clock | monotonic and wall time | the kernel never calls it (KERNEL-007) |
 
-## 5. Interaction summary
+## 5. Interaction summary — command to committed edit
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant F as Frontend
-    participant P as Protocol server
+    participant P as Frontend Protocol server
     participant R as Runtime (Lua)
-    participant K as Kernel
-    F->>P: input.key
-    P->>R: key event (main thread)
-    R->>R: keymap resolves command
-    R->>K: replace (via host API and kernel ABI)
-    K-->>R: ok, version, edit description
-    K-->>P: change notification (kernel event)
-    R->>P: UI model update
-    P->>F: view.invalidate / view.lines / ui.flush
+    participant H as Runtime Host API
+    participant KH as Kernel host
+    participant K as Kernel C ABI 1.0.0
+
+    F->>P: input.key / input.text
+    P->>R: dispatch on Lua owner thread
+    R->>R: keymap → command → edit intent
+    R->>H: document.replace(handle, range, bytes, expected_version)
+    H->>KH: validate host request
+    KH->>K: synchronous C ABI call
+    K-->>KH: status + version + edit result
+    KH->>K: read/drain change notification queue
+    K-->>KH: ordered notification or RESYNC
+    KH-->>R: status + committed version + invalidation
+    R->>R: update logical view and semantic UI model
+    R->>P: publish semantic UI change
+    P-->>F: protocol response / invalidation
+    F->>F: recalculate layout and render
 ```
 
-*Caption: `PROPOSED`. One keystroke through the whole system.*
+*Caption: `PROPOSED` for the cross-component path. Kernel call synchronicity, version-checked editing and bounded notifications are present in ABI 1.0.0. This diagram does not imply that the Runtime Host API or Frontend Protocol wire format is already implemented.*
 
 ## 6. State owned
 

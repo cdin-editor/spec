@@ -2,7 +2,7 @@
 
 Terms are used with exactly these meanings throughout the specification.
 
-**ABI** Binary interface between two compiled components. In CDIN: C ABI. See [abi-and-compatibility.md](../architecture/abi-and-compatibility.md).
+**ABI** Binary interface between two compiled components. In CDIN: the public C ABI `1.0.0` of `cdin-kernel`. It is independent of the package release version and Spec baseline. See [abi-and-compatibility.md](../architecture/abi-and-compatibility.md).
 
 **Anchor (code anchor)** A pointer from an `EXISTING` statement to the file or section in `cdin` that proves it.
 
@@ -50,7 +50,13 @@ Terms are used with exactly these meanings throughout the specification.
 
 **Raw region** A maximal run of document bytes that is not valid UTF-8. Preserved exactly.
 
-**Runtime** The Lua 5.4 policy layer and extension host: commands, keymaps, configuration, plugin loading, UI model.
+**Runtime** The target Lua 5.4 policy layer and extension host: commands, keymaps, configuration, plugin loading, logical views and the semantic UI model.
+
+**Runtime Host API** The versioned service surface the backend provides to Lua for document operations, OS services and UI integration. It is proposed and distinct from the kernel C ABI.
+
+**Lua/native bridge** The implementation mechanism that calls native backend services from Lua (for example a Lua C API module, LuaJIT FFI or a multi-language loader). It is not a public contract until selected; see OD-32.
+
+**Package version** The release/distribution version of a project. For the current kernel release it is `1.1.0`; this does not imply that the C ABI or Spec baseline changed.
 
 **Snapshot** An immutable, reference-counted view of a document at one committed version. Used for concurrent reads.
 
