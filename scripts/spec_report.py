@@ -100,8 +100,14 @@ def count_diagrams(files: list[Path]) -> int:
 
 
 def spec_version() -> str:
+    # README is the source of the published Spec version. The generated status
+    # page is an output of this script and must not be used as its own input.
+    readme = read_text(README_FILE)
+    match = re.search(r"Specification release:\s*`([^`]+)`", readme, re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
     status = read_text(STATUS_FILE)
-    match = re.search(r"Specification release:\s*`([^`]+)`", status, re.IGNORECASE)
+    match = re.search(r"\*{0,2}Specification release:\*{0,2}\s*`([^`]+)`", status, re.IGNORECASE)
     if match:
         return match.group(1).strip()
     return "unversioned"

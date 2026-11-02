@@ -10,7 +10,7 @@ One error vocabulary for every ABI boundary and for the Frontend Protocol.
 - **ERR-004** `PROPOSED` Invalid input from a caller is an error status, never undefined behaviour. This includes invalid handles, out-of-range positions, malformed requests and unknown flags. — *Verify:* FUZZ, SAN
 - **ERR-005** `PROPOSED` Out-of-memory is reported as `NO_MEMORY` with the operation left unapplied. — *Verify:* CONF (with an injected failing allocator), SAN
 
-## 2. Status codes (kernel ABI 1.0.0; protocol mapping remains `PROPOSED`)
+## 2. Status codes (Kernel ABI 1.1.0; Protocol mapping in ADR-0018)
 
 | Code | Meaning | Details |
 |---|---|---|

@@ -40,15 +40,15 @@ flowchart TB
             TUI["tui — DEFERRED"]
             HL["headless / cli"]
         end
-        FP{{"Frontend Protocol<br/>semantic contract; wire format OPEN"}}
+        FP{{"Frontend Protocol<br/>semantic + deterministic-CBOR wire contract"}}
         subgraph CORE["Headless core"]
             direction LR
             BE["backend<br/>session + protocol server + OS services"]
-            RHA{{"Runtime Host API<br/>PROPOSED"}}
+            RHA{{"Runtime Host API<br/>provisional contract"}}
             RT["cdin-runtime<br/>Lua policy and extension host"]
             KH["kernel host / adapter"]
-            ABI{{"Kernel C ABI 1.0.0"}}
-            K["cdin-kernel<br/>package 1.1.0"]
+            ABI{{"Kernel C ABI 1.1.0"}}
+            K["cdin-kernel<br/>package 1.2.1"]
         end
         EXT{{"Lua Extension Contract"}}
         OS[("Operating system")]
@@ -86,8 +86,8 @@ flowchart TB
 
 | Boundary | Caller / consumer | Provider / authority | What it deliberately does not define |
 |---|---|---|---|
-| Frontend Protocol | GUI, TUI, headless and future frontends | Backend protocol server | Kernel C types; pixel/cell layout; serialized wire encoding until OD-22 is resolved |
-| Runtime Host API | Lua runtime and extensions through the runtime | Backend runtime host | Kernel internals; it is still a proposed, versioned API |
+| Frontend Protocol | GUI, TUI, headless and future frontends | Backend protocol server | Kernel C types; pixel/cell layout; deterministic CBOR v0.2.0 (ADR-0018) |
+| Runtime Host API | Lua runtime and extensions through the runtime | Backend runtime host | Kernel internals; it is a provisional, versioned API whose compatibility must match the Backend implementation |
 | Kernel C ABI | Backend kernel host / adapters | `cdin-kernel` | Filesystem policy, rendering, Lua, plugins and persistence |
 | Lua Extension Contract | `cdin-x` extensions | Runtime/extension host | Direct kernel calls, backend internals or private frontend channels |
 

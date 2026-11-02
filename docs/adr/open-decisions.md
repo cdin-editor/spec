@@ -29,9 +29,9 @@ Every unresolved or not-yet-confirmed question, with importance, options, trade-
 | [OD-19](#od-19) | Resource limits, cancellation, expensive regex | High | `PROPOSED`, approved in principle |
 | [OD-20](#od-20) | Identifier behaviour in a close-versus-new-request race | High | `PROPOSED` |
 | [OD-21](#od-21) | Other writers during an active transaction: reject or queue | Medium | `PROPOSED` |
-| [OD-22](#od-22) | Encoding of the serialized protocol | Medium | `OPEN` |
-| [OD-23](#od-23) | Protocol client library and where it lives | Medium | `OPEN` |
-| [OD-24](#od-24) | Several frontends attached: who may mutate | Medium | `OPEN` |
+| [OD-22](#od-22) | Encoding of the serialized protocol | Medium | `RESOLVED` by ADR-0018 |
+| [OD-23](#od-23) | Protocol client library and where it lives | Medium | `RESOLVED` by ADR-0018 |
+| [OD-24](#od-24) | Several frontends attached: who may mutate | Medium | `RESOLVED` by ADR-0018 |
 | [OD-25](#od-25) | Plugin UI: declarative widgets and canvas | High | `PROPOSED` |
 | [OD-26](#od-26) | Visual layout ownership confirmation | High | `RESOLVED` by ADR-0006 |
 | [OD-27](#od-27) | Parallel mutation of different documents | Low | `DEFERRED` |
@@ -39,7 +39,7 @@ Every unresolved or not-yet-confirmed question, with importance, options, trade-
 | [OD-29](#od-29) | Search normalization and folding options in the first version | Medium | `OPEN` |
 | [OD-30](#od-30) | UI core stays in Lua or becomes native | Medium | `PROPOSED` (Lua) |
 | [OD-31](#od-31) | Name of the specification repository | Low | `OPEN` |
-| [OD-32](#od-32) | Lua-to-native bridge behind the Runtime Host API | Medium | `OPEN` |
+| [OD-32](#od-32) | Lua-to-native bridge behind the Runtime Host API | Medium | `RESOLVED` by ADR-0019 |
 
 ---
 
@@ -112,7 +112,7 @@ Importance: Medium. Proposal: bytes in and out of the kernel; I/O and policy in 
 
 ## OD-17
 **Final API names and public C ABI layout.**
-Importance: High. `RESOLVED` for the kernel by the published `cdin-kernel` C ABI `1.0.0` and its public `include/cdin/kernel.h` header. Function names, fixed-width public enum-like fields, field order, constants and prototypes are frozen for ABI major 1. Frontend Protocol wire encoding and the runtime host API are separate contracts and remain open.
+Importance: High. `RESOLVED` for the Kernel by its published ABI major 1 public header. The current header declares ABI `1.1.0`; additive v1.1 logging API details are recorded in [ABI compatibility](../architecture/abi-and-compatibility.md). Existing function names, field widths, numeric identities, layouts and prototypes remain compatible. Frontend Protocol wire decisions are resolved by ADR-0018 and the Lua bridge by ADR-0019; Runtime Host API compatibility remains a separate implementation gate.
 
 ## OD-18
 **Shutdown with operations in flight.**
@@ -132,16 +132,13 @@ Importance: Medium. Proposal: reject with `BUSY` (CONC-013, TXN-007). Option: qu
 
 ## OD-22
 **Encoding of the serialized protocol.**
-Importance: Medium. Options: a binary self-describing format (compact, needs a codec per language), JSON (ubiquitous, verbose, no raw bytes without escaping), a length-prefixed custom binary format (maximal control, maximal cost). Note: document content is bytes and may be invalid UTF-8, which favours a format with a native byte type. Resolve with a spike (one `view.lines` round trip).
-
+Importance: Medium. **RESOLVED** by [ADR-0018](ADR-0018-frontend-protocol-wire.md): deterministic CBOR (RFC 8949 deterministic profile) inside a four-byte unsigned big-endian length prefix. Definite-length values only; document and paste data uses CBOR byte strings, never UTF-8 coercion. Default frame body cap is 1 MiB. The decoder rejects duplicate map keys, non-shortest integer/length encodings, invalid UTF-8 text, indefinite-length values, all CBOR floating-point values, truncated frames and trailing bytes. `proto.codec.binary_roundtrip` verifies the binary-safe round trip.
 ## OD-23
 **Protocol client library and where it lives.**
-Importance: Medium. A library that encodes and decodes the protocol helps frontend authors; it is the one shared artifact with an architectural reason (ARCH-035). Options: a directory in the `spec` repository (contradicts design-only, SPEC-002); a directory in `cdin`; a separate repository (needs approval, ARCH-005). Decision requires the owner's explicit approval.
-
+Importance: Medium. **RESOLVED** by [ADR-0018](ADR-0018-frontend-protocol-wire.md): the C reference codec is the standalone `cdin_protocol` target inside `cdin-editor/backend`, exposed through installed `include/cdin/protocol.h` and independent of Kernel, Lua, GUI and OS services. This preserves the design-only scope of `spec` and avoids a new repository. Other language clients implement the published schemas and consume the shared conformance vectors; they do not link `cdin_backend` or `cdin-kernel` merely to encode/decode frames.
 ## OD-24
 **Several frontends attached: who may mutate.**
-Importance: Medium. Proposal for now: one driver and observers (PROTO-013). Options: all equal with last-writer ordering by serialized kernel call order; a lease or token for the driver role. Depends on use cases (remote pairing, mirrored views).
-
+Importance: Medium. **RESOLVED** by [ADR-0018](ADR-0018-frontend-protocol-wire.md): one attached driver lease and zero or more observers. The first attached client receives the lease; observers cannot send editor-mutating events or commands. On driver detach/close, the oldest still-attached client is promoted in connection order. ACKs and read-only line-range requests are allowed for observers. Protocol v0.2.0 has no last-writer-wins mode.
 ## OD-25
 **Plugin UI: declarative widgets and canvas.**
 Importance: High. See [ADR-0011](ADR-0011-extension-ui.md). Changes the extension contract; needs owner approval (ARCH-027).
@@ -173,8 +170,4 @@ Importance: Low. The repository is `cdin-editor/spec`; the owner has also called
 
 ## OD-32
 **Lua-to-native bridge behind the Runtime Host API.**
-Importance: Medium. The stable `cdin-kernel` boundary is a C ABI, but the target architecture does not allow the Lua runtime or `cdin-x` extensions to call private kernel functions directly. The backend owns the kernel adapter and exposes a versioned Runtime Host API.
-
-Options to evaluate: (1) native binding functions implemented with the Lua C API, suitable for standard Lua 5.4; (2) LuaJIT FFI, only if LuaJIT is an explicit runtime target; (3) MetaCall or another multi-language loader, if loading/invoking several languages is a product requirement. Compare platform availability, deployment footprint, debugging, error mapping, memory ownership, reentrancy, and startup/per-call overhead with a minimal end-to-end prototype.
-
-No option is selected here. MetaCall is not required by `cdin-kernel` and must not become a dependency of the kernel itself. A decision requires the runtime target (PUC Lua vs LuaJIT), a tested C call round-trip, and confirmation that plugins still see only the extension contract and Runtime Host API.
+Importance: Medium. **RESOLVED** by [ADR-0019](ADR-0019-runtime-bridge.md): PUC Lua 5.4 C API is the only supported v1 bridge. Backend owns the Lua state and native callbacks; all calls occur on the Runtime owner thread. Kernel pointers and handles remain private to the Backend adapter and are never exposed to Runtime extensions. LuaJIT FFI and MetaCall are not v1 targets. This does not add a dependency to `cdin-kernel`. A production release still requires the live bridge, Lua/Kernel round-trip tests and the complete platform matrix.

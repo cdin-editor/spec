@@ -13,7 +13,7 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0002](ADR-0002-kernel-owns-documents.md) | The kernel owns documents; everything else is a client | `ACCEPTED` |
 | [ADR-0003](ADR-0003-c-abi.md) | C ABI at binary boundaries | `ACCEPTED` |
 | [ADR-0004](ADR-0004-implementation-language.md) | Implementation language: C11 | `ACCEPTED` |
-| [ADR-0005](ADR-0005-frontend-protocol.md) | Frontend Protocol: backend owns state, frontends own presentation | `ACCEPTED` for semantic model; encoding open |
+| [ADR-0005](ADR-0005-frontend-protocol.md) | Frontend Protocol: backend owns state, frontends own presentation | `ACCEPTED` |
 | [ADR-0006](ADR-0006-visual-layout-ownership.md) | Visual layout belongs to frontends | `ACCEPTED` |
 | [ADR-0007](ADR-0007-selection-ownership.md) | Selection ownership and undo | `ACCEPTED` |
 | [ADR-0008](ADR-0008-persistence-outside-kernel.md) | Persistence stays outside the kernel | `ACCEPTED` |
@@ -26,7 +26,10 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0015](ADR-0015-spec-language-and-scope.md) | Specification language and scope | `ACCEPTED` |
 | [ADR-0016](ADR-0016-arch-specific-optimizations.md) | Architecture-specific optimizations (SIMD and assembly) in the kernel | `PROPOSED` |
 | [ADR-0017](ADR-0017-kernel-synchronous-concurrency.md) | Kernel call concurrency and ordering | `ACCEPTED` |
+| [ADR-0018](ADR-0018-frontend-protocol-wire.md) | Frontend Protocol wire format, client boundary and mutation authority | `ACCEPTED` |
+| [ADR-0019](ADR-0019-runtime-bridge.md) | PUC Lua 5.4 C API as Runtime Host bridge | `ACCEPTED` |
 
 ## How owner approval is recorded
 
 Where the owner approved a proposal *in principle* during design discussion but has not yet reviewed the detailed text written here, the ADR says so and the corresponding requirements remain `PROPOSED`. They become `ACCEPTED` only after the owner reviews this text and says so (SPEC-020). The current resolved/open distinction is in [status.md](../reference/status.md) and [open-decisions.md](open-decisions.md).
+

@@ -49,7 +49,7 @@ flowchart LR
     class EXT,RHA,ABI contract
 ```
 
-*Caption: target extension invocation path. An extension may request behavior exposed by the runtime contract; it must not load the kernel library, import private C symbols, or access the Frontend Protocol directly. The Runtime Host API is a separate, proposed backend-to-Lua boundary.*
+*Caption: target extension invocation path. An extension may request behavior exposed by the runtime contract; it must not load the kernel library, import private C symbols, or access the Frontend Protocol directly. The Runtime Host API is a separate backend-to-Lua boundary; the v1 bridge mechanism is accepted by [ADR-0019](../adr/ADR-0019-runtime-bridge.md), while live integration remains a release gate.*
 
 ## 4. Requirements
 

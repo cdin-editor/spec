@@ -2,7 +2,7 @@
 
 Terms are used with exactly these meanings throughout the specification.
 
-**ABI** Binary interface between two compiled components. In CDIN: the public C ABI `1.0.0` of `cdin-kernel`. It is independent of the package release version and Spec baseline. See [abi-and-compatibility.md](../architecture/abi-and-compatibility.md).
+**ABI** Binary interface between two compiled components. In CDIN: the public C ABI `1.1.0` currently declared by `cdin-kernel`'s public header. It is independent of the package release version and Spec baseline. See [abi-and-compatibility.md](../architecture/abi-and-compatibility.md).
 
 **Anchor (code anchor)** A pointer from an `EXISTING` statement to the file or section in `cdin` that proves it.
 
@@ -22,7 +22,7 @@ Terms are used with exactly these meanings throughout the specification.
 
 **Composition root** The one place that wires concrete components together: builds, bundles, launches. It contains no domain logic.
 
-**Conformance vector** A data-driven test case expressed against a public contract, runnable against any implementation of it. Described in [conformance.md](../testing/conformance.md); none are written yet.
+**Conformance vector** A data-driven test case expressed against a public contract, runnable against any implementation of it. The Kernel repository contains Kernel ABI vectors; the Backend repository contains Protocol codec/server/headless tests. See [conformance.md](../testing/conformance.md) for scope and remaining whole-system gaps.
 
 **`data` (the directory)** In the current `cdin` repository, `data/` is the *Lua runtime source tree* (`data/core/`) and, in a build output, the assembled directory of plugins, themes and fonts. It is **not** the same as the `DATA` component below. See [data.md](../components/data.md).
 
@@ -52,9 +52,9 @@ Terms are used with exactly these meanings throughout the specification.
 
 **Runtime** The target Lua 5.4 policy layer and extension host: commands, keymaps, configuration, plugin loading, logical views and the semantic UI model.
 
-**Runtime Host API** The versioned service surface the backend provides to Lua for document operations, OS services and UI integration. It is proposed and distinct from the kernel C ABI.
+**Runtime Host API** The versioned service surface the backend provides to Lua for document operations, OS services and UI integration. It is a separate contract from the Kernel C ABI; the Runtime and Backend versions must be aligned before live integration can be claimed.
 
-**Lua/native bridge** The implementation mechanism that calls native backend services from Lua (for example a Lua C API module, LuaJIT FFI or a multi-language loader). It is not a public contract until selected; see OD-32.
+**Lua/native bridge** The private implementation mechanism that exposes Backend services to Lua behind the Runtime Host API. [ADR-0019](../adr/ADR-0019-runtime-bridge.md) selects PUC Lua 5.4 C API for v1; it is not a Kernel ABI or extension-facing API.
 
 **Package version** The release/distribution version of a project. For the current kernel release it is `1.1.0`; this does not imply that the C ABI or Spec baseline changed.
 

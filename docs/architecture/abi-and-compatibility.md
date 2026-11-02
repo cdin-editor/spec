@@ -1,17 +1,17 @@
 # ABI and compatibility
 
-Every native binary boundary between CDIN components uses the **C ABI** (`ACCEPTED`). The standalone `cdin-kernel` repository has published the first stable ABI, `1.0.0`; its exact public prototypes, constants and structure field order are frozen in the sibling `cdin-kernel` repository. In this Spec archive that relative link is a repository-map reference, not a local file; a mirrored snapshot is described by [implementation status](../kernel/implementation-status.md). The Frontend Protocol is a separate contract and its serialized representation is still open.
+Every native binary boundary between CDIN components uses the **C ABI** (`ACCEPTED`). The current standalone `cdin-kernel` header publishes ABI `1.1.0` in package `1.2.1`; ABI major `1` retains the frozen numeric values, existing structure layout and function signatures, with compatible additive minor growth. ABI `1.0.0` is the original stable baseline. The sibling `cdin-kernel` repository header is authoritative; this Spec archive records its synchronization in [implementation status](../kernel/implementation-status.md). The Frontend Protocol is a separate versioned contract; its wire encoding and client-library location are resolved by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md).
 
 ## Version labels are independent
 
 | Label | Value for this sync | Source of truth |
 |---|---:|---|
-| Kernel package release | `1.1.0` | `cdin-kernel/CHANGELOG.md` and release tag |
-| C ABI | `1.0.0` | `cdin-kernel/include/cdin/kernel.h` |
+| Kernel package release | `1.2.1` | Kernel package metadata and release tag |
+| C ABI | `1.1.0` | `cdin-kernel/include/cdin/kernel.h` |
 | Spec release | `1.1.0` | `docs/reference/status.md` |
-| Kernel-declared Spec target | `1.0.0` | The header's `CDIN_KERNEL_SPEC_VERSION_*` macros |
+| Kernel-declared Spec target | `1.1.0` | The header's `CDIN_KERNEL_SPEC_VERSION_*` macros |
 
-Package 1.1.0 adds documentation/distribution assets and internal literal-search fast paths. It does not change ABI field layouts, public function signatures, status values or result-range semantics. Do not derive the ABI version from the package tag. If the accepted contract changes, version the contract deliberately and update its declaration and conformance evidence together.
+Package `1.2.1` publishes ABI `1.1.0`. The ABI 1.1 addition includes the Kernel-owned logging API (`cdin_kernel_log` and logger configuration); it does not renumber existing statuses or change existing ABI 1.x layouts/signatures. Package and ABI versions are independent: never derive one from the other. Any future contract change must update the header, compatibility declaration and conformance evidence together.
 
 ## 1. Which boundaries are binary
 
@@ -49,10 +49,10 @@ An ABI boundary does **not** imply a dynamically loaded module. Components MAY b
 
 ## 3. Stable kernel ABI versus Frontend Protocol
 
-The kernel header is the authority for ABI 1.0.0 names, types, constants, layouts and prototypes. The short sketch below is historical illustration only and MUST NOT be copied as a declaration of the current API.
+The kernel header is the authority for the current ABI 1.1.0 names, types, constants, layouts and prototypes. The short sketch below is historical illustration only and MUST NOT be copied as a declaration of the current API.
 
 ```c
-/* ILLUSTRATIVE ONLY. Consult cdin-kernel/include/cdin/kernel.h for ABI 1.0.0. */
+/* ILLUSTRATIVE ONLY. Consult cdin-kernel/include/cdin/kernel.h for ABI 1.1.0. */
 typedef struct cdin_kernel      cdin_kernel;           /* opaque */
 typedef uint64_t                cdin_doc;              /* handle: index + generation */
 

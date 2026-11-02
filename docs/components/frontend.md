@@ -1,6 +1,6 @@
 # Frontends
 
-A frontend presents the editor and collects input for one environment: an SDL window, a terminal, a command line, a headless test harness, later perhaps a web page. It speaks the [Frontend Protocol](../architecture/frontend-protocol.md) and nothing else. Frontends are **peers**; none is privileged. The protocol is an accepted semantic boundary, but serialized wire encoding and a shared protocol client library remain open decisions.
+A frontend presents the editor and collects input for one environment: an SDL window, a terminal, a command line, a headless test harness, later perhaps a web page. It speaks the [Frontend Protocol](../architecture/frontend-protocol.md) and nothing else. Frontends are **peers**; none is privileged. The protocol is an accepted semantic boundary. Wire encoding, reference codec location and mutation authority are settled by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md); OS-specific socket/pipe transports and frontend product implementations remain separate work.
 
 ## 1. Responsibilities
 
@@ -55,7 +55,7 @@ flowchart LR
     class FP contract
 ```
 
-The protocol carries **semantic state and intent**, not toolkit objects or pixels. The frontend may cache derived layout, but it must invalidate that cache against document versions and may discard it without losing canonical document state. The actual serialized framing and protocol client library are still open (OD-22 and OD-23).
+The protocol carries **semantic state and intent**, not toolkit objects or pixels. The frontend may cache derived layout, but it must invalidate that cache against document versions and may discard it without losing canonical document state. The serialized framing and reference codec location are accepted by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md): deterministic CBOR with a four-byte big-endian length prefix, implemented as an independently linkable C target in the Backend repository.
 
 ## 3. Requirements
 
@@ -78,7 +78,7 @@ The protocol carries **semantic state and intent**, not toolkit objects or pixel
 
 ## 5. Rewriting a frontend
 
-A frontend can be replaced by a different implementation, in a different language, provided it passes the protocol conformance vectors ([conformance.md](../testing/conformance.md)). The only shared artifact is the protocol; whether a client library for it exists as a repository is [OD-23](../adr/open-decisions.md).
+A frontend can be replaced by a different implementation, in a different language, provided it passes the protocol conformance vectors ([conformance.md](../testing/conformance.md)). The only shared artifact is the protocol and its reference C codec target in the Backend repository; ADR-0018 explicitly does not create a separate protocol repository.
 
 ## 6. State owned
 

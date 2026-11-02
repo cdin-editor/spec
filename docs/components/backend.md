@@ -13,7 +13,7 @@ The backend is the headless core of CDIN. It hosts the kernel and the runtime, p
 5. **Protocol server**: handshake, capability negotiation, input routing to the runtime, UI-model relay, backpressure.
 6. **Diagnostics**: logging, memory accounting.
 
-The native bridge is deliberately hidden behind the Runtime Host API. Direct Lua-to-kernel linking is not the target boundary. Candidate bridge mechanisms (Lua C API, LuaJIT FFI, MetaCall) remain an open implementation choice in [OD-32](../adr/open-decisions.md); none is a kernel dependency.
+The native bridge is deliberately hidden behind the Runtime Host API. Direct Lua-to-kernel linking is not the target boundary. [ADR-0019](../adr/ADR-0019-runtime-bridge.md) accepts the PUC Lua 5.4 C API as the v1 bridge; LuaJIT FFI and MetaCall are excluded from v1. This is an architecture decision, not a claim that the live Runtime + Kernel integration tests have passed.
 
 ## 2. Internal structure
 
@@ -30,9 +30,9 @@ flowchart TB
         DIAG["Diagnostics and memory accounting"]
     end
     RT["cdin-runtime · Lua policy"]
-    RHA{{"Runtime Host API<br/>PROPOSED"}}
-    ABI{{"Kernel C ABI 1.0.0"}}
-    K["cdin-kernel · package 1.1.0"]
+    RHA{{"Runtime Host API<br/>provisional 0.2/0.3"}}
+    ABI{{"Kernel C ABI 1.1.0"}}
+    K["cdin-kernel · package 1.2.1"]
     OS[("Operating system")]
 
     FE <--> FP <--> PS
@@ -57,7 +57,7 @@ flowchart TB
     class BE group
 ```
 
-*Caption: target internal structure. These boxes are logical responsibilities, not promises of separate binaries or repositories. The Backend is the direct client of the kernel; the Lua runtime depends on the Runtime Host API, not on `include/cdin/kernel.h`. The runtime host API remains proposed.*
+*Caption: target internal structure. These boxes are logical responsibilities, not promises of separate binaries or repositories. The Backend is the direct client of the Kernel; the Lua Runtime depends on the provisional Runtime Host API, not on `include/cdin/kernel.h`. The v1 bridge mechanism is accepted by ADR-0019, but end-to-end integration remains a release gate.*
 
 ## 3. Requirements
 
@@ -95,7 +95,7 @@ sequenceDiagram
     participant R as Runtime (Lua)
     participant H as Runtime Host API
     participant KH as Kernel host
-    participant K as Kernel C ABI 1.0.0
+    participant K as Kernel C ABI 1.1.0
 
     F->>P: input.key / input.text
     P->>R: dispatch on Lua owner thread
@@ -113,7 +113,7 @@ sequenceDiagram
     F->>F: recalculate layout and render
 ```
 
-*Caption: `PROPOSED` for the cross-component path. Kernel call synchronicity, version-checked editing and bounded notifications are present in ABI 1.0.0. This diagram does not imply that the Runtime Host API or Frontend Protocol wire format is already implemented.*
+*Caption: `PROPOSED` for the cross-component path. Kernel call synchronicity, version-checked editing and bounded notifications are present in Kernel C ABI 1.1.0. This diagram does not imply that the Runtime Host API or Frontend Protocol wire format is already implemented.*
 
 ## 6. State owned
 

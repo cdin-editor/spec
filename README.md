@@ -2,7 +2,7 @@
 
 This repository is the formal architecture and system-design specification of **CDIN**, a modular text editor. It defines component ownership, the stable kernel boundary, the Frontend Protocol model, and the rules that keep those contracts compatible.
 
-**Specification release: `1.1.0` (compatible architecture and documentation release).** The `cdin-kernel` package still publishes C ABI `1.0.0` and declares compatibility with the Spec `1.0.0` baseline. This repository remains design-only: the runtime, backend integration, Frontend Protocol wire encoding and several advanced features are proposed or deferred where explicitly marked. It contains no production implementation or executable test suite. Cross-repository verification evidence is recorded in [implementation status](docs/kernel/implementation-status.md).
+**Specification release: `1.1.0` (current architecture and contract release).** The inspected `cdin-editor/kernel` package is `1.2.1` and publishes C ABI `1.1.0`, whose header declares Spec target `1.1.0`. Frontend Protocol wire/client/driver decisions are accepted in ADR-0018 and a partial standalone reference codec/server is implemented in the Backend; model projection, live Runtime dispatch, concrete OS transports and cross-platform integration remain incomplete. This repository remains design-only and contains no production implementation. Cross-repository verification evidence is recorded in [kernel implementation status](docs/kernel/implementation-status.md), the Frontend Protocol decisions and the delivered Backend traceability report.
 
 Language: English. Normative text is English only for now.
 
@@ -22,7 +22,7 @@ flowchart TB
         TUI["tui<br/>terminal cells — DEFERRED"]
         HEADLESS["headless / cli<br/>automation and tests"]
     end
-    FP{{"Frontend Protocol<br/>versioned semantic contract<br/>wire encoding: OPEN"}}
+    FP{{"Frontend Protocol<br/>v0.2.0 · deterministic CBOR wire"}}
 
     subgraph PRODUCT["CDIN runtime system — target topology"]
         direction TB
@@ -30,8 +30,8 @@ flowchart TB
         RHA{{"Runtime Host API<br/>provided by backend — PROPOSED"}}
         RT["cdin-runtime<br/>Lua policy, commands, keymaps,<br/>plugins and semantic UI model"]
         KHOST["kernel host / adapter<br/>inside backend"]
-        KABI{{"Kernel C ABI 1.0.0"}}
-        K["cdin-kernel<br/>package 1.1.0 · C11 document engine"]
+        KABI{{"Kernel C ABI 1.1.0"}}
+        K["cdin-kernel<br/>package 1.2.1 · ABI 1.1.0 · C11"]
         BE --- RHA
         RT --> RHA
         BE --> KHOST --> KABI --> K
@@ -77,16 +77,16 @@ flowchart TB
 3. **Coordination and document state:** the backend hosts the runtime, manages sessions and OS services, and is the direct client of the kernel C ABI. `cdin-kernel` alone owns canonical document bytes, versions and undo/redo history.
 4. **Composition and extensions:** `cdin` assembles and releases the product. `cdin-x` provides extension assets through the Lua extension contract and is not a privileged part of the core.
 
-The drawing is a **target model**, not a claim that every layer has already been extracted. The current GUI, Lua runtime and much of the backend remain integrated in `cdin`; the Frontend Protocol's wire encoding and the Runtime Host API remain proposed/open where called out in the component pages. For a dependency map, an end-to-end edit sequence and lifecycle detail, see [System maps](docs/architecture/system-maps.md).
+The drawing is a **target model**, not a claim that every layer has already been extracted. The GUI, Lua Runtime and much of the Backend remain integrated in `cdin`. Protocol wire/client/driver decisions are accepted, but the model-to-message projector and complete inbound Runtime dispatch are not yet implemented. The Runtime Host API is still provisional and its current Backend/Runtime versions are incompatible until aligned. For dependency maps, edit flow and lifecycle detail, see [System maps](docs/architecture/system-maps.md).
 
 ### Version map for the current kernel release
 
 | Version label | Value | Meaning |
 |---|---:|---|
-| `cdin-kernel` package | `1.1.0` | Distribution, documentation and internal search-path improvements in this package release. |
-| Public C ABI | `1.0.0` | Stable binary contract; public names, layouts and status values remain governed by `include/cdin/kernel.h`. |
-| CDIN Spec release | `1.1.0` | Current compatible specification release; see `CHANGELOG.md`. |
-| Kernel-declared Spec target | `1.0.0` | Compatibility target declared by the current kernel public header. This does not claim conformance to unimplemented application-level components. |
+| `cdin-kernel` package | `1.2.1` | Current package inspected in `cdin-editor/kernel`. |
+| Public C ABI | `1.1.0` | Current ABI major 1 contract; ABI 1.1 adds the Kernel logger API. |
+| CDIN Spec release | `1.1.0` | Current architecture/contract release; see `CHANGELOG.md`. |
+| Kernel-declared Spec target | `1.1.0` | Compatibility target declared by the current kernel public header; not a claim that application-level components conform. |
 
 The full release-specific evidence and limits are recorded in [kernel implementation status](docs/kernel/implementation-status.md).
 
@@ -100,6 +100,7 @@ The whole map is [docs/README.md](docs/README.md). Short version:
 | know what any word means | [reference/glossary](docs/reference/glossary.md) |
 | read a requirement correctly | [reference/conventions](docs/reference/conventions.md) |
 | know what is decided and what is not | [reference/status](docs/reference/status.md), [adr/open-decisions](docs/adr/open-decisions.md) |
+| trace a protocol decision to Backend code and tests | [Backend implementation map](docs/reference/backend-implementation-map.md) |
 | build one component | the page under [docs/components/](docs/components/) or [docs/kernel/](docs/kernel/) |
 | plan the move from today's code | [architecture/migration](docs/architecture/migration.md) |
 
@@ -114,7 +115,7 @@ This specification mixes four kinds of statement and always labels them (see [co
 
 Unresolved questions are not requirements. They live in the [Open Decisions Register](docs/adr/open-decisions.md) with options and trade-offs.
 
-**A `PROPOSED` item is never promoted to `ACCEPTED` without an owner decision.** For `cdin-kernel`, package `1.1.0` retains the public C ABI and supported behaviour `1.0.0`; that ABI is checked against a separate implementation and its conformance suite. No such implementation claim is made for runtime, backend or frontend-protocol features that remain unbuilt.
+**A `PROPOSED` item is never promoted to `ACCEPTED` without an owner decision.** The currently inspected Kernel package `1.2.1` publishes C ABI `1.1.0`; this Spec does not infer whole-product conformance from the Kernel implementation. The Backend snapshot contains a tested partial Protocol codec/server, but the full Runtime bridge and frontend execution path remain release blockers.
 
 
 ## Release reporting

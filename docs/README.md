@@ -27,6 +27,8 @@ landscape down to dependency boundaries, a single edit request, startup/shutdown
 what is open, and what contradicts what. Read it before trusting any claim about the
 current `cdin` code.
 
+**[reference/backend-implementation-map.md](reference/backend-implementation-map.md)** — exact Spec-to-Backend source and test line references for the Frontend Protocol and Runtime bridge, with remaining integration gates.
+
 ## What are you doing?
 
 | You are | Read, in this order |
@@ -90,7 +92,7 @@ Verification plan and external test evidence. This repository contains no execut
 
 ## Decisions
 
-[adr/README.md](adr/README.md) indexes the seventeen ADRs and says how owner approval is
+[adr/README.md](adr/README.md) indexes the nineteen ADRs and says how owner approval is
 recorded. [adr/open-decisions.md](adr/open-decisions.md) is the register of every
 unresolved question, with options and trade-offs. Unresolved questions are never
 requirements.

@@ -2,7 +2,7 @@
 
 The kernel (`cdin-kernel`) is a **generic text engine**. It owns the canonical state of documents and the operations on them. It is independent of GUI, TUI, runtime and operating-system details, and it does not know who its clients are.
 
-Status: the current package release is `1.1.0`; it exposes the unchanged C ABI `1.0.0` and declares Spec baseline `1.0.0`. Implemented behavior is listed in [implementation status](implementation-status.md); remaining mechanisms retain their explicit `PROPOSED`/`DEFERRED` labels.
+Status: the current package release is `1.2.1`; it exposes Kernel C ABI `1.1.0` and declares Spec target `1.1.0`. The earlier ABI `1.0.0` semantics remain the baseline for existing functions and values; ABI `1.1.0` adds the Kernel-owned logger API. Implemented behavior is listed in [implementation status](implementation-status.md); unsupported mechanisms retain their explicit `PROPOSED`/`DEFERRED` labels.
 
 ## 1. Responsibilities
 
@@ -26,7 +26,7 @@ The kernel is **not** responsible for display logic, layout, scrolling, renderin
 ```mermaid
 flowchart TB
     CLIENT["Backend kernel host / native consumer"]
-    ABI{{"Public C ABI<br/>include/cdin/kernel.h<br/>ABI 1.0.0"}}
+    ABI{{"Public C ABI<br/>include/cdin/kernel.h<br/>ABI 1.1.0"}}
     subgraph K["cdin-kernel implementation"]
         direction TB
         API["Public API families<br/>lifecycle · document · edit · transaction · undo/redo"]
@@ -59,11 +59,11 @@ flowchart TB
     class K group
 ```
 
-*Caption: package 1.1.0 implementation view. The public header, not this diagram, is authoritative for every type and function signature. Calls execute synchronously; the caller either supplies a valid lock/unlock pair or serializes access itself. The kernel owns document truth and bounded notification state, but no frontend or runtime policy.*
+*Caption: package 1.2.1 / ABI 1.1.0 implementation view. The public header, not this diagram, is authoritative for every type and function signature. Calls execute synchronously; the caller either supplies a valid lock/unlock pair or serializes access itself. The Kernel owns document truth, bounded notification state and its shared logger, but no frontend or Runtime policy.*
 
 ### Package-only search fast path
 
-Package 1.1.0 improves forward literal-search execution without changing the public match contract. A platform-specific fast path may be selected only for a safe subset of requests; cancellation-aware and step-limited paths remain incremental. The internal algorithm is not ABI surface and does not imply constant-time search or a stable performance guarantee. See [search-engine.md](search-engine.md) and [implementation status](implementation-status.md).
+Package 1.2.1 publishes the current ABI 1.1.0 surface, including the ABI 1.1 Kernel logger; package 1.1.0 previously improved forward literal-search execution without changing the public match contract. A platform-specific fast path may be selected only for a safe subset of requests; cancellation-aware and step-limited paths remain incremental. The internal algorithm is not ABI surface and does not imply constant-time search or a stable performance guarantee. See [search-engine.md](search-engine.md) and [implementation status](implementation-status.md).
 
 ## 3. Requirements
 
