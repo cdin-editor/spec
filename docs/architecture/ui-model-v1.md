@@ -17,6 +17,7 @@ The root is a map with the following required fields:
 | `prompt` | map|null | Declarative prompt description or null |
 | `status` | map | Semantic status fields |
 | `theme` | text | Registered theme identifier |
+| `options` | map | Required typed options map; it may be empty. Individual keys are optional and defaulted by the frontend. Defined keys: `title:text`, `tab_width:uint` (1..64), `wrap:bool`, `line_numbers:bool`, `relative_line_numbers:bool`, `cursor_shape:text` (`block`, `bar` or `underline`), `cursor_blink:bool`. |
 | `styles` | map<text, map> | Resolved semantic role styles for the active theme; no pixel geometry or platform handles |
 
 The root and every nested map MUST contain unique text keys. Values MUST be serializable scalars, arrays or maps; functions, userdata, threads, metatables with executable semantics, cyclic tables and Host/Kernel handles are forbidden. Byte strings are preserved as bytes. Runtime must never place document contents or document handles in this model.
@@ -41,7 +42,7 @@ Every entry in `views` is a map with required fields:
 
 The `layout` map has `root:map|null` and `active_leaf:text|null`.
 
-- A leaf has `kind="leaf"`, stable `id:text`, `views:array<text>` and `active_view:text|null`. Every referenced view exists; `active_view` belongs to `views`.
+- A leaf has `kind="leaf"`, stable `id:text`, `views:array<text>` and `active_view:text|null`. Every referenced view exists; a non-null `active_view` belongs to `views`.
 - A split has `kind="split"`, stable `id:text`, `axis` equal to `horizontal` or `vertical`, `ratio:number` in `(0.1,0.9)`, and `first:map`, `second:map` children. `ratio` is a Runtime-only floating-point value; it is never emitted as a CBOR float.
 - IDs are unique within a tree; the tree is acyclic; every view appears exactly once.
 - `active_leaf` identifies an existing leaf or is null when the tree is empty.
@@ -52,7 +53,7 @@ The Frontend maps the abstract ratio to local geometry. Runtime does not calcula
 
 Backend validates the entire model snapshot before publishing. A valid snapshot is projected into the ordered semantic messages below, followed by one `ui.flush` for each attached client:
 
-1. `ui.options` (`revision`, `theme` and supported option values).
+1. `ui.options` (`revision`, `theme` and the required typed `options` map, which may be empty).
 2. `ui.style_table` (theme style-role registry).
 3. `ui.layout` (`revision`, logical layout).
 4. `ui.statusline` and `ui.prompt` (`revision`).
@@ -70,6 +71,9 @@ The current Runtime projection contract bounds one semantic snapshot to at most 
 
 `cdin.ui-model.v1` is a Runtime-owned semantic snapshot, not a wire frame. The Backend projection MUST preserve its monotonic `revision` and map the current snapshot into the Protocol message catalogue rather than forward a Lua table representation. Split ratios are converted from Runtime floating-point ratios to integer basis points (`ratio_bp = clamp(floor(ratio * 10000 + 0.5), 1000, 8999)`), then validated in `1000..8999`; floating-point CBOR values are forbidden. Clamping reflects the Runtime's strict `(0.1,0.9)` invariant while keeping the wire value representable as an integer. The view model carries identity, version/length metadata, selection and scroll metadata only. `view.cursor.scroll_anchor`, when emitted, is the view's zero-based byte anchor at the same document version. `view.lines.total_lines`, when emitted, gives the Kernel-reported logical line count for the matching document version; the Frontend uses it for viewport/scrollbar bounds and must discard it with any other stale line result. It MUST NOT contain document bytes or a second copy of document history. Visible line content is a version-pinned pull response to `view.request_lines`, using byte strings in `view.lines`.
 
-The semantic nullable fields `focus`, `prompt`, `layout.root` and `layout.active_leaf` are encoded as CBOR `null` by the Backend where Lua's table representation omits a `nil` value. The Backend must not silently omit these nullable fields from their wire payloads.
+The semantic nullable fields `focus`, `prompt`, `layout.root`, `layout.active_leaf` and each leaf's `active_view` are encoded as CBOR `null` by the Backend where Lua's table representation omits a `nil` value. The Backend must not silently omit these nullable fields from their wire payloads.
 
 The Backend source snapshot now includes a bounded projection in `src/runtime/lua_host_protocol.c`, atomic snapshot publication in `src/protocol/server.c`, and owner-thread inbound dispatch in `src/runtime/lua_host_protocol.c`. The Runtime companion integration patch is supplied separately under `runtime-patch/`; the public Runtime repository has not yet been updated or live-tested as part of this delivery.
+
+
+**Implementation gap:** the inspected Backend projector currently emits only `revision` and `theme` for `ui.options`, and its wire validator requires `active_view` to be non-empty text. The semantic v1 model and Protocol 1.0.0 target therefore require a Backend conformance update before this projection is considered complete.

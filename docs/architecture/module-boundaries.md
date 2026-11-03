@@ -12,11 +12,11 @@ flowchart TB
     SPEC["spec<br/>architecture and contracts"]
 
     subgraph CONSUMERS["Consumers"]
-        FE["Frontend implementations<br/>gui-sdl / headless / future tui"]
+        FE["Frontend repo<br/>core / gui-sdl / tui / headless"]
         X["cdin-x extensions"]
     end
 
-    FP{{"Frontend Protocol<br/>semantic contract + deterministic CBOR v0.2.0"}}
+    FP{{"Frontend Protocol<br/>semantic contract + deterministic CBOR v1.0.0 target (Backend currently v0.2.0)"}}
     EXT{{"Lua Extension Contract"}}
     RHA{{"Runtime Host API<br/>provisional contract"}}
     ABI{{"Kernel C ABI 1.1.0"}}
@@ -60,13 +60,12 @@ flowchart TB
 
 *Caption: target architecture. The Runtime Host API remains provisional and is not yet version-aligned across Backend and Runtime; the Kernel ABI `1.1.0` is the current native boundary. Frontend Protocol wire decisions are accepted by ADR-0018. `cdin-runtime` and frontends do not link directly to the Kernel. Kernel package `1.2.1` publishes ABI `1.1.0`.*
 
-
 Read as rules:
 
 - **ARCH-040** `ACCEPTED` The kernel MUST depend only on the C11/platform C runtime and explicitly injected services; it MUST NOT depend on the GUI, runtime, backend, OS file APIs or third-party regex engine in ABI 1.0.0. — *Verify:* STATIC
 - **ARCH-041** `PROPOSED` The runtime MUST reach documents only through the runtime host API that the backend provides; it MUST NOT link to or load the kernel directly. — *Verify:* STATIC, INSPECT
-- **ARCH-042** `PROPOSED` The backend MUST NOT include any display-toolkit header (SDL, terminal libraries). — *Verify:* STATIC
-- **ARCH-043** `PROPOSED` A frontend MUST depend only on the Frontend Protocol (and its own toolkit). It MUST NOT include kernel, runtime or backend internal headers. — *Verify:* STATIC
+- **ARCH-042** `ACCEPTED` The backend MUST NOT include any display-toolkit header (SDL, terminal libraries). — *Verify:* STATIC
+- **ARCH-043** `ACCEPTED` A frontend MUST depend only on the Frontend Protocol (and its own toolkit). It MUST NOT include kernel, runtime or backend internal headers. — *Verify:* STATIC
 - **ARCH-044** `PROPOSED` `cdin-x` MUST depend only on the extension contract. — *Verify:* INSPECT, STATIC
 - **ARCH-045** `PROPOSED` The composition root MAY depend on everything at build time and MUST NOT be depended on by any component. — *Verify:* STATIC
 - **ARCH-046** `PROPOSED` Include-direction rules (ARCH-040 to ARCH-045) are enforced by static checks owned by the implementation repositories. The Spec repository release-reporting script does not inspect source dependencies. — *Verify:* STATIC

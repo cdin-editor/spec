@@ -74,7 +74,7 @@ sequenceDiagram
 flowchart LR
     SPEC["spec<br/>contracts and design"]
     CDIN["cdin repository<br/>product build, bundle, launcher"]
-    KERNEL["cdin-kernel repository<br/>package 1.2.1 · C ABI 1.1.0"]
+    KERNEL["cdin-kernel repository<br/>package 1.1.0 · C ABI 1.0.0"]
     X["cdin-x repository<br/>extension assets"]
     APP["assembled CDIN product"]
     REL["Kernel release assets<br/>Linux · macOS · Windows"]

@@ -39,16 +39,18 @@ flowchart TB
     UIM --> DOC
     SYN --> DOC
     RT --> BRIDGE --> HOST
-    BRIDGE["PUC Lua 5.4 C API bridge<br/>accepted by ADR-0019"]
+    BRIDGE["Lua ↔ native binding mechanism<br/>implementation choice: OPEN"]
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     classDef contract fill:#ede9fe,stroke:#6d28d9,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
-    class CFG,CMD,DOC,KEY,PLG,SYN,THEME,UIM,X,BRIDGE comp
+    classDef open fill:#f8fafc,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
+    class CFG,CMD,DOC,KEY,PLG,SYN,THEME,UIM,X comp
     class HOST contract
+    class BRIDGE open
     class RT group
 ```
 
-*Caption: `PROPOSED` structure. The bridge choice is accepted by [ADR-0019](../adr/ADR-0019-runtime-bridge.md); production integration and live Lua 5.4 + Kernel tests remain release gates.*
+*Caption: `PROPOSED` structure; the existing Lua core already follows part of this shape (`data/core/`). The binding mechanism is not a public contract and is unresolved (OD-32).*
 
 ## 4. Requirements
 
@@ -84,7 +86,13 @@ The Lua-visible environment the runtime and plugins can rely on. It is **partial
 
 The stable native boundary is the kernel's public C ABI. The **runtime must not depend directly on the kernel ABI in the target architecture**: the backend owns the kernel host/adapter and provides a versioned Runtime Host API to Lua. This keeps document policy and plugin APIs independent from C implementation details.
 
-[ADR-0019](../adr/ADR-0019-runtime-bridge.md) accepts the PUC Lua 5.4 C API as the v1 bridge. Backend owns the `lua_State`, its owner thread and every native userdata lifetime; LuaJIT FFI and MetaCall are not v1 alternatives. The bridge exposes only the versioned Runtime Host API and must preserve explicit ownership, stable errors and the rule that extensions cannot reach private Kernel functions. This is an accepted architectural choice, not evidence that the live production bridge has passed integration tests. The optional `examples/ffi` material in `cdin-kernel` is sample code and does not extend the public ABI.
+The bridge that exposes backend host functions to Lua is an implementation decision, not part of the kernel contract. Options to evaluate include:
+
+- a small native module using the Lua C API (compatible with standard Lua builds);
+- LuaJIT FFI when the deployment intentionally targets LuaJIT;
+- MetaCall or another multi-language bridge if the project needs cross-language loading beyond Lua↔C.
+
+None is accepted by this Spec as the current implementation. Any bridge must preserve explicit ownership/lifetimes, version checks, stable errors, and the rule that extensions cannot reach private kernel functions. See [OD-32](../adr/open-decisions.md). The optional `examples/ffi` material in `cdin-kernel` is sample code and does not extend the public ABI.
 
 ## 7. Transition rules
 

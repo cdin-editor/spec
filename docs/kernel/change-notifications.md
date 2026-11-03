@@ -26,17 +26,17 @@ flowchart LR
 
 *Caption: `PROPOSED` queue-based delivery. No client code runs while the kernel holds its lock.*
 
-- **NOTIF-005** `PROPOSED` For each document and each subscriber, events are delivered in version order, each exactly once, unless the queue overflows (NOTIF-007). — *Verify:* CONF
-- **NOTIF-006** `PROPOSED` Notifications are delivered through per-subscriber queues. The kernel MAY invoke a *wakeup callback* when a queue becomes non-empty; that callback MUST do nothing except signal (ABI-016). The subscriber drains its queue on a thread of its choosing. — *Verify:* CONF, SAN
-- **NOTIF-007** `PROPOSED` Each queue is bounded by a configured size. When it would overflow, the kernel drops the *details* of pending events and replaces them by one `RESYNC` marker carrying the current version. A subscriber receiving `RESYNC` MUST discard cached state for the document and re-read from a snapshot. Events are never dropped without that marker. — *Verify:* CONF, PERF (answers open item 8, [OD-08](../adr/open-decisions.md))
-- **NOTIF-009** `PROPOSED` Subscribing returns the current version with the subscription, so a subscriber can synchronize a snapshot and the event stream with no gap or duplicate: events delivered are exactly those with `from_version >=` the returned version. — *Verify:* CONF
-- **NOTIF-010** `PROPOSED` A subscriber MAY unsubscribe at any time. Pending events are discarded. Closing a document delivers `closed` to each subscriber before the subscription ends (DOC-031). — *Verify:* CONF
+- **NOTIF-005** `ACCEPTED` For each document and each subscriber, events are delivered in version order, each exactly once, unless the queue overflows (NOTIF-007). — *Verify:* CONF
+- **NOTIF-006** `ACCEPTED` Notifications use bounded per-subscriber queues. The optional wakeup callback only signals that work is available, is invoked outside the Kernel lock, and must obey the callback constraints in the public header. The subscriber explicitly drains the queue from a thread chosen by the caller. — *Verify:* CONF, SAN
+- **NOTIF-007** `ACCEPTED` Each queue is bounded by a configured size. When it would overflow, the kernel drops the *details* of pending events and replaces them by one `RESYNC` marker carrying the current version. A subscriber receiving `RESYNC` MUST discard cached state for the document and re-read from a snapshot. Events are never dropped without that marker. — *Verify:* CONF, PERF (answers open item 8, [OD-08](../adr/open-decisions.md))
+- **NOTIF-009** `ACCEPTED` Subscribing returns the current version with the subscription, so a subscriber can synchronize a snapshot and the event stream with no gap or duplicate: events delivered are exactly those with `from_version >=` the returned version. — *Verify:* CONF
+- **NOTIF-010** `ACCEPTED` A subscriber MAY unsubscribe at any time. Pending events are discarded. Closing a document delivers `closed` to each subscriber before the subscription ends (DOC-031). — *Verify:* CONF
 
 ## 3. Payload
 
-- **NOTIF-008** `PROPOSED` A change event contains: document id; `from_version`; `to_version`; `kind` (`edit`, `batch`, `transaction`, `undo`, `redo`, `reload`); and an ordered list of edits `{start, removed length, inserted length}`, each expressed in the coordinates of the document state just before that edit. The event does not include inserted bytes by default; clients read them from a snapshot at `to_version`. An event MAY include them if the subscription asked for payload and it is below a size limit. — *Verify:* CONF
-- **NOTIF-011** `PROPOSED` `to_version` is exactly `from_version + 1` for every non-`RESYNC` event (DOC-011). — *Verify:* CONF
-- **NOTIF-012** `PROPOSED` Other event kinds: `closed`, `history_evicted` (count), `resync` (current version), `saved_state_changed`. — *Verify:* CONF
+- **NOTIF-008** `ACCEPTED` A change event reports `from_version`, `to_version`, its kind and the primitive edit count. It stores at most `CDIN_NOTIF_MAX_EDITS` (8) descriptions of `{start, removed, inserted}` in the coordinates immediately before each edit; `edits_stored` identifies how many are present. Inserted bytes are not included by default; clients read content from a snapshot. — *Verify:* CONF, INSPECT
+- **NOTIF-011** `ACCEPTED` `to_version` is exactly `from_version + 1` for every non-`RESYNC` event (DOC-011). — *Verify:* CONF
+- **NOTIF-012** `ACCEPTED` Other event kinds: `closed`, `history_evicted` (count), `resync` (current version), `saved_state_changed`. — *Verify:* CONF
 
 ```mermaid
 sequenceDiagram
@@ -59,7 +59,7 @@ sequenceDiagram
 ## 4. Relationship to other components
 
 - The backend is the kernel's only subscriber in the target architecture. It translates kernel events into `view.invalidate` messages for frontends ([frontend-protocol.md](../architecture/frontend-protocol.md), PROTO-023).
-- **NOTIF-020** `PROPOSED` The kernel MUST NOT know whether a subscriber is a view, a highlighter or a frontend (KERNEL-006). — *Verify:* INSPECT
+- **NOTIF-020** `ACCEPTED` The kernel MUST NOT know whether a subscriber is a view, a highlighter or a frontend (KERNEL-006). — *Verify:* INSPECT
 
 ## 5. Existing behaviour
 

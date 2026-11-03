@@ -1,6 +1,6 @@
 # Frontends
 
-A frontend presents the editor and collects input for one environment: an SDL window, a terminal, a command line, a headless test harness, later perhaps a web page. It speaks the [Frontend Protocol](../architecture/frontend-protocol.md) and nothing else. Frontends are **peers**; none is privileged. The protocol is an accepted semantic boundary. Wire encoding, reference codec location and mutation authority are settled by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md); OS-specific socket/pipe transports and frontend product implementations remain separate work.
+A frontend presents the editor and collects input for one environment: an SDL window, a terminal, a command line, a headless test harness, later perhaps a web page. It speaks the [Frontend Protocol](../architecture/frontend-protocol.md) and nothing else. Frontends are **peers**; none is privileged. The protocol is an accepted semantic boundary, but serialized wire encoding and a shared protocol client library remain open decisions.
 
 ## 1. Responsibilities
 
@@ -20,7 +20,7 @@ flowchart TB
     GUI["gui-sdl: window, pixels, fonts, shaping"]
     HL["headless: no display, reference behaviour"]
     CLI["cli: non-interactive commands (DEFERRED)"]
-    TUI["tui: terminal cells (DEFERRED)"]
+    TUI["tui: terminal cells (first interactive frontend)"]
     NEW["any new frontend: GUI toolkit, web, remote"]
     GUI --> PROTO
     HL --> PROTO
@@ -32,10 +32,11 @@ flowchart TB
     classDef later fill:#f8fafc,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
     class GUI,HL,NEW comp
     class PROTO contract
-    class CLI,TUI later
+    class CLI later
+    class TUI comp
 ```
 
-*Caption: `PROPOSED`. Adding a frontend means writing one more box on the left; nothing on the right changes.*
+*Caption: `ACCEPTED` target family. The headless adapter is the protocol reference; TUI is the first interactive target; CLI remains deferred. This does not claim that the TUI has shipped.*
 
 ### Request and render flow
 
@@ -55,30 +56,41 @@ flowchart LR
     class FP contract
 ```
 
-The protocol carries **semantic state and intent**, not toolkit objects or pixels. The frontend may cache derived layout, but it must invalidate that cache against document versions and may discard it without losing canonical document state. The serialized framing and reference codec location are accepted by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md): deterministic CBOR with a four-byte big-endian length prefix, implemented as an independently linkable C target in the Backend repository.
+The protocol carries **semantic state and intent**, not toolkit objects or pixels. The frontend may cache derived layout, but it must invalidate that cache against document versions and may discard it without losing canonical document state. The actual serialized framing and protocol client library are still open (OD-22 and OD-23).
 
 ## 3. Requirements
 
-- **FE-001** `PROPOSED` Frontends are peers; the GUI MUST NOT use any private backend call the protocol cannot express (see [frontend-protocol.md](../architecture/frontend-protocol.md)). — *Verify:* INSPECT, STATIC
-- **FE-002** `PROPOSED` A frontend depends only on the Frontend Protocol and its own toolkit; it MUST NOT include kernel, runtime or backend headers (ARCH-043). — *Verify:* STATIC
-- **FE-003** `PROPOSED` Every frontend MUST declare its capabilities and MUST implement the mandatory `core` namespace; features outside the declared capabilities are never sent to it. — *Verify:* CONF, INTEG
-- **FE-004** `PROPOSED` Visual layout state (wrapping, shaping, pixel or cell scroll) is private to the frontend and disposable: discarding it MUST NOT lose editor state (PROTO-001). — *Verify:* INTEG
-- **FE-005** `PROPOSED` A frontend MUST discard cached line content whose version is older than one it holds (PROTO-023) and MUST re-request after `view.invalidate`. — *Verify:* CONF
-- **FE-006** `PROPOSED` Text shaping and bidi are performed by the frontend, using its own font machinery. The Persian-aware text pipeline that exists today in Lua (`data/core/text/`) is the starting point for the GUI frontend and is not part of the kernel (RT-009). — *Verify:* INSPECT
-- **FE-007** `PROPOSED` The headless frontend is the reference for protocol behaviour: it records every received message and can replay scripted input. It has no display and no dependencies beyond the protocol. — *Verify:* INTEG, CONF
+- **FE-001** `ACCEPTED` Frontends are peers; the GUI MUST NOT use any private backend call the protocol cannot express (see [frontend-protocol.md](../architecture/frontend-protocol.md)). — *Verify:* INSPECT, STATIC
+- **FE-002** `ACCEPTED` A frontend depends only on the Frontend Protocol and its own toolkit; it MUST NOT include kernel, runtime or backend headers (ARCH-043). — *Verify:* STATIC
+- **FE-003** `ACCEPTED` Every frontend MUST declare its capabilities and MUST implement the mandatory `core` namespace; features outside the declared capabilities are never sent to it. — *Verify:* CONF, INTEG
+- **FE-004** `ACCEPTED` Visual layout state (wrapping, shaping, pixel or cell scroll) is private to the frontend and disposable: discarding it MUST NOT lose editor state (PROTO-001). — *Verify:* INTEG
+- **FE-005** `ACCEPTED` A frontend MUST discard cached line content whose version is older than one it holds (PROTO-023) and MUST re-request after `view.invalidate`. — *Verify:* CONF
+- **FE-006** `ACCEPTED` Text shaping and bidi are performed by the frontend, using its own font machinery. The Persian-aware text pipeline that exists today in Lua (`data/core/text/`) is the starting point for the GUI frontend and is not part of the kernel (RT-009). — *Verify:* INSPECT
+- **FE-007** `ACCEPTED` The headless frontend is the reference for protocol behaviour: it records every received message and can replay scripted input. It has no display and no dependencies beyond the protocol. — *Verify:* INTEG, CONF
 - **FE-008** `DEFERRED` The `cli` frontend: a non-interactive frontend that attaches to a session to run commands and print results. — *Verify:* INSPECT
-- **FE-009** `DEFERRED` The `tui` frontend: cell units, a subset of capabilities, plugin canvas limited to cell drawing. — *Verify:* INSPECT
+- **FE-009** `ACCEPTED` The TUI is the first interactive frontend target. It is a full-screen, Neovim-like terminal editor using cell units and a capability subset; it is not the non-interactive CLI. Plugin canvas is unavailable unless a frontend explicitly advertises and implements the optional canvas capability. — *Verify:* INSPECT, INTEG
+
+- **FE-010** `ACCEPTED` Ship one `cdin-editor/frontend` repository with peer adapters for `core`, `gui-sdl`, `tui` and `headless`. The shared core owns protocol/client abstractions and common non-rendering utilities; each frontend owns its own rendering and layout implementation. — *Verify:* INSPECT, STATIC
+- **FE-011** `ACCEPTED` The TUI is the first interactive frontend target and is a full-screen terminal editor with a Neovim-like interaction model. A non-interactive command runner remains a separate `cli` target and stays `DEFERRED`. — *Verify:* INSPECT, INTEG
+- **FE-012** `ACCEPTED` GUI and TUI MUST NOT be forced through one shared rendering pipeline. They share the semantic protocol and reusable non-presentation contracts only; GUI pixels/font metrics and terminal cells/layout remain adapter-owned. — *Verify:* INSPECT, STATIC
+- **FE-013** `ACCEPTED` Ordinary plugin UI is expressed through declarative widgets. Free-form drawing is an optional `canvas` capability; frontends without it MUST degrade gracefully or report that the plugin surface is unavailable. — *Verify:* INSPECT, INTEG
+- **FE-014** `ACCEPTED` Runtime owns UI policy and semantic state in PUC Lua 5.4. Native C owns protocol encoding/decoding, platform event integration, input adapters and frontend rendering backends. Neither Runtime nor a frontend accesses private Kernel symbols or handles. — *Verify:* INSPECT, STATIC
+- **FE-015** `ACCEPTED` A central capability registry defines capability names and their semantics. A frontend's requested capabilities are distinct from the capabilities actually accepted for a session; only capabilities implemented by both peers may be advertised as active or used. — *Verify:* CONF, INTEG
+- **FE-016** `ACCEPTED` Frontends send key identity/action/modifier information through `input.key` and committed text (including IME output) separately through `input.text`. Frontends do not resolve editor keymaps or commands; Runtime owns keymap interpretation. — *Verify:* CONF, INTEG
+- **FE-017** `ACCEPTED` The semantic UI model permits a nullable `active_view` on a layout leaf and defines `ui.options` as a typed options map rather than an unstructured bag. The initial option keys are `title:text`, `tab_width:uint` (1..64), `wrap:bool`, `line_numbers:bool`, `relative_line_numbers:bool`, `cursor_shape:text` (`block`, `bar` or `underline`) and `cursor_blink:bool`. — *Verify:* CONF, INSPECT
+- **FE-018** `ACCEPTED` Frontends own text presentation: UTF-8 decoding for display, grapheme-aware visual navigation, shaping, bidirectional reordering, wrapping, tab expansion and scroll geometry. Logical document positions remain byte offsets; TUI layout uses terminal cells and MUST map visual actions back to logical byte positions. — *Verify:* INTEG, INSPECT
+- **FE-019** `ACCEPTED` The interactive TUI event loop MUST multiplex terminal input, Backend readiness/messages, resize and termination events without busy-waiting. It MUST restore raw mode, cursor and screen state on normal exit, handled errors and catchable termination signals routed through its cleanup path, and MUST provide deterministic startup/teardown. No cleanup guarantee is made for uncatchable termination (for example `SIGKILL`) or power loss. — *Verify:* INTEG, SAN
 
 ## 4. gui-sdl
 
-- **FE-020** `PROPOSED` `gui-sdl` owns every use of SDL. After migration SDL appears in no other component (ARCH-042). — *Verify:* STATIC
-- **FE-021** `EXISTING` Today the SDL code lives in `src/core/window.c`, `src/api/system.c` (window, events, clipboard, dialogs, hit regions), `src/main.c`, `src/loop/` and `src/platform/`, with a very small amount in the renderer (`src/ui/renderer.c`). These are the pieces `gui-sdl` takes over or are rewritten behind the protocol. — *Verify:* STATIC — *Anchor:* `src/core/window.c`, `src/api/system.c`, `src/main.c`, `src/ui/renderer.c`
-- **FE-022** `EXISTING` The renderer already behaves as a cached command list (rectangles, text, clip) with a render cache, which suits a software or GPU backend inside `gui-sdl`. — *Verify:* INSPECT — *Anchor:* `src/ui/renderer.h`, `src/ui/renderer_cache.c`
-- **FE-023** `PROPOSED` SDL-specific features (window controls, title-bar hit regions, native dialogs) become capabilities (`hit_regions`, `dialogs`) so another GUI toolkit can implement them or decline. — *Verify:* INSPECT, INTEG
+- **FE-020** `ACCEPTED` `gui-sdl` owns every use of SDL. After migration SDL appears in no other component (ARCH-042). — *Verify:* STATIC
+- **FE-021** `EXISTING` The pre-extraction `cdin` monolith contains the legacy SDL window, system-service, main-loop and platform code listed by these anchors. This is migration evidence only; it does not claim that the separate `frontend` repository or its `gui-sdl` target has already been extracted. — *Verify:* STATIC — *Anchor:* `src/core/window.c`, `src/api/system.c`, `src/main.c`, `src/ui/renderer.c`
+- **FE-022** `EXISTING` The pre-extraction `cdin` renderer contains a cached command-list/render-cache implementation. This is legacy migration evidence only, not proof of a current standalone `gui-sdl` frontend. — *Verify:* INSPECT — *Anchor:* `src/ui/renderer.h`, `src/ui/renderer_cache.c`
+- **FE-023** `ACCEPTED` SDL-specific features (window controls, title-bar hit regions, native dialogs) become capabilities (`hit_regions`, `dialogs`) so another GUI toolkit can implement them or decline. — *Verify:* INSPECT, INTEG
 
 ## 5. Rewriting a frontend
 
-A frontend can be replaced by a different implementation, in a different language, provided it passes the protocol conformance vectors ([conformance.md](../testing/conformance.md)). The only shared artifact is the protocol and its reference C codec target in the Backend repository; ADR-0018 explicitly does not create a separate protocol repository.
+A frontend can be replaced by a different implementation, in a different language, provided it passes the protocol conformance vectors ([conformance.md](../testing/conformance.md)). The only shared artifact is the protocol; whether a client library for it exists as a repository is [OD-23](../adr/open-decisions.md).
 
 ## 6. State owned
 

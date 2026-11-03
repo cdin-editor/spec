@@ -59,7 +59,7 @@ Kernel ABI 1.0.0 has no internal pending request queue to drain. `cdin_kernel_sh
 
 - **CONC-020** `ACCEPTED` Shutdown MUST reject new content mutations, abort active transactions and provide deterministic teardown; graceful and abort mode values are behaviorally equivalent in ABI 1.0.0 because API calls execute synchronously and there is no queued work to drain or cancel. — *Verify:* CONF
 - **CONC-021** `ACCEPTED` Active transactions are aborted and rolled back during shutdown. — *Verify:* CONF
-- **CONC-022** `PROPOSED` After kernel destruction all handles are invalid; callers MUST release snapshots and stop concurrent API calls before destruction. — *Verify:* SAN, CONF
+- **CONC-022** `ACCEPTED` The caller MUST ensure that no Kernel API calls are in flight when destruction begins. Destruction invalidates all remaining handles and releases Kernel-owned resources, including state still pinned by outstanding snapshots or subscriptions; it is not concurrent with ordinary operations. — *Verify:* SAN, CONF
 
 ## 4. Backend concurrency
 

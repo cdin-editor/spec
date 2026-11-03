@@ -1,6 +1,6 @@
 # Frontend Protocol
 
-The accepted contract between the Backend and any number of frontends (GUI, TUI, CLI, headless, a different GUI toolkit, web). Status: **`ACCEPTED`** by [ADR-0005](../adr/ADR-0005-frontend-protocol.md) and [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md). The exact wire envelope and every payload schema are normative in [protocol-wire.md](protocol-wire.md); `cdin.ui-model.v1` is normative in [ui-model-v1.md](ui-model-v1.md).
+The accepted contract between the Backend and any number of frontends (GUI, TUI, CLI, headless, a different GUI toolkit, web). Status: **`ACCEPTED`** by [ADR-0005](../adr/ADR-0005-frontend-protocol.md), [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md) and [ADR-0020](../adr/ADR-0020-frontend-topology-and-interaction.md). The accepted next wire target is Protocol `1.0.0`; the current Backend implementation remains `0.2.0`. The exact wire envelope and every payload schema are normative in [protocol-wire.md](protocol-wire.md); `cdin.ui-model.v1` is normative in [ui-model-v1.md](ui-model-v1.md).
 
 ## 1. Model
 
@@ -67,7 +67,21 @@ sequenceDiagram
 *Caption: `ACCEPTED` handshake and steady state.*
 
 - **PROTO-010** `ACCEPTED` Every connection begins with `hello` and `hello_ack`. No other message is valid before them. — *Verify:* CONF
-- **PROPOSED capability set** (illustrative, to be fixed by ADR): `units` = `cells` or `pixels`; `images`; `truecolor`; `mouse`; `hit_regions`; `rich_text`; `canvas`; `clipboard`; `dialogs`; `ime`. The backend sends only what the frontend declared.
+The capability registry is the canonical catalogue of optional frontend services. `units` is attach metadata (`cells` or `pixels`), not a capability. Registered identifiers and meanings are:
+
+| Capability | Meaning |
+|---|---|
+| `clipboard` | Backend/frontend clipboard get/set request and response messages. |
+| `dialogs` | Native or frontend-provided confirmation/open/save dialog requests. |
+| `canvas` | Optional free-form plugin drawing surface; absence requires graceful degradation. |
+| `mouse` | Pointer input events. |
+| `hit_regions` | Environment-specific hit regions such as native title-bar controls. |
+| `rich_text` | Extended styled-text presentation beyond mandatory semantic spans. |
+| `images` | Image-bearing UI content. |
+| `truecolor` | Full 24-bit foreground/background colour presentation. |
+| `ime` | Input-method composition support; committed text still travels through `input.text`. |
+
+The frontend declares capabilities in `hello`; the Backend returns only the intersection actually supported by both peers for that session. A registered capability is not necessarily implemented. The currently inspected Backend Protocol 0.2.0 server accepts only mandatory `core` and no optional capabilities.
 - **PROTO-011** `ACCEPTED` Capabilities are declared by the frontend and accepted or reduced by the backend in `hello_ack`. Unknown capability names MUST be ignored. — *Verify:* CONF
 - **PROTO-012** `ACCEPTED` Several frontends MAY attach to one session simultaneously. Each has an independent handshake, capability set and flush sequence. — *Verify:* INTEG
 - **PROTO-013** `ACCEPTED` Exactly one attached frontend holds the driver lease. Other frontends are observers. The oldest attached observer is promoted only when the driver detaches/closes; permission details are normative in [protocol-wire.md](protocol-wire.md#2-protocol-flow-and-permissions). — *Verify:* CONF, INTEG
@@ -139,7 +153,7 @@ The payload fields for every message in §4 are fully specified in [protocol-wir
 | gui-sdl | SDL window, pixels | `ACCEPTED`; today fused with the backend |
 | headless | no display; used for scripts and for protocol verification | `ACCEPTED` (reference behaviour defined in [conformance.md](../testing/conformance.md)) |
 | cli | non-interactive commands against a session | `DEFERRED` |
-| tui | terminal cells | `DEFERRED` |
+| tui | terminal cells; first interactive target | `ACCEPTED` target, not yet shipped |
 | web, remote | network transport | not planned; the serialized transport does not preclude it |
 
 - **PROTO-050** `ACCEPTED` Frontends are peers (same rule as FE-001, stated here from the protocol's side). The GUI MUST NOT use any private backend call that the protocol cannot express. Existing SDL-specific functionality (window control, title-bar hit regions, native dialogs) becomes capabilities or requests. — *Verify:* INSPECT, STATIC
@@ -151,4 +165,11 @@ The payload fields for every message in §4 are fully specified in [protocol-wir
 
 ## 9. Open points
 
-Resolved protocol decisions: wire encoding, client library and mutation authority ([ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md)). Remaining related decisions include canvas/plugin UI ([OD-25](../adr/open-decisions.md)) and visual-layout ownership ([OD-26](../adr/open-decisions.md)).
+Resolved protocol decisions: wire encoding, client library and mutation authority ([ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md)); plugin UI policy ([ADR-0011](../adr/ADR-0011-extension-ui.md)); and Frontend topology, capabilities and input ownership ([ADR-0020](../adr/ADR-0020-frontend-topology-and-interaction.md)). Visual-layout ownership remains recorded by [OD-26](../adr/open-decisions.md).
+
+
+## Accepted keyboard and capability rules
+
+The capability registry is the canonical catalogue of capability names, versions and semantics. A frontend declares what it can implement in `hello`; the Backend returns the intersection it actually supports in `hello_ack`. Requested capabilities are not active capabilities. A frontend MUST NOT infer support from a request it sent, and a Backend MUST NOT advertise a capability whose implementation is absent or unavailable in the current session. The current Backend v0.2.0 reference server accepts only the mandatory `core` namespace and no optional capabilities.
+
+`input.key` carries key identity, action and modifiers (with an optional platform scancode); `input.text` carries committed text, including IME composition output. These are different events. The frontend translates device events but MUST NOT resolve editor keymaps or commands. Runtime owns keymap interpretation and command policy. A terminal frontend maps cell-based visual actions back to logical byte positions before sending position changes.

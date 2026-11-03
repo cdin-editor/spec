@@ -32,7 +32,7 @@ A session has one driver lease. The first attached client becomes driver; all ot
 
 ## Versioning
 
-This decision establishes Frontend Protocol `0.2.0`. Its major version remains `0` while the contract is pre-1.0; the minor version changes for additive schema/transport evolution. Incompatible changes require a major version change. Unknown optional payload fields are ignored; required fields and core message names are not optional.
+At the time of this ADR, the established implementation baseline was Frontend Protocol `0.2.0`, with additive minor evolution within major `0`. The owner-approved incompatible schema evolution to Protocol `1.0.0` is recorded below and in ADR-0020. The pre-1.0 versioning rule in this section describes that historical baseline.
 
 ## Consequences
 
@@ -46,3 +46,8 @@ This decision establishes Frontend Protocol `0.2.0`. Its major version remains `
 - [ADR-0005](ADR-0005-frontend-protocol.md)
 - [Frontend Protocol](../architecture/frontend-protocol.md)
 - [Wire and message schemas](../architecture/protocol-wire.md)
+
+
+## Owner-approved schema evolution to Protocol 1.0.0
+
+The initial 0.2.0 wire contract and its reference implementation remain the historical baseline for the existing Backend code. The owner-approved `active_view:text|null` correction changes the value domain of an existing required field, so it is not an additive minor evolution. [ADR-0020](ADR-0020-frontend-topology-and-interaction.md) therefore establishes Frontend Protocol 1.0.0 as the next accepted wire contract. This does not claim that the current Backend implements it: the Backend must update its codec, semantic projection, negotiation and conformance tests before advertising 1.0.0.

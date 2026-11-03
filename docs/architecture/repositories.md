@@ -9,18 +9,18 @@ A **component** has one responsibility and a contract. A **repository** is a uni
 ```mermaid
 flowchart TB
     cdinrepo["cdin (repo)<br/>composition root, backend/UI source,<br/>build and integration"]
-    kernelrepo["cdin-kernel (repo)<br/>package 1.2.1 · C ABI 1.1.0"]
+    kernelrepo["cdin-kernel (repo)<br/>package 1.1.0 · C ABI 1.0.0"]
     xnow["cdin-x (repo)<br/>separate extension ecosystem"]
     specnow["spec (repo)<br/>architecture and contracts"]
     specnow -. "defines contracts" .-> cdinrepo
-    specnow -. "defines Kernel ABI 1.x compatibility contract" .-> kernelrepo
+    specnow -. "defines ABI 1.0.0 contract" .-> kernelrepo
     kernelrepo -. "to be integrated / version-checked" .-> cdinrepo
     xnow -. "extension input at build time" .-> cdinrepo
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     class cdinrepo,kernelrepo,specnow,xnow comp
 ```
 
-*Caption: archive snapshots inspected for the package 1.2.1 / ABI 1.1.0 synchronization (Spec release 1.1.0; the current Kernel header declares Spec target 1.1.0). The uploads contain working trees but not Git history, so this report cannot verify commit ancestry or whether an extraction preserved history. `cdin-editor/kernel` exists as a standalone source tree and package 1.2.1 publishes C ABI 1.1.0; production integration through the Backend adapter remains a separate gate.*
+*Caption: archive snapshots inspected for the package 1.1.0 / ABI 1.0.0 synchronization (Spec release 1.1.0; the kernel declares Spec target 1.0.0). The uploads contain working trees but not Git history, so this report cannot verify commit ancestry or whether an extraction preserved history. `cdin-kernel` exists as a standalone source tree and packages release 1.1.0 while publishing C ABI 1.0.0; its integration into `cdin` remains a separate gate.*
 
 ### Stable architecture baseline and target
 
@@ -30,18 +30,22 @@ flowchart TB
     subgraph cdinrepo["cdin (repo): composition root + backend"]
         root["root: build, bundle, release, launcher"]
         be["backend: session, OS services, protocol server, runtime host"]
-        fegui["gui-sdl frontend (directory)"]
-        fetui["tui frontend (directory)"]
-        fecli["cli / headless frontend (directory)"]
+    end
+    subgraph ferepo["cdin-editor/frontend (repo): peer adapters"]
+        fecore["core: protocol/client utilities"]
+        fegui["gui-sdl frontend"]
+        fetui["tui frontend: first interactive target"]
+        feheadless["headless: protocol reference"]
     end
     kernel["cdin-kernel (repo)"]
     runtime["cdin-runtime (repo)"]
     x["cdin-x (repo, separate ecosystem)"]
 
     root --> be
+    root --> fecore
     root --> fegui
     root --> fetui
-    root --> fecli
+    root --> feheadless
     be --> kernel
     be --> runtime
     x -. "extension contract" .-> runtime
@@ -51,27 +55,27 @@ flowchart TB
     spec -.-> x
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
-    class be,fecli,fegui,fetui,kernel,root,runtime,spec,x comp
+    class be,fecore,feheadless,fegui,fetui,kernel,root,runtime,spec,x comp
     class cdinrepo group
 ```
 
-*Caption: accepted repository boundaries and target composition. The `cdin-runtime` extraction remains gated on the runtime host API being stable. Arrows are build or link dependencies; dotted arrows are contract relationships.*
+*Caption: accepted repository boundaries and target composition. The standalone Frontend repository and its adapters are accepted targets, not a claim that extraction or TUI implementation has shipped. The `cdin-runtime` extraction remains gated on the runtime host API being stable. Arrows are build or link dependencies; dotted arrows are contract relationships.*
 
 ## 2. Component to repository map
 
 | Component | Repository now | Repository target | Status |
 |---|---|---|---|
-| spec | `cdin-editor/spec` | same | `ACCEPTED`; Spec release `1.1.0`, compatible with the established `1.0.0` baseline |
-| kernel | standalone `cdin-editor/kernel` source, package `1.2.1` | same; C ABI `1.1.0` (ABI major 1) | `ACCEPTED` |
+| spec | `cdin-editor/spec` | same | `ACCEPTED`; Spec release `1.2.0`, Kernel-declared compatibility target remains `1.1.0` |
+| kernel | standalone `cdin-kernel` source archive, package `1.1.0` | same; stable C ABI `1.0.0` | `ACCEPTED` |
 | runtime | inside `cdin` (`data/core/`, `src/lua/`, `src/api/`) | `cdin-runtime`, created after the runtime host API is stable | `PROPOSED` |
 | backend | inside `cdin` (`src/`) | stays in `cdin` | `PROPOSED` |
-| frontend: gui-sdl | inside `cdin` (`src/ui/`, `src/core/window.*`, SDL parts of `src/api/system.c`) | directory in `cdin`, extractable | `PROPOSED` |
-| frontend: tui, cli, headless | does not exist | directories in `cdin` first | `DEFERRED` (tui, cli), `PROPOSED` (headless reference) |
+| frontend | Legacy GUI/SDL code remains in `cdin`; standalone repo not yet extracted | `cdin-editor/frontend` with `core`, `gui-sdl`, `tui`, `headless` peers | `ACCEPTED` target; implementation/extraction pending |
+| cli | does not exist | optional non-interactive adapter, separate from the interactive TUI | `DEFERRED` |
 | data | not a component in code | no repository | `DEFERRED` |
 | cdin (root) | `cdin` repository | same | `ACCEPTED` as composition root |
 | cdin-x | its own repository | same, fully separate | `ACCEPTED` |
 
-There is deliberately **no** `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin-scripts`, `cdin-common` or `cdin-shared` repository in the target topology. Reasons are in [ADR-0001](../adr/ADR-0001-repository-topology.md).
+There is deliberately **no** `cdin-backend`, `cdin-data`, `cdin-scripts`, `cdin-common` or `cdin-shared` repository in the target topology. One standalone `cdin-editor/frontend` repository is explicitly accepted by [ADR-0020](../adr/ADR-0020-frontend-topology-and-interaction.md); the earlier no-frontend-repository baseline is superseded.
 
 ## 3. Rules for creating or splitting a repository
 
@@ -80,7 +84,7 @@ There is deliberately **no** `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin
 - **ARCH-032** `PROPOSED` Extraction SHOULD preserve source history using a subtree/filter-repo method or an equivalent mapping; `git mv` alone does not preserve history across repositories. The editor MUST build and start before and after extraction. — *Verify:* INTEG
 - **ARCH-033** `PROPOSED` Frontends MAY live outside the `cdin` repository at any time, because they depend only on the Frontend Protocol. No change to other components is required for that. — *Verify:* INSPECT
 - **ARCH-034** `ACCEPTED` No `cdin-common` or `cdin-shared` repository is created without explicit approval and a stated reason (same as ARCH-005; restated here as the rule for this document). — *Verify:* INSPECT
-- **ARCH-035** `ACCEPTED` The reference protocol codec is an independently linkable C target (`cdin_protocol`) inside the Backend repository; it is not a new shared repository. The wire contract and codec placement are fixed by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md). — *Verify:* STATIC, BUILD
+- **ARCH-035** `PROPOSED` A protocol client library (a binding of the Frontend Protocol for frontend authors) is the one shared artifact with an architectural justification. Whether it is a separate repository is `OPEN`: see [OD-23](../adr/open-decisions.md). — *Verify:* INSPECT
 
 ## 4. What each repository is, and is not
 
@@ -100,9 +104,10 @@ There is deliberately **no** `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin
 - **Is:** the headless core that can run with no frontend attached.
 - **Is not:** tied to SDL, a terminal, or any display.
 
-### frontends (directories in `cdin`, later possibly their own repositories)
-- **Are:** presentation and input for one environment.
-- **Are not:** owners of documents, commands or keymaps.
+### frontend (`cdin-editor/frontend`, accepted target)
+- **Is:** one repository containing peer `core`, `gui-sdl`, `tui` and `headless` adapters.
+- **Is not:** a shared GUI/TUI renderer or an owner of documents, commands or keymaps.
+- **Migration note:** legacy GUI code remains in `cdin` until it is extracted; the TUI and standalone repository are not yet shipped.
 
 ### cdin (composition root)
 - **Is:** build system, bundling, release workflows, installers, launcher, development tooling.
@@ -114,4 +119,4 @@ There is deliberately **no** `cdin-backend`, `cdin-frontend`, `cdin-data`, `cdin
 
 ## 5. Why the current layout is not simply split
 
-The current `cdin` archive still contains backend, runtime and GUI-related code together; its SDL3-dependent build/test path could not be verified in the available environment because SDL3 headers are absent and the archived test baseline is empty. The standalone `cdin-editor/kernel` ABI 1.1.0 is current, but its production Backend integration must be gated by live adapter tests. The next justified repository extraction is `cdin-runtime` only after its host API is stable. The supplied archives have no Git history, so migration history preservation cannot be assessed here. See [migration.md](migration.md).
+The current `cdin` archive still contains backend, runtime and GUI-related code together; its SDL3-dependent build/test path could not be verified in the available environment because SDL3 headers are absent and the archived test baseline is empty. The standalone `cdin-kernel` ABI is now stable, but its composition-root integration must be gated by an integration test. The next justified repository extraction is `cdin-runtime` only after its host API is stable. The supplied archives have no Git history, so migration history preservation cannot be assessed here. See [migration.md](migration.md).

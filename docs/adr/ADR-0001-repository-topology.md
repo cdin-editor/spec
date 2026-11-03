@@ -33,3 +33,8 @@ Staged extraction puts integration tests before repository separation. It does n
 
 ## References
 [repositories.md](../architecture/repositories.md), [migration.md](../architecture/migration.md), [ADR-0014](ADR-0014-no-shared-repositories.md).
+
+
+## Partial supersession — Frontend repository topology
+
+[ADR-0020](ADR-0020-frontend-topology-and-interaction.md) supersedes Decision items 5 and 6 above only for Frontend topology. The accepted target is now one standalone `cdin-editor/frontend` repository containing peer `core`, `gui-sdl`, `tui` and `headless` adapters; the TUI is the first interactive target and `cli` remains deferred. The original prohibition on unapproved `cdin-common`, `cdin-shared`, `cdin-data` and `cdin-scripts` repositories remains in force. The no-`cdin-frontend` name is not contradicted: the approved repository is named `cdin-editor/frontend`.

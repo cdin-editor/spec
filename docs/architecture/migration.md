@@ -78,3 +78,8 @@ flowchart LR
 ## 5. Rollback
 
 - **ARCH-070** `PROPOSED` Each phase MUST be reversible by reverting its commits; no phase may merge a state in which the previous phase's tests fail. — *Verify:* INTEG
+
+
+## Accepted Frontend delivery order — ADR-0020
+
+The standalone Frontend repository has one accepted family: `core`, `gui-sdl`, `tui` and `headless`. The `headless` adapter is the protocol reference and verification harness. The TUI is the first new interactive frontend target and uses a full-screen, Neovim-like interaction model. The legacy SDL GUI may remain the migration bridge while its source is extracted into `gui-sdl`; it does not change the TUI-first decision for the new interactive adapter. The non-interactive `cli` target remains deferred. These are target decisions, not claims that the repository or TUI has shipped.

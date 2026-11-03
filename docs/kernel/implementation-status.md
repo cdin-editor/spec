@@ -1,12 +1,12 @@
 # Kernel implementation status — cdin-kernel package 1.2.1 / ABI 1.1.0
 
-This page records the cross-repository boundary between CDIN Spec 1.1.0, the `cdin-editor/kernel` 1.2.1 package release, and public C ABI 1.1.0. The Spec repository remains design-only; executable Kernel code and tests live in `cdin-editor/kernel`. Package, ABI and Spec versions are independent labels.
+This page records the cross-repository boundary between CDIN Spec 1.2.0, the `cdin-editor/kernel` 1.2.1 package release, and public C ABI 1.1.0. The Spec repository remains design-only; executable Kernel code and tests live in `cdin-editor/kernel`. Package, ABI and Spec versions are independent labels.
 
 ## Version and evidence source
 
 | Item | Recorded value |
 |---|---|
-| Spec baseline | `1.1.0` |
+| Spec baseline | `1.2.0` |
 | Kernel package release | `1.2.1` (package version inspected in the Kernel repository) |
 | Implementation repository | `cdin-editor/kernel` (Git repository inspected read-only) |
 | Public C ABI | `1.1.0`, declared by `include/cdin/kernel.h` |
@@ -56,3 +56,24 @@ The package version `1.2.1` is not the ABI version: the current public C ABI is 
 2. One end-to-end path replaces a document, receives a notification, and observes the committed version without a second canonical document/history store.
 3. The `cdin` composition root builds and starts with its documented dependencies; SDL3 availability and the currently empty test baseline must be resolved for GUI test claims.
 4. Only after the runtime host API is versioned and this integration gate passes should `cdin-runtime` become the next repository.
+
+
+## Owner-approved synchronization — Spec 1.2.0
+
+The Kernel requirements promoted to `ACCEPTED` in Spec 1.2.0 are recorded by [ADR-0021](../adr/ADR-0021-kernel-implementation-backed-contracts.md) and are limited to behavior present in the Kernel 1.2.1 / ABI 1.1.0 public surface. The review inspected (read-only) the following anchors:
+
+| Area | Implementation anchors | Conformance/test anchors |
+|---|---|---|
+| ABI, handles, limits, logging | `include/cdin/kernel.h`; `src/kernel.c`; `src/core/handle_table.c` | `tests/test_p1.c`; `tests/test_logging.c`; `conformance/vec/abi.*.vec` |
+| Document lifecycle, versions, edits and reload | `src/doc/doc.c`; `src/doc/edit.c` | `conformance/vec/doc/doc.lifecycle.vec`; `conformance/vec/edit/edit.replace.vec`; `conformance/vec/edit/edit.version.vec` |
+| Transactions and rollback | `src/txn/txn.c` | `conformance/vec/txn/txn.basic.vec` |
+| Undo, coalescing, blobs and saved marker | `src/history/undo.c`; `src/doc/edit.c` | `conformance/vec/undo/undo.basic.vec` |
+| Notifications, overflow and resync | `src/notif/notif.c`; `src/doc/edit.c` | `conformance/vec/notif/notif.basic.vec` |
+| UTF-8 regions, bytes and line endings | `src/util/utf8.c`; `src/core/block.c`; `src/text/lines.c` | `conformance/vec/text/text.bytes.vec`; `conformance/vec/text/text.eol.vec` |
+| Positions and graphemes | `src/text/positions.c`; `src/text/graphemes.c` | `conformance/vec/pos/pos.convert.vec`; `conformance/vec/unicode/unicode.fold.vec` |
+| Search and cancellation | `src/search/literal.c`; `src/search/fold.c` | `conformance/vec/search/search.literal.vec`; `search.bytes.vec`; `search.unicode.vec` |
+| Concurrency and shutdown | `src/kernel.c`; `src/doc/edit.c`; `src/txn/txn.c` | `tests/test_p3_conc.c`; `conformance/vec/conc/conc.basic.vec` |
+
+This synchronization was a source/header/test-definition review. The tests and conformance vectors were inspected but were **not executed in this review session**. The pre-existing report of `make check`, sanitizer and fuzz runs remains attributable to the Kernel repository's own recorded evidence, not to this Spec review.
+
+The following remain intentionally outside current acceptance: strict no-clock/no-I/O determinism (`KERNEL-007`), universal process-termination guarantees (`KERNEL-009`), Regex (`KERNEL-010`, `SEARCH-004`, OD-09), architecture-specific optimizations (`KERNEL-015`), formal maximal-subpart invalid-UTF-8 partition rules (`TEXT-012`, OD-11), Kernel position anchors (`POS-051`, OD-28), Unicode normalization/profile choices (OD-29), and internal parallel mutation (OD-27).

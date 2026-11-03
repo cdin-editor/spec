@@ -2,7 +2,7 @@
 
 Two instruments record how the architecture was and will be decided.
 
-- **[Open Decisions Register](open-decisions.md)**: every unresolved question, its importance, options, trade-offs and dependencies. `OD-01` to `OD-20` are the twenty items identified at the start of the design work; `OD-21` and later were found while writing this specification.
+- **[Open Decisions Register](open-decisions.md)**: every unresolved question, its importance, options, trade-offs and dependencies. `OD-01` to `OD-20` are the twenty items identified at the start of the design work; `OD-21` and later were found while writing this specification. The current register contains 32 items; the owner-approved Frontend resolutions are recorded in ADR-0020.
 - **ADRs** (architecture decision records): one file per decision, with the structure in [conventions.md](../reference/conventions.md). An ADR is written when an `ACCEPTED` contract changes, when a decision is made that others depend on, or when options need to be on record.
 
 ## Index of ADRs
@@ -19,7 +19,7 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0008](ADR-0008-persistence-outside-kernel.md) | Persistence stays outside the kernel | `ACCEPTED` |
 | [ADR-0009](ADR-0009-regex-engine.md) | Regular-expression engine | `OPEN` (direction `PROPOSED`) |
 | [ADR-0010](ADR-0010-unicode-version.md) | Unicode version policy | `ACCEPTED` |
-| [ADR-0011](ADR-0011-extension-ui.md) | Extension UI under the Frontend Protocol | `PROPOSED` |
+| [ADR-0011](ADR-0011-extension-ui.md) | Extension UI under the Frontend Protocol | `ACCEPTED` |
 | [ADR-0012](ADR-0012-migration-strategy.md) | Incremental migration | `ACCEPTED` |
 | [ADR-0013](ADR-0013-hot-swap.md) | Hot-swap and state migration | `DEFERRED` |
 | [ADR-0014](ADR-0014-no-shared-repositories.md) | No shared or common repositories | `ACCEPTED` |
@@ -28,6 +28,8 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0017](ADR-0017-kernel-synchronous-concurrency.md) | Kernel call concurrency and ordering | `ACCEPTED` |
 | [ADR-0018](ADR-0018-frontend-protocol-wire.md) | Frontend Protocol wire format, client boundary and mutation authority | `ACCEPTED` |
 | [ADR-0019](ADR-0019-runtime-bridge.md) | PUC Lua 5.4 C API as Runtime Host bridge | `ACCEPTED` |
+| [ADR-0020](ADR-0020-frontend-topology-and-interaction.md) | Frontend topology, TUI-first delivery and presentation contracts | `ACCEPTED` |
+| [ADR-0021](ADR-0021-kernel-implementation-backed-contracts.md) | Kernel ABI 1.1.0 implementation-backed contract acceptance | `ACCEPTED` |
 
 ## How owner approval is recorded
 

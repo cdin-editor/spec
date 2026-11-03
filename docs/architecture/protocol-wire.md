@@ -1,6 +1,6 @@
-# Frontend Protocol wire contract 0.2.0
+# Frontend Protocol wire contract 1.0.0
 
-**Status:** `ACCEPTED` by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md). Normative payload rules are defined here; implementation evidence is maintained separately.
+**Status:** `ACCEPTED` by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md) and [ADR-0020](../adr/ADR-0020-frontend-topology-and-interaction.md). Version 1.0.0 is the accepted major-version schema target; the currently inspected Backend codec still implements 0.2.0 and must be upgraded before claiming 1.0.0 conformance.
 
 ## 1. Frame and envelope
 
@@ -10,15 +10,15 @@ The envelope is a definite-length CBOR map with exactly five text keys. The `seq
 
 | Key | Type | Meaning |
 |---|---|---|
-| `v` | array `[uint, uint]` | Protocol major and minor (`[0, 2]` for this version) |
+| `v` | array `[uint, uint]` | Protocol major and minor (`[1, 0]` for this version) |
 | `ns` | text | Namespace; `core` is mandatory |
 | `seq` | uint | Per-connection monotonically increasing message sequence, starting at 1 |
 | `type` | text | Exact message name from §3 |
 | `payload` | map | Payload matching the schema in §3 |
 
-The deterministic profile uses shortest-width integer and length encodings, definite-length containers and text map keys. Duplicate keys, trailing bytes, malformed UTF-8 text, indefinite-length values and unsupported CBOR simple values are invalid. Protocol v0.2.0 does not admit floating-point values. Ratios and other fractional UI values MUST be converted to explicitly named fixed-point unsigned integers by the model adapter (for split ratios, `ratio_bp` is an unsigned integer basis-point value in `1000..8999`; it is derived from the Runtime ratio and never emitted as a float). Document and paste data is represented only as CBOR byte strings. Implementations MUST NOT infer text encoding for byte-string values.
+The deterministic profile uses shortest-width integer and length encodings, definite-length containers and text map keys. Duplicate keys, trailing bytes, malformed UTF-8 text, indefinite-length values and unsupported CBOR simple values are invalid. Protocol v1.0.0 does not admit floating-point values. Ratios and other fractional UI values MUST be converted to explicitly named fixed-point unsigned integers by the model adapter (for split ratios, `ratio_bp` is an unsigned integer basis-point value in `1000..8999`; it is derived from the Runtime ratio and never emitted as a float). Document and paste data is represented only as CBOR byte strings. Implementations MUST NOT infer text encoding for byte-string values.
 
-Unknown fields in a known message are ignored when their CBOR value is valid and bounded. Unknown messages in mandatory namespace `core` return `UNSUPPORTED`. Protocol 0.2.0 does not define or negotiate optional namespaces, so a receiver rejects any namespace other than `core`. Invalid known fields reject the entire message without dispatch.
+Unknown fields in a known message are ignored when their CBOR value is valid and bounded. Unknown messages in mandatory namespace `core` return `UNSUPPORTED`. The `core` namespace is mandatory. An optional namespace is accepted only when negotiated through a registered capability; an unknown optional namespace may be ignored, while an unknown message in `core` returns `UNSUPPORTED`. Invalid known fields reject the entire message without dispatch.
 
 ## 2. Protocol flow and permissions
 
@@ -32,7 +32,7 @@ All accepted input is copied into a bounded inbound queue and dispatched on the 
 
 The terms below mean: `uint` = unsigned CBOR integer; `bool` = CBOR false/true; `text` = valid UTF-8 CBOR text; `bytes` = CBOR byte string; `map` = definite CBOR map with text keys; `array<T>` = definite array; `null` = CBOR null. All payloads are maps. Fields marked `required` MUST appear exactly once. Unlisted fields are optional extension fields.
 
-The reference decoder accepts only the `core` namespace in v0.2.0. Capability names in the handshake are validated as unique UTF-8 strings, but no optional capability is accepted in this release. Therefore a frontend MUST NOT assume clipboard or dialog operations are available merely because it requested them.
+The currently inspected Backend 0.2.0 reference decoder accepts only the `core` namespace and no optional capabilities. The accepted Protocol 1.0.0 contract permits optional capabilities only when registered and negotiated; a frontend MUST NOT assume clipboard, dialog or other optional services are available merely because it requested them.
 
 ### 3.1 Frontend to Backend
 
@@ -59,9 +59,9 @@ The reference decoder accepts only the `core` namespace in v0.2.0. Capability na
 | Message | Required fields | Optional fields / semantics |
 |---|---|---|
 | `hello_ack` | `major:uint`, `minor:uint`, `session_id:uint`, `client_id:uint`, `driver:bool`, `accepted_capabilities:array<text>` | — |
-| `ui.options` | `revision:uint`, `theme:text` | Other declarative options are optional |
+| `ui.options` | `revision:uint`, `theme:text`, `options:map` | The map may be empty; its only defined keys are `title:text`, `tab_width:uint` (1..64), `wrap:bool`, `line_numbers:bool`, `relative_line_numbers:bool`, `cursor_shape:text` (`block`, `bar` or `underline`), and `cursor_blink:bool`. Unknown optional keys follow the version-evolution rules. |
 | `ui.style_table` | `revision:uint`, `styles:map` | Role IDs map to attributes; no palette-specific pixel values required |
-| `ui.layout` | `revision:uint`, `layout:map` | `layout` contains `root:map|null` and `active_leaf:text|null`. `root` is a recursive PaneTree node: a leaf is `{kind:"leaf",id:text,views:array<text>,active_view:text}`; a split is `{kind:"split",id:text,axis:"vertical"|"horizontal",ratio_bp:uint,first:node,second:node}`. `ratio_bp` is fixed-point in `[1000,8999]`; it is not a float. |
+| `ui.layout` | `revision:uint`, `layout:map` | `layout` contains `root:map|null` and `active_leaf:text|null`. `root` is a recursive PaneTree node: a leaf is `{kind:"leaf",id:text,views:array<text>,active_view:text|null}`; `active_view` is either null or an ID contained in `views`. a split is `{kind:"split",id:text,axis:"vertical"|"horizontal",ratio_bp:uint,first:node,second:node}`. `ratio_bp` is fixed-point in `[1000,8999]`; it is not a float. |
 | `view.lines` | `view_id:text`, `version:uint`, `first_line:uint`, `lines:array<map>` | `total_lines:uint` is optional and, when present, is the total logical line count at the same `version`; receivers require `first_line < total_lines` and `first_line + len(lines) <= total_lines`. Each line map requires `bytes:bytes` and may contain `spans:array<map>`. Each span requires `start:uint`, `end:uint`, `role:text`; offsets are zero-based byte offsets within that line and must satisfy `start <= end <= len(bytes)`. A response may contain at most 4096 lines and at most 4096 spans per line. |
 | `view.invalidate` | `view_id:text`, `version:uint`, `ranges:array<map>` | Each range has `start:uint`, `end:uint` and must satisfy `start <= end`; stale versions are discarded. At most 4096 ranges are accepted. |
 | `view.cursor` | `view_id:text`, `version:uint`, `position:uint` | Position is a zero-based byte offset; optional `scroll_anchor:uint` is a logical zero-based document byte offset, never pixel or visual-line geometry |
@@ -93,6 +93,11 @@ Protocol version is `[major, minor]`. While major is unchanged, new optional fie
 
 ## 7. Validation profile implemented by the reference codec
 
-The v0.2.0 reference C codec validates every message type listed in §3, including recursive PaneTree layout nodes and active-leaf membership. It additionally enforces these semantic bounds: frontend and view identifiers are non-empty and bounded; dimensions are in `1..32768`; key names are at most 64 bytes; modifiers are unique members of `ctrl`, `alt`, `altgr`, `shift`; key actions are `press`, `release`, or `repeat`; mouse actions are `press`, `release`, `move`, or `scroll`; line requests ask for `1..4096` lines; notification text is at most 4096 bytes; and all byte spans are bounded by their line byte-string length. Unknown optional payload fields are skipped only after the CBOR value has passed structural/depth/canonical validation. The reference server currently accepts the core namespace only and advertises no optional capabilities.
+The v1.0.0 reference C codec validates every message type listed in §3, including recursive PaneTree layout nodes and active-leaf membership. It additionally enforces these semantic bounds: frontend and view identifiers are non-empty and bounded; dimensions are in `1..32768`; key names are at most 64 bytes; modifiers are unique members of `ctrl`, `alt`, `altgr`, `shift`; key actions are `press`, `release`, or `repeat`; mouse actions are `press`, `release`, `move`, or `scroll`; line requests ask for `1..4096` lines; notification text is at most 4096 bytes; and all byte spans are bounded by their line byte-string length. Unknown optional payload fields are skipped only after the CBOR value has passed structural/depth/canonical validation. The reference server currently accepts the core namespace only and advertises no optional capabilities.
 
 The C codec exposes frame encode/decode and callback-based partial read/write helpers. The Backend server adds per-client sequence checking, role enforcement, bounded input/output queues, keyed outbound coalescing, flush markers and ACK release. The Backend Lua Host bridge projects `cdin.ui-model.v1` to atomic message groups, queues inbound events and dispatches them on the Lua owner thread. Concrete socket and named-pipe creation remains a separate transport integration gate; see the Backend's `docs/spec-traceability.md`.
+
+
+## 8. Implementation conformance note for v1.0.0
+
+The 1.0.0 contract is an accepted target, not a statement about the current Backend checkout. The inspected Backend codec (`src/protocol/codec.c`) still validates `ui.options` as only `revision` plus `theme`, and still requires a non-empty text `active_view` in a leaf. Its Lua projector (`src/runtime/lua_host_protocol.c`) emits the theme/revision pair and does not yet project the typed options map. Until those validators, projection code, protocol version negotiation and conformance tests are updated, the Backend remains a v0.2.0 implementation and MUST NOT advertise v1.0.0 support.

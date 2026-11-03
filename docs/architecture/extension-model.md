@@ -48,8 +48,8 @@ These are the owner's stated requirements for the `cdin-x` side. They are record
 
 The extension contract lets plugins add side panels, a prompt and views, and some plugins draw custom views directly. Under the Frontend Protocol, drawing is the frontend's job.
 
-- **EXT-030** `PROPOSED` Plugins express UI through declarative widgets (lists, trees, styled text, inputs) that every frontend can render. — *Verify:* INSPECT, INTEG
-- **EXT-031** `PROPOSED` Plugins that need free-form drawing use an optional `canvas` capability that only frontends declaring it receive. A plugin MUST degrade gracefully (or report unavailability) when the capability is absent. — *Verify:* INTEG
+- **EXT-030** `ACCEPTED` Plugins express UI through declarative widgets (lists, trees, styled text, inputs) that every frontend can render. — *Verify:* INSPECT, INTEG
+- **EXT-031** `ACCEPTED` Plugins that need free-form drawing use an optional `canvas` capability that only frontends declaring it receive. A plugin MUST degrade gracefully (or report unavailability) when the capability is absent. — *Verify:* INTEG
 - **EXT-032** `PROPOSED` These changes alter the extension contract. They MUST be made only through an owner-approved ADR with shims and one deprecation log per process for each changed API (ARCH-027). — *Verify:* INSPECT
 
 See [ADR-0011](../adr/ADR-0011-extension-ui.md) for options and trade-offs.

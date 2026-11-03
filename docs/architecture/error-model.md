@@ -4,11 +4,11 @@ One error vocabulary for every ABI boundary and for the Frontend Protocol.
 
 ## 1. Principles
 
-- **ERR-001** `PROPOSED` Every operation that can fail returns a status. Failure is data, never a crash, never a silent no-op. — *Verify:* CONF, FUZZ
-- **ERR-002** `PROPOSED` A failed mutation MUST leave the document unchanged and its version unchanged. — *Verify:* CONF
-- **ERR-003** `PROPOSED` Errors are structured: a status code, a human-readable UTF-8 message, and typed details where the code defines them. Callers MUST branch on the code, never on the message. — *Verify:* CONF, INSPECT
-- **ERR-004** `PROPOSED` Invalid input from a caller is an error status, never undefined behaviour. This includes invalid handles, out-of-range positions, malformed requests and unknown flags. — *Verify:* FUZZ, SAN
-- **ERR-005** `PROPOSED` Out-of-memory is reported as `NO_MEMORY` with the operation left unapplied. — *Verify:* CONF (with an injected failing allocator), SAN
+- **ERR-001** `ACCEPTED` Every operation that can fail returns a status. Failure is data, never a crash, never a silent no-op. — *Verify:* CONF, FUZZ
+- **ERR-002** `ACCEPTED` A failed mutation MUST leave the document unchanged and its version unchanged. — *Verify:* CONF
+- **ERR-003** `ACCEPTED` Fallible Kernel calls return a status code. Where an operation defines typed details, those details are returned in `cdin_error_details`; `cdin_status_name` provides the stable symbolic status name. Callers MUST branch on the status code, not on diagnostic wording. ABI 1.1.0 does not promise a unique free-form message for every error. — *Verify:* CONF, INSPECT
+- **ERR-004** `ACCEPTED` Invalid input from a caller is an error status, never undefined behaviour. This includes invalid handles, out-of-range positions, malformed requests and unknown flags. — *Verify:* FUZZ, SAN
+- **ERR-005** `ACCEPTED` Out-of-memory is reported as `NO_MEMORY` with the operation left unapplied. — *Verify:* CONF (with an injected failing allocator), SAN
 
 ## 2. Status codes (Kernel ABI 1.1.0; Protocol mapping in ADR-0018)
 
@@ -32,9 +32,9 @@ One error vocabulary for every ABI boundary and for the Frontend Protocol.
 | `VERSION_MISMATCH` | Incompatible ABI or protocol versions | supported, requested |
 | `INTERNAL` | A defect inside the component | |
 
-- **ERR-010** `PROPOSED` `STALE_VERSION` MUST report both the expected version and the current version. — *Verify:* CONF (restates the accepted behaviour in EDIT-004)
+- **ERR-010** `ACCEPTED` `STALE_VERSION` MUST report both the expected version and the current version. — *Verify:* CONF (restates the accepted behaviour in EDIT-004)
 - **ERR-011** `PROPOSED` `INTERNAL` indicates a bug. A component that returns it MUST remain safe to destroy, and SHOULD keep unaffected documents usable. Whether the affected document is poisoned is `PROPOSED` as: the document refuses further mutation with `INTERNAL` until closed. — *Verify:* CONF
-- **ERR-012** `PROPOSED` Codes are never reused for a different meaning. New codes are additive (ABI-011). A caller that receives an unknown code MUST treat it as a failure of unknown cause. — *Verify:* CONF
+- **ERR-012** `ACCEPTED` Codes are never reused for a different meaning. New codes are additive (ABI-011). A caller that receives an unknown code MUST treat it as a failure of unknown cause. — *Verify:* CONF
 
 ## 3. Errors across components
 
@@ -50,4 +50,4 @@ One error vocabulary for every ABI boundary and for the Frontend Protocol.
 
 ## 4. Diagnostics
 
-- **ERR-030** `PROPOSED` Components emit diagnostics through an injected log sink (a callback with level and UTF-8 message). A component MUST NOT write to standard streams on its own initiative. — *Verify:* INSPECT, STATIC
+- **ERR-030** `ACCEPTED` Kernel diagnostics use the configured logging options and sink. Standard-output or standard-error output occurs only when the caller explicitly selects such an output destination; the Kernel does not write to process streams as an unsolicited side effect. — *Verify:* INSPECT, STATIC

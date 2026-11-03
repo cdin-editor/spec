@@ -49,17 +49,17 @@ flowchart TB
 
 *Caption: `PROPOSED` search lifecycle. Regex is deferred; edge cases for raw-byte adjacency remain open (OD-11).*
 
-- **SEARCH-010** `PROPOSED` A search runs on a snapshot (CONC-005): it never blocks mutation and never sees partial state. The result carries the snapshot's version. — *Verify:* CONF, SAN
-- **SEARCH-011** `PROPOSED` Results are byte ranges `[start, end)` (POS-010). The API supports "find next from position" and "find all with a limit", both returning at most a configured number of matches per call with a continuation position. — *Verify:* CONF
-- **SEARCH-012** `PROPOSED` Searching is not the place that adjusts for later edits: the caller maps results across subsequent versions using change events (POS-050) or re-runs the search. — *Verify:* INSPECT
-- **SEARCH-013** `PROPOSED` Every search accepts a cancellation token and a resource limit counted in steps (KERNEL-007). Exceeding the limit returns `LIMIT_EXCEEDED`; a cancelled search returns `CANCELLED`. Partial results are returned only when the request asks for them, and are marked partial. — *Verify:* CONF
+- **SEARCH-010** `ACCEPTED` A search runs against a pinned immutable content block and reports the document version searched. The search does not hold the Kernel lock for the full scan. — *Verify:* CONF, INSPECT
+- **SEARCH-011** `ACCEPTED` Search returns byte ranges, supports a caller-specified result limit, and reports continuation positions (`next_from` / `next_bound`) for forward or backward scans. Results are tied to the reported content version. — *Verify:* CONF
+- **SEARCH-012** `ACCEPTED` Searching is not the place that adjusts for later edits: the caller maps results across subsequent versions using change events (POS-050) or re-runs the search. — *Verify:* INSPECT
+- **SEARCH-013** `ACCEPTED` Search supports deterministic candidate-step limits and caller cancellation. With `CDIN_SEARCH_WANT_PARTIAL`, matches found before a limit or cancellation are retained and the result reports that it is partial. — *Verify:* CONF, SAN
 - **SEARCH-014** `ACCEPTED` ABI 1.0.0 exposes `literal`, `bytes`, and a reserved `regex` mode value; `literal` and `bytes` are supported, while `regex` returns `UNSUPPORTED`. — *Verify:* CONF
 
 ## 3. Matching rules
 
 ### Case
 
-- **SEARCH-020** `PROPOSED` Case-insensitive matching is Unicode-aware, locale-independent, and uses simple case folding by default, relative to the pinned Unicode version ([ADR-0010](../adr/ADR-0010-unicode-version.md)). Full case folding is a separate explicit option. — *Verify:* CONF
+- **SEARCH-020** `ACCEPTED` Case-insensitive matching is Unicode-aware, locale-independent, and uses simple case folding by default, relative to the pinned Unicode version ([ADR-0010](../adr/ADR-0010-unicode-version.md)). Full case folding is a separate explicit option. — *Verify:* CONF
 
 ### Persian and Arabic letters
 
@@ -70,15 +70,15 @@ flowchart TB
 
 ### Multiline
 
-- **SEARCH-030** `PROPOSED` A literal query MAY contain line terminators. Regex multiline behaviour is deferred. Searching never normalizes line endings (TEXT-003, ARCH-020). — *Verify:* CONF
+- **SEARCH-030** `ACCEPTED` A literal query MAY contain line terminators. Regex multiline behaviour is deferred. Searching never normalizes line endings (TEXT-003, ARCH-020). — *Verify:* CONF
 - **SEARCH-031** `PROPOSED` In multiline mode `^` matches at the start of the document and after each line terminator; `$` matches at the end of the document and before each line terminator. A CRLF pair is one terminator and is never split by an anchor. `.` does not match a line terminator unless a dotall flag is set. — *Verify:* CONF
-- **SEARCH-032** `PROPOSED` For a literal query whose text contains `\n` (LF), whether it matches CRLF or CR terminators is controlled by an explicit option `any_newline`; default is exact bytes. — *Verify:* CONF
+- **SEARCH-032** `ACCEPTED` For a literal query whose text contains `\n` (LF), whether it matches CRLF or CR terminators is controlled by an explicit option `any_newline`; default is exact bytes. — *Verify:* CONF
 
 ### Invalid UTF-8
 
-- **SEARCH-040** `PROPOSED` `literal` mode is Unicode-aware and matches only inside valid regions: a match MUST lie entirely within one valid region (it may span several adjacent valid regions only if nothing between them is raw). — *Verify:* CONF
-- **SEARCH-041** `PROPOSED` `bytes` mode matches the exact byte sequence anywhere, including inside valid regions and across region boundaries. — *Verify:* CONF
-- **SEARCH-042** `PROPOSED` A search over a document that has raw regions reports, in its result, whether any raw region was skipped by a Unicode-aware mode, so UIs can warn. — *Verify:* CONF
+- **SEARCH-040** `ACCEPTED` Literal search matches only within valid UTF-8 regions. Raw/invalid regions are skipped and reported through `cdin_search_result.skipped_raw`. — *Verify:* CONF
+- **SEARCH-041** `ACCEPTED` Byte search is exact and may match any byte sequence anywhere in the document, including inside or across valid and raw regions. — *Verify:* CONF
+- **SEARCH-042** `ACCEPTED` Literal search exposes whether raw/invalid UTF-8 regions were skipped through the `skipped_raw` result field. — *Verify:* CONF
 
 ## 4. Regular-expression engine
 

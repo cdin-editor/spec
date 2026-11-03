@@ -16,7 +16,7 @@ Non-goals for this phase: implementation, general hot-swap of modules, a network
 2. **Contracts, not internals.** Public contracts never mention internal data structures.
 3. **One owner per piece of state.** Every piece of state has one owning component; others hold references or derived copies that are explicitly disposable.
 4. **Peers, not privileged paths.** Every frontend uses the same protocol. The first frontend (SDL GUI) gets no private channel.
-5. **Determinism where possible.** The kernel reads no clock and performs no I/O, so its behaviour is reproducible from its inputs.
+5. **Determinism at the contract boundary.** Kernel operations are synchronous and versioned, but a blanket no-clock/no-I/O purity guarantee is not accepted; configurable logging and its output destinations remain explicit services.
 6. **Bounded everything.** Every cache, queue, buffer and history has a cap and a defined behaviour at the cap.
 7. **Specify first, then prove with a prototype.** A decision is not settled until code has exercised it.
 
@@ -37,8 +37,9 @@ flowchart TB
         subgraph UI["Presentation"]
             direction LR
             GUI["gui-sdl"]
-            TUI["tui — DEFERRED"]
-            HL["headless / cli"]
+            TUI["tui — first interactive target"]
+            HL["headless — protocol reference"]
+            CLI["cli — DEFERRED"]
         end
         FP{{"Frontend Protocol<br/>semantic + deterministic-CBOR wire contract"}}
         subgraph CORE["Headless core"]
@@ -73,10 +74,11 @@ flowchart TB
     classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
     classDef deferred fill:#f8fafc,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
-    class ROOT,SPEC,XREPO,GUI,HL,BE,RT,KH,K component
+    class ROOT,SPEC,XREPO,GUI,TUI,HL,BE,RT,KH,K component
     class FP,RHA,ABI,EXT contract
     class OS external
-    class TUI deferred
+    class TUI component
+    class CLI deferred
     class DELIVERY,UI,CORE,TARGET group
 ```
 
@@ -86,7 +88,7 @@ flowchart TB
 
 | Boundary | Caller / consumer | Provider / authority | What it deliberately does not define |
 |---|---|---|---|
-| Frontend Protocol | GUI, TUI, headless and future frontends | Backend protocol server | Kernel C types; pixel/cell layout; deterministic CBOR v0.2.0 (ADR-0018) |
+| Frontend Protocol | GUI, TUI, headless and future frontends | Backend protocol server | Kernel C types; pixel/cell layout; deterministic CBOR v1.0.0 target (ADR-0018, ADR-0020); Backend implementation remains v0.2.0 |
 | Runtime Host API | Lua runtime and extensions through the runtime | Backend runtime host | Kernel internals; it is a provisional, versioned API whose compatibility must match the Backend implementation |
 | Kernel C ABI | Backend kernel host / adapters | `cdin-kernel` | Filesystem policy, rendering, Lua, plugins and persistence |
 | Lua Extension Contract | `cdin-x` extensions | Runtime/extension host | Direct kernel calls, backend internals or private frontend channels |
@@ -121,7 +123,7 @@ For the larger dependency graph and the detailed edit flow, see [system-maps.md]
 - **ARCH-011** `EXISTING` No code under `src/` or `data/core/` depends on `cdin-x`. References are comments only. The single build coupling is the variable `CDINX_DIR`. — *Verify:* STATIC — *Anchor:* `mk/bundle.mk` header; comment-only matches in `src/lua/error.h`, `src/api/system.c`, `src/main.c`, `data/core/config.lua`, `data/core/keymaps/default.lua`
 - **ARCH-012** `DEFERRED` General hot-swap of modules is not part of this phase. Only modules explicitly designed for it MAY be swapped live, later. — *Verify:* INSPECT
 - **ARCH-013** `ACCEPTED` Every component document MUST state which state it owns, and no component MAY expose mutable state shared with another. — *Verify:* INSPECT
-- **ARCH-014** `ACCEPTED` Every component MUST declare the specification version it claims to conform to; the kernel header declares Spec 1.0.0. — *Verify:* INSPECT
+- **ARCH-014** `ACCEPTED` Every component MUST declare the specification version it claims to conform to; the current kernel header declares Spec target 1.1.0. — *Verify:* INSPECT
 
 ### Invariants inherited from the current project rules
 

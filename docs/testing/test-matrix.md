@@ -1,31 +1,61 @@
 # Test matrix
 
-Maps each requirement group to verification methods and conformance-vector families. Planned coverage is not evidence of execution. The evidence snapshot at the end records only tests actually run against the Backend workspace on 2026-11-02; it does not make every linked Spec requirement conformant.
+Maps each requirement group to its verification methods and conformance-vector families. **Nothing in this matrix has been run.** "Planned" means designed in [conformance.md](conformance.md), not written.
 
-| # | Requirement group | Requirement IDs | Verification | Vector family | Status |
-|---:|---|---|---|---|---|
-| 1 | ABI versioning and public header shape | ABI-001 to ABI-020 | BUILD, CONF | `abi.*` | Kernel vectors and C ABI checks exist in `cdin-editor/kernel`; Backend adapter integration remains incomplete |
-| 2 | Byte-preserving text and positions | TEXT-001 to TEXT-060, POS-001 to POS-040 | CONF, FUZZ, SAN | `text.*`, `pos.*`, `unicode.*` | Kernel vectors and fuzz targets exist; Backend-to-Runtime live tests remain incomplete |
-| 3 | Edits, versions and transactions | EDIT-001 to EDIT-050, TXN-001 to TXN-030 | CONF, INTEG, FUZZ | `edit.*`, `txn.*` | Kernel tests exist; complete production Host adapter tests remain a gate |
-| 4 | Undo/redo and selection metadata | UNDO-001 to UNDO-040 | CONF, INTEG | `undo.*` | Kernel history tests exist; Runtime integration requires live tests |
-| 5 | Notifications and concurrency | NOTIF-001 to NOTIF-040, CONC-001 to CONC-040 | CONF, SAN | `notif.*`, `conc.*` | Kernel queues and callback constraints are implemented; full Backend Runtime pumping requires live integration |
-| 6 | Search | SEARCH-001 to SEARCH-040 | CONF, FUZZ | `search.*` | Kernel literal/byte coverage exists; regex is unsupported in ABI 1.1.0 |
-| 7 | Runtime and Host API | RT-001 to RT-021, HOST-001 to HOST-040 | INTEG, SAN | Runtime integration fixtures | Runtime unit/integration source exists; no live Lua 5.4 + Kernel run was available in this workspace |
-| 8 | Frontend Protocol | PROTO-001 to PROTO-042 | CONF, FUZZ, INTEG | `proto.*` | Backend codec/server/headless tests run locally; UI-model projection, Lua dispatch and real OS transport remain incomplete |
-| 9 | Backend lifecycle and OS services | BE-001 to BE-011, LIFE-001 to LIFE-020 | INTEG, SAN, PERF | Backend service tests | Existing job/platform/process E2E tests pass locally; cross-platform execution is not established by this local run |
-| 10 | Packaging and release | REL-001 to REL-030 | BUILD, INTEG | release artifact checks | Release pipeline exists; 1.0.0 gate remains open |
+Methods are defined in [conventions.md](../reference/conventions.md): `INSPECT`, `STATIC`, `CONF`, `FUZZ`, `SAN`, `PERF`, `INTEG`.
 
-## Execution evidence — 2026-11-02
+## 1. Required test groups
 
-The following limited evidence was collected in the Backend workspace in the current environment:
+| # | Group | Requirement IDs | Methods | Vector families | State |
+|---|---|---|---|---|---|
+| 1 | Multi-document lifecycle | DOC-001 to DOC-050 | CONF, SAN | `doc.lifecycle` | planned |
+| 2 | Document versioning | DOC-010 to DOC-013, UNDO-002, TXN-012 | CONF | `doc.lifecycle`, `edit.version` | planned |
+| 3 | Valid and invalid UTF-8 | TEXT-001, TEXT-004, TEXT-010 to TEXT-013 | CONF, FUZZ | `text.bytes` | planned |
+| 4 | Exact LF, CRLF, CR preservation | TEXT-002, TEXT-003, TEXT-020 to TEXT-023 | CONF, FUZZ | `text.eol` | planned |
+| 5 | Position conversion | POS-001 to POS-052 | CONF | `pos.convert` | planned |
+| 6 | Transactions, rollback, undo/redo | TXN-001 to TXN-021, UNDO-001 to UNDO-040 | CONF, PERF | `txn`, `undo` | planned |
+| 7 | Atomic changes and notification ordering | EDIT-010 to EDIT-020, NOTIF-001 to NOTIF-012 | CONF | `edit.replace`, `notif` | planned |
+| 8 | Synchronous kernel concurrency and snapshots | CONC-001 to CONC-040 | CONF, SAN | `conc` | kernel unit/conformance checks exist; backend/protocol integration planned |
+| 9 | Stale-request rejection without mutation | EDIT-003, EDIT-004, EDIT-006, ERR-002, ERR-010 | CONF | `edit.version` | planned |
+| 10 | Literal and byte search; regex deferred | SEARCH-001 to SEARCH-014, SEARCH-050 to SEARCH-053 | CONF, FUZZ | `search.literal`, `search.bytes` | Kernel vectors exist for supported modes; regex unsupported/deferred |
+| 11 | Multiline literal search | SEARCH-006, SEARCH-030 to SEARCH-032 | CONF | `search.literal` | Kernel vector coverage exists; regex behavior deferred |
+| 12 | Unicode behaviour; `ی` versus `ي` | SEARCH-005, SEARCH-020 to SEARCH-024 | CONF | `search.literal` | planned |
+| 13 | Raw-byte search | SEARCH-008, SEARCH-040 to SEARCH-042 | CONF | `search.bytes` | planned |
+| 14 | Results bound to a document version | SEARCH-007, SEARCH-010 | CONF | `search.*` | planned |
+| 15 | Module ABI and compatibility | ABI-001 to ABI-022 | STATIC, CONF, INTEG | `abi` | planned |
 
-| Target | Command | Result | Scope / limitation |
-|---|---|---|---|
-| Protocol codec, headless Frontend, server queue | `make protocol-test` | PASS | Strict C11 standalone tests. Does not prove Lua dispatch, sockets/named pipes, or full Runtime UI projection. |
-| Backend service E2E | `make e2e` | PASS | Exercises existing service-level E2E fixtures; not the Kernel/Runtime production adapter. |
-| Protocol-only CMake build and CTest | `cmake -S . -B build-delivery-check -DCDIN_BUILD_BACKEND=OFF -DCDIN_BUILD_EXAMPLES=OFF -DBUILD_TESTING=ON`, `cmake --build build-delivery-check --parallel`, then `ctest --test-dir build-delivery-check --output-on-failure` | PASS (7/7, final local run) | Protocol and existing Backend service targets build without the Kernel package. Does not compile the production Kernel/Lua adapter. |
-| LibFuzzer smoke | `./build-fuzz-final/cdin_protocol_decode_fuzz build-fuzz-final/corpus -runs=5000 -max_len=4096` after a fresh Clang ASan/UBSan build | PASS (5,000 runs) | Three source seeds copied to the build directory; generated corpus remained outside the source tree. Smoke test only, not a sustained campaign or proof of complete parser coverage. |
-| Lua 5.4 + real Kernel integration | `runtime-integration.yml` | NOT RUN locally | Lua 5.4 development files and installed `cdin-kernel` pkg-config package were unavailable. |
-| macOS / Windows matrix | `ci.yml` | NOT RUN locally | CI matrix is configured; only CI execution can establish those platform results. |
+## 2. Further groups from this specification
 
-The Backend's detailed source-to-Spec mapping and remaining blockers are recorded in its [`spec-traceability.md`](https://github.com/cdin-editor/backend/blob/main/docs/spec-traceability.md). A pass in one row is not a blanket claim about Frontend Protocol or CDIN release conformance.
+| Group | Requirement IDs | Methods | Vector families | State |
+|---|---|---|---|---|
+| Kernel independence and determinism | ARCH-002, KERNEL-001, KERNEL-004, KERNEL-006 to KERNEL-009 | STATIC, INSPECT | none (static rules) | planned |
+| Dependency directions | ARCH-040 to ARCH-046 | STATIC | `include-direction check` | planned |
+| Error model | ERR-001 to ERR-030 | CONF, FUZZ | `abi`, `edit.*` | planned |
+| Frontend Protocol | PROTO-001 to PROTO-042 | CONF, INTEG | `proto.*` | planned |
+| Frontend peers and capabilities | FE-001 to FE-009, ARCH-009 | INSPECT, STATIC, INTEG | `proto.handshake` | planned |
+| Notification overflow and resync | NOTIF-006, NOTIF-007, NOTIF-009 | CONF, PERF | `notif` | planned |
+| Resource bounds | ARCH-021, KERNEL-013, UNDO-030, PROTO-021, BE-009 | PERF, CONF | `conc`, `undo`, `proto.updates` | planned |
+| Process and module lifecycle | LIFE-001 to LIFE-030 | INTEG | none (integration) | planned |
+| Extension boundary | ARCH-006, EXT-001 to EXT-056 | INSPECT, STATIC, INTEG | `ext.contract` | planned |
+| Existing invariants | ARCH-020 to ARCH-028 | as stated per requirement | existing tests (`tests/`) | partly exists, not run for this specification |
+| Persistence | DATA-001 to DATA-007 | STATIC, CONF, INTEG | `text.bytes` (round trip) | planned |
+| Specification process | SPEC-001 to SPEC-041 | INSPECT, STATIC | none | planned |
+
+## 3. Sanitizer and fuzz plan
+
+| Target | Sanitizers | Fuzz input |
+|---|---|---|
+| kernel ABI | ASan, UBSan; TSan on `conc` | struct sizes, flags, ranges, byte strings including invalid UTF-8 |
+| line-ending and region classifiers | ASan, UBSan | arbitrary bytes with CR and LF in every combination |
+| regex front end | ASan, UBSan | patterns and haystacks, with step limits |
+| protocol decoder | ASan, UBSan | arbitrary frames, truncated and oversized |
+| notification queues | TSan | concurrent subscribe, drain, overflow |
+
+## 4. What a verification run must report
+
+Per requirement ID: method, vector family, implementation and version, date run, result. A requirement with no entry is reported as unverified ([conformance.md](conformance.md), TEST-030).
+
+## 5. Honest status
+
+- Kernel vectors and a runner exist in the separate `cdin-kernel` repository; supported ABI 1.0.0 functionality has been exercised. The remaining rows describe planned checks for backend integration, the Frontend Protocol, runtime and frontends. See [kernel implementation status](../kernel/implementation-status.md) for the boundary between executed and unverified scope.
+- Existing tests in the `cdin` repository were not run as part of producing this specification.

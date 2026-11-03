@@ -2,7 +2,7 @@
 
 This repository is the formal architecture and system-design specification of **CDIN**, a modular text editor. It defines component ownership, the stable kernel boundary, the Frontend Protocol model, and the rules that keep those contracts compatible.
 
-**Specification release: `1.1.0` (current architecture and contract release).** The inspected `cdin-editor/kernel` package is `1.2.1` and publishes C ABI `1.1.0`, whose header declares Spec target `1.1.0`. Frontend Protocol wire/client/driver decisions are accepted in ADR-0018 and a partial standalone reference codec/server is implemented in the Backend; model projection, live Runtime dispatch, concrete OS transports and cross-platform integration remain incomplete. This repository remains design-only and contains no production implementation. Cross-repository verification evidence is recorded in [kernel implementation status](docs/kernel/implementation-status.md), the Frontend Protocol decisions and the delivered Backend traceability report.
+**Specification release: `1.2.0` (current architecture and contract release).** The inspected `cdin-editor/kernel` package is `1.2.1` and publishes C ABI `1.1.0`, whose header declares Spec target `1.1.0`. Frontend Protocol wire/client/driver decisions are accepted in ADR-0018 and a partial standalone reference codec/server is implemented in the Backend; model projection, live Runtime dispatch, concrete OS transports and cross-platform integration remain incomplete. This repository remains design-only and contains no production implementation. Cross-repository verification evidence is recorded in [kernel implementation status](docs/kernel/implementation-status.md), the Frontend Protocol decisions and the delivered Backend traceability report.
 
 Language: English. Normative text is English only for now.
 
@@ -19,10 +19,11 @@ flowchart TB
     subgraph PRESENTATION["Presentation layer"]
         direction LR
         GUI["gui-sdl<br/>window, input, layout, rendering"]
-        TUI["tui<br/>terminal cells — DEFERRED"]
-        HEADLESS["headless / cli<br/>automation and tests"]
+        TUI["tui<br/>terminal cells — first interactive target"]
+        HEADLESS["headless<br/>protocol reference"]
+        CLI["cli<br/>non-interactive — DEFERRED"]
     end
-    FP{{"Frontend Protocol<br/>v0.2.0 · deterministic CBOR wire"}}
+    FP{{"Frontend Protocol<br/>v1.0.0 target · deterministic CBOR wire (Backend 0.2.0 today)"}}
 
     subgraph PRODUCT["CDIN runtime system — target topology"]
         direction TB
@@ -46,9 +47,11 @@ flowchart TB
     USER --> GUI
     USER --> TUI
     USER --> HEADLESS
+USER --> CLI
     GUI <--> FP
     TUI <--> FP
     HEADLESS <--> FP
+CLI <--> FP
     FP <--> BE
     X --> EXTAPI --> RT
     BE --> OS
@@ -63,8 +66,9 @@ flowchart TB
     classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a
     classDef group fill:#f8fafc,stroke:#cbd5e1,color:#334155
     classDef deferred fill:#f8fafc,stroke:#94a3b8,color:#475569,stroke-dasharray:4 3
-    class TUI deferred
-    class GUI,HEADLESS,BE,K,KHOST,RT,ROOT,SPEC,X comp
+    class TUI component
+    class CLI deferred
+    class GUI,TUI,HEADLESS,BE,K,KHOST,RT,ROOT,SPEC,X comp
     class FP,RHA,KABI,EXTAPI contract
     class OS,USER external
     class PRESENTATION,PRODUCT group
@@ -77,7 +81,7 @@ flowchart TB
 3. **Coordination and document state:** the backend hosts the runtime, manages sessions and OS services, and is the direct client of the kernel C ABI. `cdin-kernel` alone owns canonical document bytes, versions and undo/redo history.
 4. **Composition and extensions:** `cdin` assembles and releases the product. `cdin-x` provides extension assets through the Lua extension contract and is not a privileged part of the core.
 
-The drawing is a **target model**, not a claim that every layer has already been extracted. The GUI, Lua Runtime and much of the Backend remain integrated in `cdin`. Protocol wire/client/driver decisions are accepted, but the model-to-message projector and complete inbound Runtime dispatch are not yet implemented. The Runtime Host API is still provisional and its current Backend/Runtime versions are incompatible until aligned. For dependency maps, edit flow and lifecycle detail, see [System maps](docs/architecture/system-maps.md).
+The drawing is a **target model**, not a claim that every layer has already been extracted. The owner-approved TUI is the first interactive Frontend target, but it has not yet shipped. The GUI, Lua Runtime and much of the Backend remain integrated in `cdin`. Protocol 1.0.0 is the accepted wire target; the inspected Backend still implements 0.2.0 and must update its validators, semantic projector, version negotiation and conformance tests before claiming 1.0.0 conformance. The owner-approved standalone Frontend repository contains peer `core`, `gui-sdl`, `tui` and `headless` adapters; TUI is the first interactive target, not a shipped implementation. The Runtime Host API is still provisional and its current Backend/Runtime versions are incompatible until aligned. For dependency maps, edit flow and lifecycle detail, see [System maps](docs/architecture/system-maps.md).
 
 ### Version map for the current kernel release
 
@@ -85,7 +89,7 @@ The drawing is a **target model**, not a claim that every layer has already been
 |---|---:|---|
 | `cdin-kernel` package | `1.2.1` | Current package inspected in `cdin-editor/kernel`. |
 | Public C ABI | `1.1.0` | Current ABI major 1 contract; ABI 1.1 adds the Kernel logger API. |
-| CDIN Spec release | `1.1.0` | Current architecture/contract release; see `CHANGELOG.md`. |
+| CDIN Spec release | `1.2.0` | Current architecture/contract release; see `CHANGELOG.md`. |
 | Kernel-declared Spec target | `1.1.0` | Compatibility target declared by the current kernel public header; not a claim that application-level components conform. |
 
 The full release-specific evidence and limits are recorded in [kernel implementation status](docs/kernel/implementation-status.md).
@@ -129,7 +133,7 @@ python3 scripts/spec_report.py
 Preview release notes for a version already documented in `CHANGELOG.md`:
 
 ```sh
-python3 scripts/spec_report.py --release-version 1.1.0 --output release-notes.md
+python3 scripts/spec_report.py --release-version 1.2.0 --output release-notes.md
 ```
 
 GitHub Actions is intentionally release-only. Pushing a `vX.Y.Z` tag creates a GitHub Release whose body contains the Spec inventory and the matching version's Changelog entry. The workflow does not run on ordinary branch pushes or pull requests.
@@ -137,7 +141,7 @@ GitHub Actions is intentionally release-only. Pushing a `vX.Y.Z` tag creates a G
 For example, after updating `CHANGELOG.md` and the version in `docs/reference/status.md`:
 
 ```sh
-git tag -a v1.1.0 -m "CDIN Spec v1.1.0"
+git tag -a v1.2.0 -m "CDIN Spec v1.2.0"
 git push origin v1.1.0
 ```
 

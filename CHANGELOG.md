@@ -6,6 +6,22 @@ The specification version is defined in `docs/reference/status.md` (SPEC-010). T
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-03
+
+### Added
+
+- Add ADR-0021 recording the owner-approved acceptance of Kernel ABI 1.1.0 implementation-backed behaviors.
+- Accept the Kernel ABI 1.1.0 behaviors that are implemented and covered by the public header, source and conformance vectors in Kernel package 1.2.1.
+- Record the owner-approved Frontend decisions F-01..F-13 in ADR-0020, including one Frontend repository, TUI-first delivery, capability registry, Lua/native ownership, typed UI options, text presentation and terminal lifecycle.
+- Define Frontend Protocol 1.0.0 as the accepted major-version schema with nullable `active_view` and typed `ui.options`.
+
+### Changed
+
+- Keep Regex, nested transactions, Kernel anchors/markers, parallel mutation, Unicode normalization profiles and non-interactive CLI in their future/open/deferred states.
+- Distinguish accepted architecture from shipped implementation: the Backend checkout still validates Protocol 0.2.0 and requires an upgrade before claiming 1.0.0 conformance.
+- Synchronize the Kernel requirements, Open Decisions Register, Frontend component and release inventory.
+
+
 ## [1.1.0] - 2026-10-20
 
 ### Added
