@@ -29,7 +29,7 @@ flowchart TB
 - **EXT-001** `ACCEPTED` Extensions MUST NOT have direct access to the kernel. — *Verify:* INSPECT, STATIC (same as ARCH-006)
 - **EXT-002** `EXISTING` The extension contract is the whole of what `cdin` guarantees to extensions and therefore the whole of what `cdin-x` may assume; anything not in it is not a contract. — *Verify:* INSPECT — *Anchor:* `docs/architecture/extension-contract.md` (introduction)
 - **EXT-003** `EXISTING` `cdin` knows nothing about any particular extension and runs with an empty site directory. — *Verify:* INTEG — *Anchor:* `AGENTS.md §1`, `docs/architecture/overview.md` ("Two repositories")
-- **EXT-004** `PROPOSED` Extension access to document content goes through runtime-level document hooks and the runtime's document API, which in turn use the kernel ABI. An extension never receives a kernel handle. — *Verify:* INSPECT, STATIC
+- **EXT-004** `ACCEPTED` Extension access to document content MUST go through Runtime-level document APIs/hooks. Runtime routes these operations through Backend Host services. An extension MUST NOT receive or retain a Kernel handle, native pointer, Backend object or direct Kernel ABI access. Any exposed document identity is an opaque Runtime-level identity whose validity is governed by the Extension Contract and document lifecycle. — *Verify:* INSPECT, STATIC
 
 ## 2. The mandatory set
 
@@ -50,11 +50,11 @@ The extension contract lets plugins add side panels, a prompt and views, and som
 
 - **EXT-030** `ACCEPTED` Plugins express UI through declarative widgets (lists, trees, styled text, inputs) that every frontend can render. — *Verify:* INSPECT, INTEG
 - **EXT-031** `ACCEPTED` Plugins that need free-form drawing use an optional `canvas` capability that only frontends declaring it receive. A plugin MUST degrade gracefully (or report unavailability) when the capability is absent. — *Verify:* INTEG
-- **EXT-032** `PROPOSED` These changes alter the extension contract. They MUST be made only through an owner-approved ADR with shims and one deprecation log per process for each changed API (ARCH-027). — *Verify:* INSPECT
+- **EXT-032** `ACCEPTED` Any breaking change to an observable Extension Contract API, ownership rule, lifetime guarantee or capability MUST require an owner-approved ADR, an explicit compatibility-impact statement, migration guidance, an approved shim/deprecation policy where preservation is feasible, and regression tests. Additive compatible APIs may evolve under the contract's versioning policy. No shim may violate the accepted Kernel/Backend/Runtime/Frontend ownership boundaries. — *Verify:* INSPECT, INTEG
 
 See [ADR-0011](../adr/ADR-0011-extension-ui.md) for options and trade-offs.
 
 ## 5. Contract versioning
 
-- **EXT-040** `PROPOSED` The extension contract carries a version, separate from the ABI and protocol versions. A plugin may declare the contract range it supports; the loader refuses plugins outside it with a clear message. — *Verify:* INTEG
+- **EXT-040** `ACCEPTED` The Extension Contract MUST carry an independently versioned compatibility identity, separate from the Kernel ABI, Runtime Host API and Frontend Protocol. Runtime MUST validate an extension's declared supported contract range and reject an incompatible extension with a stable, actionable compatibility error. The exact manifest field name/schema and whether legacy extensions receive an explicit compatibility declaration or a migration-only default remain loader-metadata decisions; they MUST be settled before the stable Extension Contract 1.0.0 release. — *Verify:* INSPECT, INTEG
 - **EXT-041** `EXISTING` The contract document already includes a section "Changing any of this", which defines how changes are made. This specification does not replace it. — *Verify:* INSPECT — *Anchor:* `docs/architecture/extension-contract.md` ("Changing any of this")

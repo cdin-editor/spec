@@ -27,7 +27,7 @@ landscape down to dependency boundaries, a single edit request, startup/shutdown
 what is open, and what contradicts what. Read it before trusting any claim about the
 current `cdin` code.
 
-**[reference/backend-implementation-map.md](reference/backend-implementation-map.md)** — exact Spec-to-Backend source and test line references for the Frontend Protocol and Runtime bridge, with remaining integration gates.
+**[components/backend.md](components/backend.md)** and **[components/runtime.md](components/runtime.md)** — Backend/Runtime ownership boundaries, accepted Lua bridge decision and remaining integration gates.
 
 ## What are you doing?
 

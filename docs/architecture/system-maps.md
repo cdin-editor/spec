@@ -19,10 +19,10 @@ flowchart TB
     subgraph CORE["CDIN core — headless-capable"]
         BE["Backend<br/>session and orchestration"]
         RT["Runtime · Lua<br/>policy and UI model"]
-        RHA{{"Runtime Host API<br/>PROPOSED"}}
+        RHA{{"Runtime Host API<br/>1.0.0 · STABLE"}}
         KH["Kernel host"]
-        ABI{{"C ABI 1.0.0"}}
-        K["cdin-kernel<br/>package 1.1.0"]
+        ABI{{"C ABI 1.1.0"}}
+        K["cdin-kernel<br/>package 1.2.1"]
         OS[("OS services")]
     end
     EXTC{{"Lua Extension Contract"}}
@@ -82,7 +82,7 @@ flowchart TB
     FP{{"Frontend Protocol"}}
     EXT{{"Lua Extension Contract"}}
     RHA{{"Runtime Host API"}}
-    ABI{{"Kernel C ABI 1.0.0"}}
+    ABI{{"Kernel C ABI 1.1.0"}}
 
     subgraph CORE["Core components"]
         BE["Backend"]
@@ -129,7 +129,7 @@ flowchart TB
 - **No second canonical document store exists.** The kernel owns document bytes, document versions and undo/redo history. Runtime views may own selections and logical scroll anchors; frontends may own disposable visual caches.
 - **The kernel is presentation-neutral.** It does not know about SDL, terminals, Lua, `cdin-x`, the filesystem or release tooling.
 - **The root is not a runtime service.** `cdin` can know about components to assemble them but no component depends on the composition root.
-- **The language bridge remains an implementation choice.** Lua C API binding, LuaJIT FFI or an intermediary such as MetaCall must stay behind the Runtime Host API/kernel adapter and requires a separate decision; see [OD-32](../adr/open-decisions.md).
+- **The language bridge is decided.** PUC Lua 5.4 C API is the only supported v1 bridge under [ADR-0019](../adr/ADR-0019-runtime-bridge.md); Backend owns the Lua state and callbacks. LuaJIT FFI and MetaCall are not v1 alternatives. The Runtime Host API remains a separate provisional compatibility contract.
 
 ## 3. Detailed request path — one edit from input to pixels
 
@@ -218,12 +218,12 @@ Version labels describe different contracts; they are not interchangeable.
 
 | Label | Current value | Authority | What it controls |
 |---|---:|---|---|
-| Kernel package | `1.1.0` | `cdin-kernel/CHANGELOG.md` / release tag | Source release, package contents and distribution workflow |
-| Kernel C ABI | `1.0.0` | `include/cdin/kernel.h` | Native caller-visible names, types, layouts, constants and semantics |
-| CDIN Spec release | `1.2.0` | [reference/status.md](../reference/status.md) | Current compatible specification release and architecture documentation |
-| Kernel-declared Spec target | `1.0.0` | `include/cdin/kernel.h` via `CDIN_KERNEL_SPEC_VERSION_*` | Specification baseline this kernel package declares conformance to |
-| Frontend Protocol version | not frozen | Open decisions and protocol page | Frontend/backend messages; serialization is still open |
-| Runtime Host API version | not published | Open decision / future implementation | Runtime-to-backend service surface |
+| Kernel package | `1.2.1` | `cdin-kernel/CHANGELOG.md` / release tag | Source release, package contents and distribution workflow |
+| Kernel C ABI | `1.1.0` | `include/cdin/kernel.h` | Native caller-visible names, types, layouts, constants and semantics |
+| CDIN Spec release | `1.3.0` | [reference/status.md](../reference/status.md) | Current compatible specification release and architecture documentation |
+| Kernel-declared Spec target | `1.1.0` | `include/cdin/kernel.h` via `CDIN_KERNEL_SPEC_VERSION_*` | Specification baseline this kernel package declares conformance to |
+| Frontend Protocol version | `1.0.0` target | ADR-0018 and protocol contract | Accepted semantic/wire contract; Backend implementation conformance remains incomplete |
+| Runtime Host API version | `1.0.0` stable | Backend Host API contract | Runtime-to-Backend service surface; live native integration remains a Runtime package release gate |
 | Extension-contract version | follows the extension contract | `cdin` extension contract | Compatibility between runtime and `cdin-x` extensions |
 
-The package `1.1.0` change is package-compatible with ABI `1.0.0`: public declarations and result-range semantics remain stable. Spec release `1.1.0` is separately versioned from the Spec `1.0.0` conformance target declared by this kernel. If the accepted kernel contract changes, update the kernel ABI and its declared Spec target through an explicit review, and update the Spec release according to `SPEC-010`; do not infer a kernel ABI bump from package-only or documentation-only changes.
+The Kernel package `1.2.1` publishes ABI `1.1.0`; the ABI is independently versioned from the package and the Kernel-declared Spec compatibility target `1.1.0`. Spec release `1.3.0` is an application-level architecture release and does not change the Kernel header or its declared target. If the accepted kernel contract changes, update the kernel ABI and its declared Spec target through an explicit review, and update the Spec release according to `SPEC-010`; do not infer a kernel ABI bump from package-only or documentation-only changes.

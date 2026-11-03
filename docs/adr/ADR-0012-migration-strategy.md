@@ -10,7 +10,7 @@ A working editor exists (about 15 thousand lines of C and Lua core plus tooling)
 Rewrite or evolve?
 
 ## Decision
-Evolve incrementally in the phases of [migration.md](../architecture/migration.md): Spec baseline; integrate the already-extracted `cdin-kernel` ABI 1.0.0 into `cdin`; migrate the Lua document layer into a kernel client; define the Frontend Protocol and integrate it in-process; add headless/serialized transport; extract `cdin-runtime` only after its host API is stable.
+Evolve incrementally through the current phases maintained in [migration.md](../architecture/migration.md). The original phase sequence described integrating the Kernel, moving the Lua document layer behind it, adopting the Frontend Protocol and extracting Runtime; subsequent repository and contract changes are recorded by ARCH-060 rather than treated as a permanent fixed sequence.
 
 ## Options
 - **A. Big-bang rewrite.** Pros: a clean slate. Cons: long period without a working editor; no way to compare against existing behaviour.
@@ -21,7 +21,7 @@ Evolve incrementally in the phases of [migration.md](../architecture/migration.m
 Transitional shims are the price of never being broken; the existing tests and fuzz corpora become regression nets.
 
 ## Consequences
-Each phase has an entry gate and an exit gate; each begins with a spike (SPEC-030, ARCH-062); each is reversible (ARCH-070).
+Each phase has an entry gate and an exit gate. A prototype spike is required only when a material uncertainty remains (ARCH-062). Each phase preserves the last passing boundary and documents rollback/recovery where needed (ARCH-070).
 
 ## References
-[migration.md](../architecture/migration.md), ARCH-026, ARCH-060 to ARCH-070.
+[migration.md](../architecture/migration.md), ARCH-026, ARCH-060 to ARCH-070. The original phase ordering predates the standalone Runtime repository; current extraction and integration gates are maintained by ARCH-060 in the migration page.

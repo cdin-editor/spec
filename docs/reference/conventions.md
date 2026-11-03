@@ -23,7 +23,7 @@ An `EXISTING` item that stops matching the code is a **contradiction**; it is re
 Normative requirements are single lines in this exact shape (tools may parse them):
 
 ```
-- **KERNEL-007** `PROPOSED` The kernel MUST NOT read the clock. — *Verify:* INSPECT, CONF
+- **PREFIX-NNN** `PROPOSED` A requirement is written with a stable identifier, status and verification method.
 ```
 
 - `ID`: `PREFIX-NNN`, stable forever. IDs are never reused or renumbered; a withdrawn requirement keeps its ID with status `DEFERRED` or a note.

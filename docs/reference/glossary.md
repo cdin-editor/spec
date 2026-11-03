@@ -52,9 +52,9 @@ Terms are used with exactly these meanings throughout the specification.
 
 **Runtime** The target Lua 5.4 policy layer and extension host: commands, keymaps, configuration, plugin loading, logical views and the semantic UI model.
 
-**Runtime Host API** The versioned service surface the backend provides to Lua for document operations, OS services and UI integration. It is proposed and distinct from the kernel C ABI.
+**Runtime Host API** The separately versioned service surface Backend provides to Lua for document operations, OS services and UI integration. Its ownership boundary is accepted; version `1.0.0` is a stable compatibility contract and remains distinct from the Kernel C ABI.
 
-**Lua/native bridge** The implementation mechanism that calls native backend services from Lua (for example a Lua C API module, LuaJIT FFI or a multi-language loader). It is not a public contract until selected; see OD-32.
+**Lua/native bridge** The Backend-owned mechanism that calls native Host services from Lua. PUC Lua 5.4 C API is the only supported v1 bridge under ADR-0019; LuaJIT FFI and MetaCall are not v1 targets.
 
 **Package version** The release/distribution version of a project. For the current kernel release it is `1.1.0`; this does not imply that the C ABI or Spec baseline changed.
 

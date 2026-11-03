@@ -2,7 +2,7 @@
 
 This repository is the formal architecture and system-design specification of **CDIN**, a modular text editor. It defines component ownership, the stable kernel boundary, the Frontend Protocol model, and the rules that keep those contracts compatible.
 
-**Specification release: `1.2.0` (current architecture and contract release).** The inspected `cdin-editor/kernel` package is `1.2.1` and publishes C ABI `1.1.0`, whose header declares Spec target `1.1.0`. Frontend Protocol wire/client/driver decisions are accepted in ADR-0018 and a partial standalone reference codec/server is implemented in the Backend; model projection, live Runtime dispatch, concrete OS transports and cross-platform integration remain incomplete. This repository remains design-only and contains no production implementation. Cross-repository verification evidence is recorded in [kernel implementation status](docs/kernel/implementation-status.md), the Frontend Protocol decisions and the delivered Backend traceability report.
+**Specification release: `1.4.0` (stable Runtime Host API contract release).** The inspected `cdin-editor/kernel` package is `1.2.1` and publishes C ABI `1.1.0`, whose header declares Spec target `1.1.0`. Frontend Protocol wire/client/driver decisions are accepted in ADR-0018 and a partial standalone reference codec/server is implemented in the Backend; model projection, live Runtime dispatch, concrete OS transports and cross-platform integration remain incomplete. This repository remains design-only and contains no production implementation. Cross-repository verification evidence is recorded in [kernel implementation status](docs/kernel/implementation-status.md), the Frontend Protocol decisions and the delivered Backend traceability report.
 
 Language: English. Normative text is English only for now.
 
@@ -28,7 +28,7 @@ flowchart TB
     subgraph PRODUCT["CDIN runtime system — target topology"]
         direction TB
         BE["backend<br/>session, protocol server,<br/>runtime host, OS services"]
-        RHA{{"Runtime Host API<br/>provided by backend — PROPOSED"}}
+        RHA{{"Runtime Host API<br/>Backend API 1.0.0 · STABLE"}}
         RT["cdin-runtime<br/>Lua policy, commands, keymaps,<br/>plugins and semantic UI model"]
         KHOST["kernel host / adapter<br/>inside backend"]
         KABI{{"Kernel C ABI 1.1.0"}}
@@ -81,7 +81,7 @@ CLI <--> FP
 3. **Coordination and document state:** the backend hosts the runtime, manages sessions and OS services, and is the direct client of the kernel C ABI. `cdin-kernel` alone owns canonical document bytes, versions and undo/redo history.
 4. **Composition and extensions:** `cdin` assembles and releases the product. `cdin-x` provides extension assets through the Lua extension contract and is not a privileged part of the core.
 
-The drawing is a **target model**, not a claim that every layer has already been extracted. The owner-approved TUI is the first interactive Frontend target, but it has not yet shipped. The GUI, Lua Runtime and much of the Backend remain integrated in `cdin`. Protocol 1.0.0 is the accepted wire target; the inspected Backend still implements 0.2.0 and must update its validators, semantic projector, version negotiation and conformance tests before claiming 1.0.0 conformance. The owner-approved standalone Frontend repository contains peer `core`, `gui-sdl`, `tui` and `headless` adapters; TUI is the first interactive target, not a shipped implementation. The Runtime Host API is still provisional and its current Backend/Runtime versions are incompatible until aligned. For dependency maps, edit flow and lifecycle detail, see [System maps](docs/architecture/system-maps.md).
+The drawing is a **target model**, not a claim that every layer has already been extracted. The owner-approved TUI is the first interactive Frontend target, but it has not yet shipped. The legacy GUI path and portions of Backend integration remain in `cdin`; the Runtime source is separately extracted, while live Backend→Runtime integration remains a release gate. Protocol 1.0.0 is the accepted wire target and the companion Backend source implements the codec/server and Runtime projection boundary; live native integration and concrete process transports remain incomplete. The owner-approved standalone Frontend repository contains peer `core`, `gui-sdl`, `tui` and `headless` adapters; TUI is the first interactive target, not a shipped implementation. Runtime is a separately extracted repository (latest Runtime candidate package `1.0.0-rc.1`); the Backend-provided Host API `1.0.0` is now a frozen stable contract; live native integration remains a separate Runtime package release gate. For dependency maps, edit flow and lifecycle detail, see [System maps](docs/architecture/system-maps.md).
 
 ### Version map for the current kernel release
 
@@ -89,10 +89,23 @@ The drawing is a **target model**, not a claim that every layer has already been
 |---|---:|---|
 | `cdin-kernel` package | `1.2.1` | Current package inspected in `cdin-editor/kernel`. |
 | Public C ABI | `1.1.0` | Current ABI major 1 contract; ABI 1.1 adds the Kernel logger API. |
-| CDIN Spec release | `1.2.0` | Current architecture/contract release; see `CHANGELOG.md`. |
+| CDIN Spec release | `1.3.0` | Runtime ownership/contract release; see `CHANGELOG.md`. |
 | Kernel-declared Spec target | `1.1.0` | Compatibility target declared by the current kernel public header; not a claim that application-level components conform. |
 
 The full release-specific evidence and limits are recorded in [kernel implementation status](docs/kernel/implementation-status.md).
+
+### Cross-component version baseline
+
+| Contract / package | Audited version | Owner / meaning |
+|---|---:|---|
+| Runtime package | `1.0.0-rc.1` | Release candidate; stable tag remains gated by native and extension/migration conformance |
+| Runtime Host API | `1.0.0` | Stable Backend-provided service contract; additive minor compatibility within major 1 |
+| Backend | `1.0.0` | Audited Backend source/release snapshot |
+| Frontend Foundation Core | `1.0.0` | Standalone Frontend core package |
+| Frontend Protocol | `1.0.0` | Accepted semantic/wire contract; implementation conformance is a separate gate |
+| Extension Contract | separately versioned | Runtime-owned compatibility identity; manifest metadata details remain a pre-release decision |
+
+These version axes are independent. Runtime does not negotiate the Kernel ABI or Frontend Protocol; Backend validates those boundaries and exposes effective descriptors/capabilities to Runtime.
 
 ## Where to start
 
@@ -104,7 +117,7 @@ The whole map is [docs/README.md](docs/README.md). Short version:
 | know what any word means | [reference/glossary](docs/reference/glossary.md) |
 | read a requirement correctly | [reference/conventions](docs/reference/conventions.md) |
 | know what is decided and what is not | [reference/status](docs/reference/status.md), [adr/open-decisions](docs/adr/open-decisions.md) |
-| trace a protocol decision to Backend code and tests | [Backend implementation map](docs/reference/backend-implementation-map.md) |
+| trace Runtime and Backend ownership boundaries | [Backend component](docs/components/backend.md), [Runtime component](docs/components/runtime.md), and [migration gates](docs/architecture/migration.md) |
 | build one component | the page under [docs/components/](docs/components/) or [docs/kernel/](docs/kernel/) |
 | plan the move from today's code | [architecture/migration](docs/architecture/migration.md) |
 
@@ -119,7 +132,7 @@ This specification mixes four kinds of statement and always labels them (see [co
 
 Unresolved questions are not requirements. They live in the [Open Decisions Register](docs/adr/open-decisions.md) with options and trade-offs.
 
-**A `PROPOSED` item is never promoted to `ACCEPTED` without an owner decision.** The currently inspected Kernel package `1.2.1` publishes C ABI `1.1.0`; this Spec does not infer whole-product conformance from the Kernel implementation. The Backend snapshot contains a tested partial Protocol codec/server, but the full Runtime bridge and frontend execution path remain release blockers.
+**A `PROPOSED` item is never promoted to `ACCEPTED` without an owner decision. Runtime v1 ownership decisions and the stable Host API 1.0.0 contract do not imply that the Runtime package or full product integration is production-ready.** The currently inspected Kernel package `1.2.1` publishes C ABI `1.1.0`; this Spec does not infer whole-product conformance from the Kernel implementation. The Backend snapshot contains a tested partial Protocol codec/server, but the full Runtime bridge and frontend execution path remain release blockers.
 
 
 ## Release reporting
@@ -133,7 +146,7 @@ python3 scripts/spec_report.py
 Preview release notes for a version already documented in `CHANGELOG.md`:
 
 ```sh
-python3 scripts/spec_report.py --release-version 1.2.0 --output release-notes.md
+python3 scripts/spec_report.py --release-version 1.3.0 --output release-notes.md
 ```
 
 GitHub Actions is intentionally release-only. Pushing a `vX.Y.Z` tag creates a GitHub Release whose body contains the Spec inventory and the matching version's Changelog entry. The workflow does not run on ordinary branch pushes or pull requests.
@@ -141,8 +154,8 @@ GitHub Actions is intentionally release-only. Pushing a `vX.Y.Z` tag creates a G
 For example, after updating `CHANGELOG.md` and the version in `docs/reference/status.md`:
 
 ```sh
-git tag -a v1.2.0 -m "CDIN Spec v1.2.0"
-git push origin v1.1.0
+git tag -a v1.3.0 -m "CDIN Spec v1.3.0"
+git push origin v1.3.0
 ```
 
 ## License

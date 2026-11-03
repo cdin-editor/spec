@@ -13,7 +13,7 @@ The backend is the headless core of CDIN. It hosts the kernel and the runtime, p
 5. **Protocol server**: handshake, capability negotiation, input routing to the runtime, UI-model relay, backpressure.
 6. **Diagnostics**: logging, memory accounting.
 
-The native bridge is deliberately hidden behind the Runtime Host API. Direct Lua-to-kernel linking is not the target boundary. Candidate bridge mechanisms (Lua C API, LuaJIT FFI, MetaCall) remain an open implementation choice in [OD-32](../adr/open-decisions.md); none is a kernel dependency.
+The native bridge is deliberately hidden behind the Runtime Host API. Direct Lua-to-Kernel linking is not the target boundary. [ADR-0019](../adr/ADR-0019-runtime-bridge.md) accepts the PUC Lua 5.4 C API as the only supported v1 bridge and resolves OD-32. Backend owns `lua_State`, native callbacks and userdata, and enforces the Runtime owner thread. LuaJIT FFI and MetaCall are not v1 alternatives. The Runtime Host API is frozen at stable version `1.0.0`; live integration evidence remains a separate implementation gate.
 
 ## 2. Internal structure
 
@@ -30,9 +30,9 @@ flowchart TB
         DIAG["Diagnostics and memory accounting"]
     end
     RT["cdin-runtime · Lua policy"]
-    RHA{{"Runtime Host API<br/>PROPOSED"}}
-    ABI{{"Kernel C ABI 1.0.0"}}
-    K["cdin-kernel · package 1.1.0"]
+    RHA{{"Runtime Host API<br/>1.0.0 · STABLE"}}
+    ABI{{"Kernel C ABI 1.1.0"}}
+    K["cdin-kernel · package 1.2.1"]
     OS[("Operating system")]
 
     FE <--> FP <--> PS
@@ -57,7 +57,7 @@ flowchart TB
     class BE group
 ```
 
-*Caption: target internal structure. These boxes are logical responsibilities, not promises of separate binaries or repositories. The Backend is the direct client of the kernel; the Lua runtime depends on the Runtime Host API, not on `include/cdin/kernel.h`. The runtime host API remains proposed.*
+*Caption: target internal structure. These boxes are logical responsibilities, not promises of separate binaries or repositories. The Backend is the direct client of the Kernel; Runtime depends on the Backend-provided Runtime Host API, not on `include/cdin/kernel.h`. The bridge choice is accepted by ADR-0019; Host API `1.0.0` is stable as a contract.*
 
 ## 3. Requirements
 
@@ -95,7 +95,7 @@ sequenceDiagram
     participant R as Runtime (Lua)
     participant H as Runtime Host API
     participant KH as Kernel host
-    participant K as Kernel C ABI 1.0.0
+    participant K as Kernel C ABI 1.1.0
 
     F->>P: input.key / input.text
     P->>R: dispatch on Lua owner thread

@@ -22,8 +22,8 @@ Every unresolved or not-yet-confirmed question, with importance, options, trade-
 | [OD-12](#od-12) | Frontend repository structure; GUI and TUI separation | Medium | `RESOLVED` |
 | [OD-13](#od-13) | General hot-swap policy | Low | `DEFERRED` |
 | [OD-14](#od-14) | State transfer on module swap | Low | `DEFERRED` |
-| [OD-15](#od-15) | Backend/host responsibilities from source review | High | `PROPOSED` |
-| [OD-16](#od-16) | Persistence, serialization and storage responsibility | Medium | `PROPOSED`, approved in principle |
+| [OD-15](#od-15) | Backend/host responsibilities from source review | High | `RESOLVED` |
+| [OD-16](#od-16) | Persistence, serialization and storage responsibility | Medium | `RESOLVED` |
 | [OD-17](#od-17) | Final API names and public C ABI layout | High | `RESOLVED` by Kernel ABI 1.0.0 |
 | [OD-18](#od-18) | Shutdown with operations in flight | Medium | `RESOLVED` |
 | [OD-19](#od-19) | Resource limits, cancellation, expensive regex | High | `RESOLVED` |
@@ -96,7 +96,7 @@ Importance: Medium. Proposal: bounded queues; overflow collapses to one `RESYNC`
 
 ## OD-09
 **Regex engine and guaranteed syntax.**
-Importance: High. `OPEN` for a future version. Kernel ABI 1.0.0 does not support regex (`CDIN_SEARCH_REGEX` returns `CDIN_UNSUPPORTED`); any later adoption needs a portable engine decision, a syntax contract and resource-limit/cancellation vectors. See [ADR-0009](ADR-0009-regex-engine.md).
+Importance: High. `OPEN` for a future version and explicitly outside Runtime v1. Kernel ABI 1.1.0 does not provide a supported Regex engine; the Regex search mode returns `CDIN_UNSUPPORTED` and no enabled feature capability is advertised. Runtime MUST NOT create a second canonical document store or silently substitute a different Regex engine. Any later adoption needs a portable engine decision, a syntax contract, resource-limit/cancellation vectors and an owner-approved ADR. See [ADR-0009](ADR-0009-regex-engine.md).
 
 ## OD-10
 **Unicode version policy.**
@@ -104,7 +104,7 @@ Importance: Medium. `RESOLVED` by [ADR-0010](ADR-0010-unicode-version.md): each 
 
 ## OD-11
 **Search at the boundary of valid and invalid UTF-8.**
-Importance: Medium. Proposal: Unicode-aware modes match only within valid regions; `bytes` mode matches anywhere (SEARCH-040 to SEARCH-042). Open detail: matches adjacent to a raw byte, and the maximal-subpart definition used for classification (TEXT-012), to be fixed by the first conformance vectors.
+Importance: Medium. `PROPOSED`; do not promote until normative Kernel conformance vectors define malformed-sequence classification, including maximal-subpart boundaries and matches adjacent to raw bytes. Runtime MUST preserve document bytes and MUST NOT normalize, repair or independently reinterpret malformed UTF-8. Display decoding policy belongs to Frontend; canonical byte offsets and search classification belong to Kernel. Unicode-aware modes and `bytes` mode retain the distinctions specified by SEARCH-040 to SEARCH-042.
 
 ## OD-12
 
@@ -120,11 +120,22 @@ Importance: Medium. Proposal: one repository with a directory per frontend until
 
 ## OD-15
 **Backend/host responsibilities from source review.**
-Importance: High. Proposal: the backend is the headless core (session, kernel host, runtime host, OS services, protocol server); display toolkits are frontend concerns ([backend.md](../components/backend.md)). The source review is in [migration.md](../architecture/migration.md); full confirmation needs a deeper read of the C sources than has been done (see [status.md](../reference/status.md)).
+Importance: High. `RESOLVED` by the ownership matrix below. This resolves design ownership, not implementation completeness.
+
+| Responsibility | Owner |
+|---|---|
+| Canonical document bytes, versions, transactions, snapshots, undo/redo, notifications and search | Kernel |
+| Kernel lifecycle, public ABI adapter, ABI/feature validation | Backend |
+| `lua_State`, PUC Lua 5.4 callbacks/userdata and Runtime owner-thread enforcement | Backend |
+| Host API descriptor, document services, status translation, OS services and save/load I/O | Backend |
+| Commands, keymaps, editor policy, document clients, selections, semantic UI model and plugin lifecycle | Runtime |
+| Protocol codec/server, transport/session roles, per-client projection queues, ACK/backpressure/resync | Backend / shared Protocol contract |
+| Geometry, grapheme visual movement, wrapping, shaping, bidi, rendering and terminal/pixel I/O | Frontend |
+| Extension bundle/index, remote install and discovery catalog | CDIN composition / `cdin-x` |
 
 ## OD-16
 **Persistence, serialization and storage responsibility.**
-Importance: Medium. Proposal: bytes in and out of the kernel; I/O and policy in the backend; no `cdin-data` repository until a second consumer exists ([data.md](../components/data.md), [ADR-0008](ADR-0008-persistence-outside-kernel.md)).
+Importance: Medium. `RESOLVED` in line with [ADR-0008](ADR-0008-persistence-outside-kernel.md): Kernel accepts/returns bytes and owns document state; it performs no filesystem I/O. Runtime owns editor save policy (when, which path, clean-state policy and user-facing command semantics). Backend owns filesystem access, atomic read/write, path/platform services and failure mapping. Runtime requests a version-pinned snapshot; the document is marked clean only if that saved version is still current (for example, through a version-conditional clean-state operation). No separate `cdin-data` repository is created unless a second consumer justifies it.
 
 ## OD-17
 **Final API names and public C ABI layout.**

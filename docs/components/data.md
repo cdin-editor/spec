@@ -17,11 +17,11 @@ The directory is covered by [runtime.md](runtime.md) and [cdin.md](cdin.md). The
 
 | Responsibility | Where it lives |
 |---|---|
-| Load a file's bytes into a kernel document | caller (backend OS services) reads in chunks and passes bytes to the kernel |
-| Serialize a kernel document to a file | caller reads bytes from a snapshot in chunks and writes them |
-| Atomic save, backup, permissions | backend OS services |
+| Load a file's bytes into a Kernel document | Backend reads through OS services in bounded chunks and passes bytes to Kernel; Runtime owns the editor-level open policy |
+| Serialize a Kernel document to a file | Backend reads a version-pinned Kernel snapshot in chunks and writes it; Runtime owns save policy and path selection |
+| Atomic save, backup, permissions | Backend OS services |
 | Detect and handle byte-order mark | caller (the kernel never removes one: TEXT-030) |
-| Choose encoding or line-ending style for saving | caller policy (runtime) |
+| Choose encoding or line-ending style for saving | Runtime editor policy |
 | Remember recent files, session state, settings storage | backend or runtime configuration, `PROPOSED` |
 | File watching and external-change detection | backend OS services (jobs) |
 
@@ -33,7 +33,7 @@ The directory is covered by [runtime.md](runtime.md) and [cdin.md](cdin.md). The
 - **DATA-004** `PROPOSED` A load followed by a save without edits MUST reproduce the original bytes exactly (TEXT-042). — *Verify:* CONF, FUZZ
 - **DATA-005** `PROPOSED` Saving is atomic where the platform allows (write to a temporary file in the same directory, then replace). A failure leaves the original file unchanged and reports a status. — *Verify:* INTEG
 - **DATA-006** `PROPOSED` After a successful save the caller marks the saved state in the kernel (DOC-040). — *Verify:* INTEG
-- **DATA-007** `PROPOSED` These responsibilities live inside the backend's OS services until a second consumer exists. — *Verify:* INSPECT
+- **DATA-007** `ACCEPTED` Filesystem access, atomic read/write and platform path services remain in Backend OS services; editor save policy remains in Runtime. No separate `cdin-data` repository is created unless a second consumer justifies it. — *Verify:* INSPECT
 
 ## 4. Condition for a `cdin-data` repository
 

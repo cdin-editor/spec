@@ -1,10 +1,103 @@
 # Changelog
 
 All notable changes to this specification are documented here.
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-The specification version is defined in `docs/reference/status.md` (SPEC-010). The kernel package release version is tracked independently from the public ABI and the Spec release or compatibility target.
 
-## [Unreleased]
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+The specification version is defined in `docs/reference/status.md`
+(SPEC-010). The Kernel package release version is tracked independently
+from the public Kernel ABI and the Spec release or compatibility target.
+
+## [1.3.0] - 2026-11-04
+
+### Added
+
+- Accept and document the Runtime v1 ownership boundary across Kernel,
+  Backend, Runtime, Frontend and CDIN composition.
+
+- Define the Backend-owned PUC Lua 5.4 bridge and Runtime Host API
+  boundary, including ownership, execution and lifecycle constraints,
+  in alignment with ADR-0019.
+
+- Establish the Runtime Host API 1.0.0 as a stable, normative contract.
+  Define descriptor negotiation, required services, document operations,
+  snapshots, transactions, notifications, search, UI publication, logging,
+  error identities, ownership rules and owner-thread constraints.
+
+- Define Host API compatibility rules: compatible implementations share
+  the same major version and satisfy the consumer's minimum minor-version
+  requirement. Compatible additive changes may be introduced within the
+  same major version; breaking changes require a major-version increment.
+
+- Define Runtime v1 responsibilities for document clients, commands,
+  keymaps, logical views, syntax policy, semantic UI state and extension
+  lifecycle management.
+
+- Establish independent version ownership for the Runtime package,
+  Runtime Host API, Kernel ABI, Frontend Protocol and Extension Contract.
+
+- Document opaque handles, native resource lifetime constraints,
+  deterministic cleanup requirements and the Backend-owned Lua execution
+  boundary.
+
+- Record Runtime v1 verification requirements and distinguish repository
+  extraction, Host API contract stability and production integration
+  readiness as separate concerns.
+
+### Changed
+
+- Promote the approved Runtime requirements RT-001, RT-003, RT-004,
+  RT-006 through RT-010, RT-012, RT-015 and RT-016 to `ACCEPTED`.
+
+- Accept the Host API 1.0.0 contract freeze under RT-010 and align its
+  normative definitions with the Backend and Runtime specifications.
+
+- Retain RT-011 as pending implementation conformance. The Host API
+  contract defines stable Kernel-status identity and typed Lua error
+  details, but production adapter conformance still requires verification
+  against the required error-mapping vectors.
+
+- Retain RT-020 and RT-021 as `PROPOSED` pending completion of the exact
+  legacy API inventory and corresponding migration parity tests.
+
+- Align the Runtime component specification with ADR-0019 and mark
+  OD-32 as resolved without reopening the approved Lua bridge design.
+
+- Accept extension document isolation and contract-change governance
+  (EXT-004 and EXT-032), together with independent Extension Contract
+  versioning (EXT-040).
+
+- Keep extension manifest compatibility details and default-field
+  behavior as pre-release loader decisions rather than silently treating
+  them as finalized requirements.
+
+- Resolve OD-15 and OD-16 by specifying explicit ownership and
+  persistence responsibilities across Kernel, Backend and Runtime.
+
+- Keep Regex support, malformed UTF-8 conformance vectors, Kernel anchors,
+  search normalization, hot-swap behavior and parallel mutation explicitly
+  open or deferred as recorded in the relevant specification sections.
+
+- Update migration phases to reflect the extracted Runtime repository
+  while retaining the remaining Host API, integration and migration gates.
+
+- Align system maps, repository inventory, component descriptions and
+  glossary terminology with the accepted Runtime v1 architecture and
+  independent version boundaries.
+
+- Preserve accepted Frontend ADR-0020 and Kernel ADR-0021 decisions and
+  their independent compatibility and versioning boundaries.
+
+- Record the Runtime package as `1.0.0-rc.1`, independently of the stable
+  Runtime Host API contract version `1.0.0`.
+
+- Keep production Lua C bridge verification, native lifecycle behavior,
+  complete error-mapping conformance, RT-013 extension-loader semantics
+  and RT-020/RT-021 migration parity as outstanding evidence or scope
+  decisions before declaring the Runtime package stable.
+
+- Clarify that Host API contract stability does not establish production
+  integration readiness or whole-product conformance.
 
 ## [1.2.0] - 2026-11-03
 

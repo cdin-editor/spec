@@ -62,7 +62,7 @@ flowchart TB
 
 Read as rules:
 
-- **ARCH-040** `ACCEPTED` The kernel MUST depend only on the C11/platform C runtime and explicitly injected services; it MUST NOT depend on the GUI, runtime, backend, OS file APIs or third-party regex engine in ABI 1.0.0. — *Verify:* STATIC
+- **ARCH-040** `ACCEPTED` The kernel MUST depend only on the C11/platform C runtime and explicitly injected services; it MUST NOT depend on the GUI, runtime, backend, OS file APIs or third-party regex engine in Kernel ABI major version 1. — *Verify:* STATIC
 - **ARCH-041** `PROPOSED` The runtime MUST reach documents only through the runtime host API that the backend provides; it MUST NOT link to or load the kernel directly. — *Verify:* STATIC, INSPECT
 - **ARCH-042** `ACCEPTED` The backend MUST NOT include any display-toolkit header (SDL, terminal libraries). — *Verify:* STATIC
 - **ARCH-043** `ACCEPTED` A frontend MUST depend only on the Frontend Protocol (and its own toolkit). It MUST NOT include kernel, runtime or backend internal headers. — *Verify:* STATIC

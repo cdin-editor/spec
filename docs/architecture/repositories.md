@@ -9,18 +9,18 @@ A **component** has one responsibility and a contract. A **repository** is a uni
 ```mermaid
 flowchart TB
     cdinrepo["cdin (repo)<br/>composition root, backend/UI source,<br/>build and integration"]
-    kernelrepo["cdin-kernel (repo)<br/>package 1.1.0 · C ABI 1.0.0"]
+    kernelrepo["cdin-kernel (repo)<br/>package 1.2.1 · C ABI 1.1.0"]
     xnow["cdin-x (repo)<br/>separate extension ecosystem"]
     specnow["spec (repo)<br/>architecture and contracts"]
     specnow -. "defines contracts" .-> cdinrepo
-    specnow -. "defines ABI 1.0.0 contract" .-> kernelrepo
+    specnow -. "defines Kernel ABI 1.1.0 contract" .-> kernelrepo
     kernelrepo -. "to be integrated / version-checked" .-> cdinrepo
     xnow -. "extension input at build time" .-> cdinrepo
     classDef comp fill:#dbeafe,stroke:#1d4ed8,color:#0f172a
     class cdinrepo,kernelrepo,specnow,xnow comp
 ```
 
-*Caption: archive snapshots inspected for the package 1.1.0 / ABI 1.0.0 synchronization (Spec release 1.1.0; the kernel declares Spec target 1.0.0). The uploads contain working trees but not Git history, so this report cannot verify commit ancestry or whether an extraction preserved history. `cdin-kernel` exists as a standalone source tree and packages release 1.1.0 while publishing C ABI 1.0.0; its integration into `cdin` remains a separate gate.*
+*Caption: this diagram records the historical archive baseline only. The current audited component versions are listed in §2; archive snapshots do not contain Git history and cannot establish commit ancestry. Current Kernel package `1.2.1` publishes C ABI `1.1.0`, with Kernel-declared Spec target `1.1.0`.*
 
 ### Stable architecture baseline and target
 
@@ -59,17 +59,17 @@ flowchart TB
     class cdinrepo group
 ```
 
-*Caption: accepted repository boundaries and target composition. The standalone Frontend repository and its adapters are accepted targets, not a claim that extraction or TUI implementation has shipped. The `cdin-runtime` extraction remains gated on the runtime host API being stable. Arrows are build or link dependencies; dotted arrows are contract relationships.*
+*Caption: accepted repository boundaries and target composition. The standalone Frontend repository and its adapters are accepted targets, not a claim that extraction or TUI implementation has shipped. The `cdin-runtime` repository is already extracted and has provisional package releases; stable Host API and live integration remain separate gates. Arrows are build or link dependencies; dotted arrows are contract relationships.*
 
 ## 2. Component to repository map
 
 | Component | Repository now | Repository target | Status |
 |---|---|---|---|
-| spec | `cdin-editor/spec` | same | `ACCEPTED`; Spec release `1.2.0`, Kernel-declared compatibility target remains `1.1.0` |
-| kernel | standalone `cdin-kernel` source archive, package `1.1.0` | same; stable C ABI `1.0.0` | `ACCEPTED` |
-| runtime | inside `cdin` (`data/core/`, `src/lua/`, `src/api/`) | `cdin-runtime`, created after the runtime host API is stable | `PROPOSED` |
-| backend | inside `cdin` (`src/`) | stays in `cdin` | `PROPOSED` |
-| frontend | Legacy GUI/SDL code remains in `cdin`; standalone repo not yet extracted | `cdin-editor/frontend` with `core`, `gui-sdl`, `tui`, `headless` peers | `ACCEPTED` target; implementation/extraction pending |
+| spec | `cdin-editor/spec` | same | `ACCEPTED`; Spec release `1.3.0`, Kernel-declared compatibility target remains `1.1.0` |
+| kernel | standalone `cdin-kernel`, package `1.2.1` | same; public C ABI `1.1.0` | `ACCEPTED` |
+| runtime | standalone `cdin-runtime`, latest candidate package `1.0.0-rc.1` | same; stable Host API `1.0.0`; live Backend integration and extension/migration conformance remain gates | `ACCEPTED` repository boundary; provisional contract/integration |
+| backend | standalone Backend source repository, audited release `1.0.0` | same; composition root remains `cdin` | `ACCEPTED` repository boundary; product integration remains in progress |
+| frontend | standalone `cdin-editor/frontend` package `1.0.0`; adapters `core`, `gui-sdl`, `tui`, `headless` | same | `ACCEPTED` repository/Protocol contract; full TUI/GUI/Headless product completion remains in progress |
 | cli | does not exist | optional non-interactive adapter, separate from the interactive TUI | `DEFERRED` |
 | data | not a component in code | no repository | `DEFERRED` |
 | cdin (root) | `cdin` repository | same | `ACCEPTED` as composition root |
