@@ -92,8 +92,8 @@ Verification plan and external test evidence. This repository contains no execut
 
 ## Decisions
 
-[adr/README.md](adr/README.md) indexes the nineteen ADRs and says how owner approval is
-recorded. [adr/open-decisions.md](adr/open-decisions.md) is the register of every
+[adr/README.md](adr/README.md) indexes the ADRs and says how owner approval is
+recorded. [ADR-0022](adr/ADR-0022-minimal-static-release-catalog.md) proposes a minimal static release catalog rather than a full artifact-hosting package registry. [adr/open-decisions.md](adr/open-decisions.md) is the register of every
 unresolved question, with options and trade-offs. Unresolved questions are never
 requirements.
 
