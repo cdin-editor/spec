@@ -1,103 +1,113 @@
-# ADR-0022: Minimal static release catalog for component discovery
+# ADR-0022: Data-driven Component Orchestration
 
 - **ID:** ADR-0022
-- **Status:** `PROPOSED`
-- **Decision scope:** Registry v1 architecture and responsibility boundaries
+- **Status:** PROPOSED
+- **Decision scope:** Generic Registry architecture, Product Definition input and product/Registry responsibility boundaries
 
 ## Context
 
-CDIN is assembled from independently versioned component repositories. Each component repository already owns its source, version, Git tags, release workflow and (when needed) GitHub Release assets.
+CDIN is assembled from independently developed and versioned components. Repository topology may evolve: one logical component may split across multiple repositories, a repository may publish multiple variants, and a product may need only a subset of available variants.
 
-A central Registry could make release discovery easier, but a full artifact registry would duplicate capabilities already provided by GitHub Releases. It would also introduce artifact hosting, retention, schemas, signing infrastructure, a resolver service and another publication pipeline.
-
-The Registry is justified only if it reduces coordination work for CDIN. It must not become another package manager or a second source of truth for component releases.
+A static catalog that merely lists release URLs leaves version selection, update management, dependency resolution and source collection with each consumer. Putting those responsibilities inside CDIN couples its build system to repository layouts and package lifecycle concerns. Hardcoding CDIN-specific product identities or rules inside Registry makes Registry non-reusable.
 
 ## Decision
 
-**Proposal: define `cdin-editor/registry` as a minimal static release catalog. It is a release-discovery directory, not an artifact host or package manager.**
+**Proposal: define Registry as a consumer-independent, data-driven Component Orchestration system.**
 
-The Registry answers four questions: which component releases exist; which immutable source revision belongs to each release; which independently versioned contracts the release implements; and where the authoritative source or optional release asset can be retrieved.
+Registry owns component discovery, release/version metadata, update tracking, dependency and compatibility resolution, source collection, immutable revision verification, and preparation of a reproducible workspace plus resolved manifest.
 
-The Registry stores metadata and references. Component repositories remain authoritative for source code, tags, release notes, build outputs and release ownership.
+A separate declarative **Product Definition** supplies component IDs, variants, version constraints and other generic requirements. It is data, not executable product logic. Its storage location is independent and remains open; this ADR does not require a new repository.
 
-### Architectural placement
+> **Registry must understand requirements, not consumer identity.**
 
-The Registry belongs to the **release and discovery plane**. It sits between component publication workflows and CDIN's integration coordinator:
+The same Registry must serve CDIN Editor and a future unrelated product by consuming different Product Definitions. Supporting a new consumer must not require consumer-specific code, product-ID conditionals or custom workflows in the Registry engine.
 
-- Component repositories publish their own releases.
-- The Registry indexes those releases in a static catalog.
-- CDIN consumes the catalog, resolves a compatible component set, verifies inputs and runs integration gates.
-- The Spec repository defines architecture and contract rules; it does not execute Registry operations.
+### Responsibilities
 
-The Registry is not part of the editor runtime, does not link into the product, and is not a dependency of Kernel, Runtime, Backend or Frontend. See [Registry architecture](../architecture/registry.md) for the placement diagram and end-to-end flow.
+- **Component repositories:** own source, package versions, tags, release notes, component tests and publication workflows.
+- **Product Definition:** declares logical components, variants, version constraints and product composition requirements.
+- **Registry:** manages catalog, release/version lifecycle, update discovery, dependency resolution, compatibility metadata evaluation, source collection and workspace preparation.
+- **CDIN:** consumes the prepared workspace and manifest, performs product-specific configuration and integration, builds, runs product/integration tests, packages and launches the editor.
+- **Spec:** defines normative contracts and architecture; it does not execute Registry operations or contain component source.
 
-### Minimal v1 format
+### Product Definition and generic resolution
 
-- One static JSON catalog, initially a single `index.json`.
-- Each entry identifies a stable component ID, package version, source repository, release tag, full commit SHA, implemented contract versions and optional GitHub Release URL.
-- Catalog history is the Git history of the Registry repository.
-- No database, API server, custom package format, per-record schema collection or separate snapshot-versioning system.
+A Product Definition is declarative data. It may request Frontend variants cli and gui-sdl without selecting other available variants. Registry resolves those requirements against component metadata and release records.
 
-### Source and artifact distribution
+A logical component need not map one-to-one to a repository. Metadata may describe multiple source units for a component or multiple variants published from one repository. Repository splits and variant growth must not require product-specific Registry logic.
 
-Source and optional release assets remain in the component's own repository and GitHub Release. CDIN may retrieve source at the exact recorded commit. A component may attach a prebuilt asset to its own release only when a real consumer needs it.
+Registry may evaluate declared version constraints, dependencies and contract metadata. It cannot prove that a set works as an integrated product; CDIN owns those tests.
 
-The Registry does not copy, mirror or retain component artifacts. Do not create platform/architecture artifact matrices for components that CDIN builds from source.
+### Workspace handoff
 
-### Publication
+Registry returns:
+- a deterministic prepared workspace containing the exact source trees required by the resolved Product Definition;
+- a resolved manifest recording component IDs, variants, package versions, source repositories, immutable full commit revisions and available integrity metadata;
+- a resolution report describing selected candidates, applied constraints and warnings.
 
-The component's existing CI remains responsible for component build and tests, tagging and release publication. A small publication step adds the release metadata to the Registry catalog and validates the catalog update. The Registry does not rebuild or re-release components.
+A list of URLs and SHAs alone is not the handoff contract: Registry performs source collection before returning the prepared workspace. CDIN does not fetch component sources or resolve versions.
 
-### Compatibility and lockfiles
+The workspace layout and manifest schema are implementation contracts to be specified before Registry implementation; examples are not finalized schemas.
 
-Package version and contract version are independent. A Kernel package release `2.0.0` does not imply that the public Kernel ABI is `2.0.0`.
+### Versioning and updates
 
-CDIN owns dependency constraints, compatibility policy, dependency graph resolution and `deps.lock`. A release is only a candidate when its declared contract versions satisfy the consuming integration profile; passing CDIN contract and integration tests is still required.
+Registry owns release discovery, version selection and update tracking. Product Definitions supply constraints or update policy as data. A new release creates a new resolution candidate; it never mutates an existing workspace or manifest. Previous manifests retain exact revisions for reproducibility, subject to source availability and explicit security withdrawal policy.
 
-The Registry never chooses the final dependency set and never edits lockfiles.
+CDIN does not maintain component versions, an updater, a dependency solver or a component lockfile. The Registry-produced resolved manifest is the reproducibility record for a prepared set.
 
-### Automatic coordination
+### Product integration and verification
 
-Automatic coordination means discovery of catalog changes, candidate resolution in CDIN, retrieval of exact pinned source and optional assets, verification and build/contract/integration tests, then opening or updating a CDIN pull request containing the proposed lockfile change and test evidence.
+Registry checks metadata consistency, declared dependency constraints and compatibility declarations. CDIN remains responsible for product-specific configuration, integration, build, contract/integration tests, packaging and launch. A Registry resolution is a candidate input, not proof that the assembled product works.
 
-It does **not** mean automatic merge. Merge policy remains a separate decision and auto-merge is disabled by this proposal.
+### Architectural placement and complexity limits
 
-### Integrity and trust
+Registry belongs to the component delivery and orchestration plane, outside product runtime and product build implementation. No component links to Registry at runtime. Product-specific needs enter only through Product Definitions and generic component metadata; Registry must not contain product-ID conditionals.
 
-For v1, use HTTPS, GitHub repository access controls, immutable full commit references and SHA-256 checksums for optional downloadable assets. Do not create a custom signing protocol or central root-of-trust service.
-
-This is a practical integrity baseline, not a claim of independently verifiable publisher signatures or signed provenance. Revisit signing when external publishers or a documented threat model justify its cost.
-
-### Withdrawal
-
-A withdrawn release is marked unavailable in the catalog with a reason and timestamp. The Registry does not silently rewrite or delete component release assets. New CDIN resolution rejects withdrawn releases; existing lockfiles remain reproducible unless a separate security policy blocks them.
+The proposal does not require microservices, a database, a permanently running API, a custom artifact host, a custom package format or a separate repository for every Registry responsibility. The first implementation may be one generic CLI/engine with version-controlled metadata, declarative definitions and deterministic workspace/manifest output.
 
 ## Consequences
 
-- Registry v1 is a discovery index, not a package manager, artifact mirror or runtime service.
-- Component repositories remain independently releasable and authoritative.
-- CDIN remains the sole owner of resolution, compatibility decisions, lockfiles and integration coordination.
-- The first implementation can be one JSON catalog and a small validation/publication workflow.
-- Signing infrastructure, external object storage, multi-platform artifact matrices, a Registry API, dependency solving inside Registry and auto-merge are out of scope until demonstrated needs exist.
+- Component lifecycle and source collection are centralized rather than reimplemented by every consumer.
+- CDIN is limited to product composition, integration, build, tests, packaging and launch.
+- Registry can serve unrelated products without knowing their identities.
+- Component repository splits and additional variants are represented through metadata rather than consumer-specific code.
+- Exact resolved manifests make prepared workspaces auditable and reproducible.
+- Generic metadata, Product Definition and workspace/manifest contracts must be defined before implementation.
+- End-to-end compatibility remains the responsibility of each consuming product's integration tests.
 
 ## Alternatives considered
 
-### No Registry — query component repositories directly
+### CDIN-owned discovery and dependency resolution
 
-This is the simplest option and remains viable while CDIN has only a handful of first-party components. It avoids another repository but makes CDIN maintain discovery logic for each component source. Prefer this option if a catalog does not materially simplify coordination.
+Rejected. It couples CDIN to component repository topology, version/update management and source collection.
 
-### Full artifact registry
+### CDIN-specific Registry rules
 
-Rejected for v1. It duplicates GitHub Release distribution and introduces storage, retention, upload, trust and schema-management responsibilities without a demonstrated need.
+Rejected. Product identity conditionals and hardcoded component lists prevent reuse by unrelated consumers.
 
-### Custom service and database
+### Static catalog only, with each consumer doing the rest
 
-Rejected. Static metadata is sufficient; an always-on service would add operational cost without solving a current problem.
+Not selected. It leaves version selection, updates, dependency resolution and source collection duplicated in consumers.
+
+### Full artifact-hosting package manager
+
+Rejected for the initial architecture. Component repositories remain authoritative for source and releases; Registry collects source when preparing a workspace rather than becoming a second artifact store.
+
+## Open implementation questions
+
+- Exact Product Definition schema and ownership/location.
+- Generic component metadata schema, including multiple source units and variants.
+- Dependency constraint syntax and resolution policy.
+- Workspace layout, lifecycle, caching and cleanup.
+- Resolved manifest schema and integrity fields.
+- How Registry update candidates are requested or scheduled.
+
+These are implementation contracts to resolve before implementation; they do not change the responsibility boundaries above.
 
 ## References
 
 - [Registry architecture](../architecture/registry.md)
-- [ADR-0001 — Repository topology](ADR-0001-repository-topology.md)
-- [ADR-0014 — No shared or common repositories](ADR-0014-no-shared-repositories.md)
-- [Repository topology](../architecture/repositories.md)
+- [System maps](../architecture/system-maps.md)
+- [Architecture overview](../architecture/overview.md)
 - [CDIN composition root](../components/cdin.md)
+- [ADR-0014 — No shared or common repositories](ADR-0014-no-shared-repositories.md)
