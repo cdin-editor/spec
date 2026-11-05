@@ -74,7 +74,7 @@ sequenceDiagram
 flowchart LR
     SPEC["spec<br/>contracts and design"]
     CDIN["cdin repository<br/>product build, bundle, launcher"]
-    KERNEL["cdin-kernel repository<br/>package 1.1.0 · C ABI 1.0.0"]
+    KERNEL["cdin-kernel repository<br/>package 1.2.1 · C ABI 1.1.0"]
     X["cdin-x repository<br/>extension assets"]
     APP["assembled CDIN product"]
     REL["Kernel release assets<br/>Linux · macOS · Windows"]
@@ -95,4 +95,4 @@ flowchart LR
     class APP,REL,DOCKER output
 ```
 
-*Caption: repository responsibility map, not a claim that every release asset has been published. The `cdin-kernel` 1.1.0 source snapshot contains a tag-triggered multi-architecture Docker publishing workflow, but a successful push to a named public Docker Hub repository was not verified as part of this Spec review.*
+*Caption: repository responsibility map, not a claim that every release asset has been published. The `cdin-kernel` 1.2.1 source snapshot contains a tag-triggered multi-architecture Docker publishing workflow, but a successful push to a named public Docker Hub repository was not verified as part of this Spec review.*
