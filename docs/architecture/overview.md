@@ -27,7 +27,9 @@ The architecture is easier to read as three related planes: **delivery** assembl
 ```mermaid
 flowchart TB
     subgraph DELIVERY["Delivery and governance — outside the runtime call path"]
-        ROOT["cdin<br/>composition root: build, bundle, launch, release"]
+        ROOT["cdin<br/>product integration, build, test, launch"]
+        PD["Product Definition<br/>declarative requirements"]
+        REG["generic Registry<br/>versions, updates, resolution, source collection"]
         SPEC["spec<br/>requirements, ADRs, contracts"]
         XREPO["cdin-x repository<br/>extension assets and metadata"]
     end
@@ -64,6 +66,12 @@ flowchart TB
     BE --> KH --> ABI --> K
     XREPO --> EXT --> RT
     BE --> OS
+    PD --> REG
+    REG -->|"prepared workspace + manifest"| ROOT
+    REG <-->|"component release metadata"| K
+    REG <-->|"component release metadata"| RT
+    REG <-->|"component release metadata"| BE
+    REG <-->|"component release metadata"| GUI
     ROOT -. "build / bundle / launch" .-> UI
     ROOT -.-> CORE
     ROOT -. "bundles assets" .-> XREPO
