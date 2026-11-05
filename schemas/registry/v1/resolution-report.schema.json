@@ -203,10 +203,6 @@
         "release_metadata_sha256": {
           "$ref": "#/$defs/sha256"
         },
-        "environment_index": {
-          "type": "integer",
-          "minimum": 0
-        },
         "compatible": {
           "type": "boolean"
         }
@@ -232,23 +228,6 @@
             "required": [
               "component_id",
               "variant"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "origin": {
-                "const": "environment"
-              }
-            },
-            "required": [
-              "origin"
-            ]
-          },
-          "then": {
-            "required": [
-              "environment_index"
             ]
           }
         }
@@ -477,8 +456,26 @@
     "selected",
     "rejected_candidates",
     "conflicts",
-    "warnings",
-    "applied_constraints"
+    "warnings"
   ],
-  "additionalProperties": true
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "pattern": "^1\\.[1-9][0-9]*\\.[0-9]+$"
+          }
+        },
+        "required": [
+          "schema_version"
+        ]
+      },
+      "then": {
+        "required": [
+          "applied_constraints"
+        ]
+      }
+    }
+  ]
 }
