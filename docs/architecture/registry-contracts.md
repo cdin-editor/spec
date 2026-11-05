@@ -85,7 +85,7 @@ Resolution is deterministic and independent of catalog ordering, repository name
 10. The selected dependency graph must be acyclic. A cycle fails and the report identifies its exact path.
 11. Output order is a deterministic topological order. Independent nodes at the same depth are ordered lexicographically by component ID, then variant ID.
 
-Optional dependencies, feature negotiation, arbitrary solver plugins and consumer-specific compatibility callbacks are outside contract 1.0.0.
+Optional dependencies, feature negotiation, arbitrary solver plugins and consumer-specific compatibility callbacks are outside contract 1.1.0.
 
 ## 6. Source collection and workspace
 
@@ -110,7 +110,7 @@ Every source unit has its own declared path. Physical cache deduplication is an 
 
 The collector stages privately, verifies all revisions, materializes all source units and validates the final layout before publishing the destination. Failure cannot leave a successful-looking partial workspace. Existing destinations are not implicitly overwritten. Registry does not run build scripts, package hooks or collected code.
 
-Contract 1.0.0 does not automatically materialize Git submodules or Git LFS objects. Required content must be represented as separately declared source units or through a future explicit asset contract; Registry does not silently fetch unlisted content.
+Contract 1.1.0 does not automatically materialize Git submodules or Git LFS objects. Required content must be represented as separately declared source units or through a future explicit asset contract; Registry does not silently fetch unlisted content.
 
 ## 7. Resolved Manifest and Resolution Report
 
@@ -150,7 +150,7 @@ Resolution Reports produced under this baseline MUST declare `schema_version: "1
 - **REG-004** `ACCEPTED` An omitted variant MUST normalize to the `default` variant before catalog lookup and dependency resolution. — *Verify:* CONF
 - **REG-005** `ACCEPTED` Every public Registry document MUST declare a supported `schema_version` and be validated against its versioned JSON Schema. — *Verify:* CONF
 - **REG-006** `ACCEPTED` Component package versions and contract versions MUST follow Semantic Versioning 2.0.0. — *Verify:* CONF
-- **REG-007** `ACCEPTED` Version constraints MUST use only exact versions or conjunctions of the documented `=`, `>`, `>=`, `<` and `<=` comparators in contract 1.0.0. — *Verify:* CONF
+- **REG-007** `ACCEPTED` Version constraints MUST use only exact versions or conjunctions of the documented `=`, `>`, `>=`, `<` and `<=` comparators in contract 1.1.0. — *Verify:* CONF
 - **REG-008** `ACCEPTED` Resolution MUST include the transitive closure of every selected release's required component dependencies. — *Verify:* CONF
 - **REG-009** `ACCEPTED` A successful resolution MUST select exactly one release for each normalized `(component_id, variant)` key. — *Verify:* CONF
 - **REG-010** `ACCEPTED` All constraints on the same normalized component key MUST be intersected; an empty intersection MUST produce a structured resolution failure. — *Verify:* CONF
