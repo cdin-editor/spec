@@ -4,10 +4,10 @@
 
 ## 1. Purpose
 
-- Build every component for every supported platform.
-- Bundle the runtime, the mandatory set from `cdin-x`, and frontends into a runnable product.
-- Release (packaging, installers, workflows) and developer tooling (benchmarks, checks, size and memory measurements).
-- Launch: choose a frontend, start the backend, attach.
+- Consume the prepared workspace and resolved manifest produced by Registry for the selected Product Definition.
+- Integrate and build only the selected component source units and variants required by the target product/profile.
+- Run component-facing integration checks and product-level tests; package and release the assembled product.
+- Maintain product build configuration, installers, developer tooling and launcher; launch the selected frontend and backend.
 
 ## 2. Delivery boundary
 
@@ -46,7 +46,7 @@ CDIN may validate manifest integrity and required contract declarations, but it 
 - **ROOT-007** `PROPOSED` The composition root MUST check ABI compatibility of the components it assembles (ABI-020) and refuse an incompatible set at build or start. — *Verify:* INTEG
 - **ROOT-008** `PROPOSED` Include-direction rules (ARCH-046) are enforced by static tooling in the implementation repositories; the Spec repository only reports document inventory metadata. — *Verify:* STATIC
 - **ROOT-009** `EXISTING` Product release workflows for Linux, Windows and macOS and the website deployment are defined in the `cdin` repository. — *Verify:* INSPECT — *Anchor:* `.github/workflows/`
-- **ROOT-010** `PROPOSED` The standalone `cdin-kernel` repository is consumed by `cdin` as a pinned version (a release or a submodule at a tag), never as a floating branch. — *Verify:* INSPECT
+- **ROOT-010** `PROPOSED` The standalone `cdin-kernel` source is supplied to `cdin` through the Registry-prepared workspace at an immutable revision; the composition root MUST NOT independently discover or update the Kernel release. — *Verify:* INSPECT
 
 ## 5. Existing layout mapped here
 
