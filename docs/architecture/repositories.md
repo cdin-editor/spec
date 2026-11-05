@@ -67,7 +67,7 @@ flowchart TB
 |---|---|---|---|
 | spec | `cdin-editor/spec` | same | `ACCEPTED`; Spec release `1.3.0`, Kernel-declared compatibility target remains `1.1.0` |
 | kernel | standalone `cdin-kernel`, package `1.2.1` | same; public C ABI `1.1.0` | `ACCEPTED` |
-| runtime | standalone `cdin-runtime`, latest candidate package `1.0.0-rc.1` | same; stable Host API `1.0.0`; live Backend integration and extension/migration conformance remain gates | `ACCEPTED` repository boundary; provisional contract/integration |
+| runtime | standalone `cdin-runtime`, latest candidate package `1.0.0-rc.1` | same; stable Host API `1.0.0`; live Backend integration and extension/migration conformance remain gates | `ACCEPTED` repository boundary; package candidate and product integration remain in progress |
 | backend | standalone Backend source repository, audited release `1.0.0` | same; composition root remains `cdin` | `ACCEPTED` repository boundary; product integration remains in progress |
 | frontend | standalone `cdin-editor/frontend` package `1.0.0`; adapters `core`, `gui-sdl`, `tui`, `headless` | same | `ACCEPTED` repository/Protocol contract; full TUI/GUI/Headless product completion remains in progress |
 | cli | does not exist | optional non-interactive adapter, separate from the interactive TUI | `DEFERRED` |
