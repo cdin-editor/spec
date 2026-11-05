@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Propose ADR-0022: keep the Registry as a minimal static release catalog. Component repositories remain authoritative for source and releases; the catalog stores discovery metadata and references rather than mirroring artifacts.
+
+### Changed
+
+- Clarify that the proposed Registry is not a shared-code repository and does not supersede ADR-0014.
+
 All notable changes to this specification are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
