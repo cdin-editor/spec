@@ -45,7 +45,7 @@ flowchart TB
         subgraph CORE["Headless core"]
             direction LR
             BE["backend<br/>session + protocol server + OS services"]
-            RHA{{"Runtime Host API<br/>provisional contract"}}
+            RHA{{"Runtime Host API<br/>1.0.0 stable"}}
             RT["cdin-runtime<br/>Lua policy and extension host"]
             KH["kernel host / adapter"]
             ABI{{"Kernel C ABI 1.1.0"}}
@@ -88,8 +88,8 @@ flowchart TB
 
 | Boundary | Caller / consumer | Provider / authority | What it deliberately does not define |
 |---|---|---|---|
-| Frontend Protocol | GUI, TUI, headless and future frontends | Backend protocol server | Kernel C types; pixel/cell layout; deterministic CBOR v1.0.0 target (ADR-0018, ADR-0020); Backend implementation remains v0.2.0 |
-| Runtime Host API | Lua runtime and extensions through the runtime | Backend runtime host | Kernel internals; it is a provisional, versioned API whose compatibility must match the Backend implementation |
+| Frontend Protocol | GUI, TUI, headless and future frontends | Backend protocol server | Kernel C types and pixel/cell layout; deterministic CBOR wire contract 1.0.0 (ADR-0018, ADR-0020). Backend 1.0.0 implements the accepted schema; concrete socket/named-pipe transport remains a composition-root integration responsibility. |
+| Runtime Host API | Lua runtime and extensions through the runtime | Backend runtime host | Kernel internals; stable Host API 1.0.0 contract (ADR-0019), with live product integration verified separately |
 | Kernel C ABI | Backend kernel host / adapters | `cdin-kernel` | Filesystem policy, rendering, Lua, plugins and persistence |
 | Lua Extension Contract | `cdin-x` extensions | Runtime/extension host | Direct kernel calls, backend internals or private frontend channels |
 
