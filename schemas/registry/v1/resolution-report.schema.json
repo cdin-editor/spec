@@ -80,7 +80,8 @@
       "enum": [
         "WITHDRAWN",
         "PRERELEASE_DISABLED",
-        "CONSTRAINT_MISMATCH"
+        "CONSTRAINT_MISMATCH",
+        "BRANCH_CONFLICT"
       ]
     },
     "resolutionNode": {
