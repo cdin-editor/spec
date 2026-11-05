@@ -29,7 +29,8 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0018](ADR-0018-frontend-protocol-wire.md) | Frontend Protocol wire format, client boundary and mutation authority | `ACCEPTED` |
 | [ADR-0019](ADR-0019-runtime-bridge.md) | PUC Lua 5.4 C API as Runtime Host bridge | `ACCEPTED` |
 | [ADR-0020](ADR-0020-frontend-topology-and-interaction.md) | Frontend topology, TUI-first delivery and presentation contracts | `ACCEPTED` |
-| [ADR-0021](ADR-0021-kernel-implementation-backed-contracts.md) | Kernel ABI 1.1.0 implementation-backed contract acceptance | `ACCEPTED` |\n| [ADR-0022](ADR-0022-minimal-static-release-catalog.md) | Minimal static release catalog for component discovery | `PROPOSED` |
+| [ADR-0021](ADR-0021-kernel-implementation-backed-contracts.md) | Kernel ABI 1.1.0 implementation-backed contract acceptance | `ACCEPTED` |
+| [ADR-0022](ADR-0022-minimal-static-release-catalog.md) | Data-driven Component Orchestration and consumer-independent Registry | `PROPOSED` |
 
 ## How owner approval is recorded
 
