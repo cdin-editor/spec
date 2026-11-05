@@ -1,28 +1,41 @@
-# ADR-0014: No shared or common repositories
+# ADR-0014: No catch-all shared repositories
 
 - **ID:** ADR-0014
-- **Status:** `ACCEPTED`
+- **Status:** ACCEPTED
 
 ## Context
-Repository splits tend to produce a "common" or "shared" repository for whatever does not fit elsewhere. The owner's rule is to avoid `cdin-common` and `cdin-shared` without an architectural reason and explicit approval. The owner also asked whether `cdin-scripts` or `cdin-shared` would be needed.
 
-## Problem
-Is any auxiliary repository justified now?
+Repository splits can produce a `common` or `shared` repository for code that does not fit elsewhere. Such repositories tend to become dumping grounds, couple unrelated release cycles and blur ownership. The project avoids `cdin-common`, `cdin-shared` and `cdin-scripts` without a concrete architectural responsibility and explicit approval.
+
+The accepted Registry architecture in [ADR-0022](ADR-0022-minimal-static-release-catalog.md) introduces an independent repository. This must be distinguished from a catch-all shared-code repository.
 
 ## Decision
-No. No `cdin-common`, `cdin-shared` or `cdin-scripts` repository is created (ARCH-005). Tooling stays in `cdin` because it depends on the Makefile and the source layout. Code needed by two components is either part of a contract (the ABI, the protocol) or duplicated deliberately.
 
-The protocol reference codec is justified, but it stays as the independently linkable `cdin_protocol` target inside the Backend repository. [ADR-0018](ADR-0018-frontend-protocol-wire.md) accepts this placement and explicitly avoids a separate shared/client-library repository. The proposed `cdin-editor/registry` is not an exception for shared code: [ADR-0022](ADR-0022-minimal-static-release-catalog.md) limits it to static release-discovery metadata and references; it hosts no shared implementation.
+No catch-all `cdin-common`, `cdin-shared` or `cdin-scripts` repository is created (ARCH-005). Tooling specific to the CDIN composition root stays in `cdin`. Code shared by components belongs in a versioned public contract or is duplicated deliberately unless a separately justified system boundary is approved.
+
+A standalone repository is acceptable when it owns one cohesive system with its own purpose, public boundary, implementation, tests and release lifecycle. It is not a shared-utilities repository merely because multiple products may use it.
+
+**Registry is a valid independent infrastructure repository** because it owns component delivery and orchestration: catalog ingestion, version/dependency/contract resolution, source collection and reproducible workspace production. It owns its implementation and conformance tests. It does not host generic libraries for components, replace component source ownership or link into a product at runtime.
+
+The protocol reference codec remains the independently linkable `cdin_protocol` target inside Backend. [ADR-0018](ADR-0018-frontend-protocol-wire.md) accepts that placement and avoids a separate shared/client-library repository.
 
 ## Options
-- **A. No shared repositories (decision).** Pros: every repository has one responsibility and one owner. Cons: some duplication.
-- **B. A shared utilities repository.** Pros: reuse. Cons: becomes a dumping ground; ties release cycles together; blurs ownership.
+
+- **A. No catch-all shared repositories (decision).** Each repository has one responsibility and one owner; some deliberate duplication may remain.
+- **B. A shared utilities repository.** Rejected because it becomes a coupling point and blurs ownership.
+- **C. A separately justified infrastructure system.** Accepted when the system owns a cohesive capability, public contracts, tests and independent lifecycle; Registry is the concrete case.
 
 ## Trade-offs
-A small amount of duplication is cheaper than a coupling point that every component depends on.
+
+A small amount of duplication is cheaper than an unbounded shared-code coupling point. A genuinely independent system can serve multiple consumers without becoming a common library repository.
 
 ## Consequences
-The kernel does not depend on the backend's `base/` library: it takes an allocator through its ABI (ABI-017). If a library later proves useful to two components, an ADR with the justification precedes any new repository (ARCH-030).
+
+- No repository may be created only to collect miscellaneous shared helpers.
+- A new infrastructure repository requires an explicit responsibility, public boundary, owner and independent verification/release story.
+- `cdin-editor/registry` is permitted as the implementation repository for the accepted Registry architecture in ADR-0022.
+- ARCH-030 remains the repository-creation justification rule; Registry satisfies it through its distinct capability, public contracts, owner and lifecycle. ARCH-031 governs extraction of product components.
 
 ## References
-ARCH-005, ARCH-030, ARCH-035, [ADR-0001](ADR-0001-repository-topology.md).
+
+ARCH-005, ARCH-030, ARCH-034, [ADR-0018](ADR-0018-frontend-protocol-wire.md), [ADR-0022](ADR-0022-minimal-static-release-catalog.md).

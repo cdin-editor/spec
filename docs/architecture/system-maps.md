@@ -292,5 +292,5 @@ A Kernel release 2.0.0 is recorded by Registry with its package version, source 
 
 Package version 2.0.0 does not imply ABI 2.0.0; package and contract version axes remain independent.
 
-*Status: PROPOSED. These diagrams describe the intended architecture, not an implemented Registry or a shipped workspace contract.*
+*Status: ACCEPTED architecture and data-contract baseline. The diagrams define the intended boundary; they do not claim that the Registry implementation or a production workspace has shipped.*
 

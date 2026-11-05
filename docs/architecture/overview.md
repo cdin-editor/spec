@@ -92,7 +92,7 @@ flowchart TB
 
 ### Component delivery and composition
 
-The delivery plane uses a generic, data-driven Registry proposal. Product Definitions declare component and variant requirements as data; Registry manages release discovery, version/update selection, dependency resolution and source collection, then prepares a reproducible workspace and manifest. The Registry is consumer-independent: it must understand requirements, not consumer identity. CDIN consumes the prepared workspace and owns product-specific integration, build, tests, packaging and launch. See [Registry architecture](registry.md).
+The delivery plane uses the accepted, generic Registry architecture. Product Definitions declare component and variant requirements as data; Registry manages release discovery, version/update selection, dependency and contract resolution, and source collection, then prepares a reproducible workspace and manifest. The Registry is consumer-independent: it must understand requirements, not consumer identity. CDIN consumes the prepared workspace and owns product-specific integration, build, tests, packaging and launch. The architecture and versioned data contracts are defined in [Registry architecture](registry.md) and [Registry data contracts](registry-contracts.md).
 
 ### The four main contracts
 

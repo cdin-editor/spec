@@ -48,7 +48,8 @@ System-level design: who owns what, how components talk, how they start and stop
 | --- | --- |
 | [overview](architecture/overview.md) | goals, principles, system context, the component list |
 | [system-maps](architecture/system-maps.md) | layered landscape, dependency map, edit sequence, lifecycle, versioning and component orchestration |
-| [registry](architecture/registry.md) | data-driven component orchestration, Product Definitions, version resolution, source collection and consumer-independent Registry architecture |
+| [registry](architecture/registry.md) | accepted consumer-independent Registry architecture and delivery-plane boundary |
+| [registry-contracts](architecture/registry-contracts.md) | accepted Product Definition, catalog, release, manifest, report, SemVer and source/workspace contracts |
 | [repositories](architecture/repositories.md) | which component lives in which repository, today and at the target |
 | [module-boundaries](architecture/module-boundaries.md) | who may depend on whom; who owns which state |
 | [abi-and-compatibility](architecture/abi-and-compatibility.md) | the C ABI rules every binary boundary follows |
@@ -94,7 +95,7 @@ Verification plan and external test evidence. This repository contains no execut
 ## Decisions
 
 [adr/README.md](adr/README.md) indexes the ADRs and says how owner approval is
-recorded. [ADR-0022](adr/ADR-0022-minimal-static-release-catalog.md) proposes a generic, data-driven Component Orchestration system in which Product Definitions describe needs and the Registry resolves and collects components without consumer-specific logic. [adr/open-decisions.md](adr/open-decisions.md) is the register of every
+recorded. [ADR-0022](adr/ADR-0022-minimal-static-release-catalog.md) accepts a generic, data-driven Component Registry. Its versioned schemas and resolution/workspace contracts are documented in [Registry data contracts](architecture/registry-contracts.md). [adr/open-decisions.md](adr/open-decisions.md) is the register of every
 unresolved question, with options and trade-offs. Unresolved questions are never
 requirements.
 

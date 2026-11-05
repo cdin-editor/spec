@@ -1,0 +1,166 @@
+# Registry data contracts
+
+- **Status:** ACCEPTED
+- **Contract baseline:** Registry data contracts `1.0.0`
+- **Schema dialect:** JSON Schema Draft 2020-12
+- **Implementation owner:** `cdin-editor/registry`
+
+This page and the schemas under `schemas/registry/v1/` freeze the portable data boundary between Registry, component publishers and consumers. They do not prescribe implementation language, internal modules, hosting provider or service deployment.
+
+## 1. Contract inventory
+
+| Artifact | Direction | Canonical representation | Schema |
+|---|---|---|---|
+| Product Definition | Consumer → Registry | YAML 1.2 or JSON data model | [product-definition](../../schemas/registry/v1/product-definition.schema.json) |
+| Catalog Index | Catalog source → Registry | JSON | [catalog-index](../../schemas/registry/v1/catalog-index.schema.json) |
+| Component Release Metadata | Component publisher → Registry | JSON | [component-release](../../schemas/registry/v1/component-release.schema.json) |
+| Resolved Manifest | Registry → consumer | JSON | [resolved-manifest](../../schemas/registry/v1/resolved-manifest.schema.json) |
+| Resolution Report | Registry → caller | JSON | [resolution-report](../../schemas/registry/v1/resolution-report.schema.json) |
+
+The JSON data model is canonical. YAML 1.2 is an authoring convenience for Product Definitions only; it is parsed into the JSON data model before validation. Duplicate mapping keys, non-string mapping keys, custom YAML tags and non-JSON values are invalid. Catalog indexes, release metadata and Registry outputs are JSON.
+
+Every document carries `schema_version`. The schemas in `schemas/registry/v1/` describe contract major version 1. Consumers reject unsupported major versions and ignore unknown optional fields within a supported major. Extension-specific data belongs under `extensions`; it has no Registry semantics unless a future contract explicitly assigns them.
+
+## 2. Identity and version rules
+
+- Component IDs are stable logical identities, not repository names, URLs, display names or consumer-specific aliases.
+- Component IDs, variant IDs and source-unit IDs use lowercase ASCII letters and digits with dot and hyphen separators. Published IDs are immutable.
+- An omitted variant normalizes to the literal ID `default` before lookup, dependency coalescing, conflict detection and manifest generation.
+- Package and contract versions use Semantic Versioning 2.0.0. Package version, source revision and contract version are independent axes.
+- Version constraints are one exact version (for example `1.2.3`, optionally prefixed by `=`) or a space-separated conjunction of comparators (for example `>=1.2.0 <2.0.0`). Supported comparators are `=`, `>`, `>=`, `<` and `<=`. OR, wildcards, partial versions, hyphen ranges, caret ranges and tilde ranges are outside contract 1.0.0.
+- Build metadata does not affect SemVer precedence. Distinct candidates with equal precedence but different version strings or metadata identities are ambiguous and fail resolution; catalog order is never a tie-breaker.
+
+## 3. Product Definition
+
+A Product Definition declares root component requirements and optional contracts supplied by the target environment. It is declarative data, never executable product logic.
+
+```yaml
+schema_version: "1.0.0"
+product:
+  id: com.example.editor
+  name: Example Editor
+components:
+  - component_id: backend
+    variant: default
+    version_constraint: ">=2.0.0 <3.0.0"
+  - component_id: frontend
+    variant: tui
+    version_constraint: "1.4.0"
+environment_contracts:
+  - contract_id: org.example.platform
+    version: "1.0.0"
+policy:
+  allow_prerelease: false
+```
+
+The optional `product.id`, `product.name` and `product.version` are provenance labels. They may be copied into outputs, but the Registry engine MUST NOT branch, select behavior, alter defaults or choose a catalog based on them. The Product Definition supplies required components, variants, constraints and external contract declarations.
+
+`environment_contracts` identifies contracts supplied by the target environment rather than a Registry-managed component. It does not permit Registry to inspect or identify the consumer. Contract IDs are opaque namespaced strings; Registry compares declared versions and infers no semantics from their names.
+
+## 4. Catalog Index and Component Release Metadata
+
+A Catalog Index references immutable release-metadata documents; it does not mirror component source or become the authority for package contents. Each entry identifies a component, variant and package version, and supplies a URI plus SHA-256 digest for its Component Release Metadata. Registry verifies the digest over the exact fetched metadata bytes before parsing.
+
+Identical entries may be deduplicated. Different metadata identities for the same `(component_id, variant, version)` are a catalog conflict.
+
+Component Release Metadata is published and owned by the component maintainer. It declares stable component/variant IDs, package version and release status; one or more source units with repository URI and immutable full Git commit revision; required component dependencies; and contracts provided or required by the release.
+
+One logical component may use multiple source units. Several variants may come from one repository. Several components may reference the same repository and revision. Registry does not assume a one-component-to-one-repository mapping.
+
+A `withdrawn` release is ineligible for new resolution but remains identifiable for audit. Existing manifests are not silently rewritten; retrieval is blocked only by a separate explicit security policy.
+
+## 5. Resolution semantics
+
+Resolution is deterministic and independent of catalog ordering, repository names, publication timestamps and consumer identity.
+
+1. Validate the Product Definition, every Catalog Index and all referenced release metadata before source collection.
+2. Normalize omitted variants to `default`; collect root requirements and the transitive closure of required dependencies.
+3. Coalesce requirements by `(component_id, variant)` and intersect every constraint imposed on that key.
+4. Select exactly one active release per required key, satisfying all accumulated constraints and the prerelease policy.
+5. Prereleases are excluded unless `allow_prerelease` is true. Stable candidates are ordered by SemVer precedence, highest first.
+6. Missing candidates, empty constraint intersections, conflicting catalog metadata and equal-precedence ambiguity fail with structured conflicts. Registry never chooses the first catalog entry.
+7. Each required contract must be satisfied by exactly one selected release or one declared environment contract. Missing, incompatible or multiple providers fail.
+8. The selected dependency graph must be acyclic. A cycle fails and the report identifies its path.
+9. Output order is a deterministic topological order. Independent nodes at the same depth are ordered lexicographically by component ID, then variant ID.
+
+Optional dependencies, feature negotiation, arbitrary solver plugins and consumer-specific compatibility callbacks are outside contract 1.0.0.
+
+## 6. Source collection and workspace
+
+Each source unit is retrieved at its declared full immutable Git commit object ID. Branch names, tags and other movable references are not valid resolved revisions. Full 40-character and 64-character hexadecimal object IDs are accepted; the retrieved commit must resolve to exactly that ID.
+
+The Catalog Index digest protects release metadata. Git object verification protects the declared source revision. Neither implies publisher identity or signed provenance.
+
+The deterministic workspace layout is:
+
+```text
+prepared/
+├── components/
+│   └── <component-id>/
+│       └── <variant-id>/
+│           └── sources/
+│               └── <source-unit-id>/
+├── registry-manifest.json
+└── resolution-report.json
+```
+
+Every source unit has its own declared path. Physical cache deduplication is an implementation optimization and must not change manifest paths or visible contents. A declared subdirectory is a safe relative path inside the checked-out revision; absolute paths, parent traversal and escape from the source root are invalid.
+
+The collector stages privately, verifies all revisions, materializes all source units and validates the final layout before publishing the destination. Failure cannot leave a successful-looking partial workspace. Existing destinations are not implicitly overwritten. Registry does not run build scripts, package hooks or collected code.
+
+Contract 1.0.0 does not automatically materialize Git submodules or Git LFS objects. Required content must be represented as separately declared source units or through a future explicit asset contract; Registry does not silently fetch unlisted content.
+
+## 7. Resolved Manifest and Resolution Report
+
+The Resolved Manifest records normalized roots, selected component IDs/variants/versions, release-metadata identities, source repositories and exact revisions, workspace-relative source paths, resolved dependency edges, contract declarations and environment contracts. Consumers do not rerun version selection to reproduce the selected graph.
+
+A later catalog update creates a new resolution and manifest; it never mutates an existing manifest or prepared workspace. The manifest is the reproducibility record, not a mutable lockfile maintained by CDIN.
+
+The Resolution Report explains success or failure. It records selected candidates and applied constraints; failures include structured conflicts and rejected candidates with stable reason codes. A failed resolution produces neither a Resolved Manifest nor a published workspace.
+
+Manifest generation is deterministic: set-like arrays are sorted by identity keys, and no timestamp, random identifier, absolute host path or catalog iteration order is embedded. JSON serialization for digesting or signing follows RFC 8785 (JSON Canonicalization Scheme). A detached digest may be calculated over canonical manifest bytes; it is not embedded in the document it hashes.
+
+## 8. Security and trust boundary
+
+Product Definitions, Catalog Indexes and release metadata are untrusted data. They are parsed and validated, never evaluated as scripts, templates or plugins. Invalid metadata fails closed. Registry retrieves only declared sources at exact revisions and does not execute source code during resolution or collection.
+
+Repository authentication, credential storage, publisher signing, trust roots, vulnerability policy and security-withdrawal overrides are deployment/security concerns. They must not be improvised as product-specific resolver logic.
+
+## 9. Repository boundary
+
+The implementation belongs in the independent `cdin-editor/registry` repository, which owns the generic engine, entry points, internal modules, executable tests, conformance fixtures and release process. This Spec owns the architecture and public data contracts only.
+
+Registry is a build-time/delivery-plane tool. CDIN and unrelated consumers invoke it through an implementation-selected external tool or library boundary. No product component links to Registry or depends on it at runtime. Each consumer owns configuration, integration, builds, tests, packaging and launch.
+
+## 10. Deliberately not frozen
+
+Implementation language/toolchain, internal module boundaries, CLI command names and flags, catalog distribution/update transport, local cache and garbage collection, parallel downloads, authentication UX, signing/trust, API service deployment and release automation belong to the next repository-design phase. They can be decided without changing this data contract. Changes to public schemas, resolution behavior, source identity or workspace/manifest semantics require a Spec change and, where compatibility is affected, a new contract version.
+
+## 11. Normative Registry requirements
+
+- **REG-001** `ACCEPTED` The Registry MUST consume Product Definitions as declarative data and MUST NOT evaluate them as executable product logic. — *Verify:* STATIC
+- **REG-002** `ACCEPTED` The Registry MUST NOT branch on product identity, product name or consumer-specific identifiers when resolving or collecting components. — *Verify:* CONF
+- **REG-003** `ACCEPTED` Component, variant and source-unit IDs MUST use stable lowercase ASCII identifiers and MUST NOT be derived from repository names. — *Verify:* CONF
+- **REG-004** `ACCEPTED` An omitted variant MUST normalize to the `default` variant before catalog lookup and dependency resolution. — *Verify:* CONF
+- **REG-005** `ACCEPTED` Every public Registry document MUST declare a supported `schema_version` and be validated against its versioned JSON Schema. — *Verify:* CONF
+- **REG-006** `ACCEPTED` Component package versions and contract versions MUST follow Semantic Versioning 2.0.0. — *Verify:* CONF
+- **REG-007** `ACCEPTED` Version constraints MUST use only exact versions or conjunctions of the documented `=`, `>`, `>=`, `<` and `<=` comparators in contract 1.0.0. — *Verify:* CONF
+- **REG-008** `ACCEPTED` Resolution MUST include the transitive closure of every selected release's required component dependencies. — *Verify:* CONF
+- **REG-009** `ACCEPTED` A successful resolution MUST select exactly one release for each normalized `(component_id, variant)` key. — *Verify:* CONF
+- **REG-010** `ACCEPTED` All constraints on the same normalized component key MUST be intersected; an empty intersection MUST produce a structured resolution failure. — *Verify:* CONF
+- **REG-011** `ACCEPTED` Candidate selection MUST be deterministic and MUST NOT depend on catalog ordering, repository naming or publication timestamps. — *Verify:* CONF
+- **REG-012** `ACCEPTED` Prerelease releases MUST be excluded unless the Product Definition explicitly enables prerelease selection. — *Verify:* CONF
+- **REG-013** `ACCEPTED` Withdrawn releases MUST be excluded from new resolutions while remaining identifiable in historical manifests and reports. — *Verify:* CONF
+- **REG-014** `ACCEPTED` A dependency cycle MUST fail resolution and the report MUST identify the cycle path. — *Verify:* CONF
+- **REG-015** `ACCEPTED` Every required contract MUST be satisfied by a version-compatible declared provider in the selected component set or target environment. — *Verify:* CONF
+- **REG-016** `ACCEPTED` A required contract with no compatible provider or more than one provider MUST fail resolution as missing or ambiguous. — *Verify:* CONF
+- **REG-017** `ACCEPTED` A Component Release MUST support one or more declared source units and MUST NOT assume a one-component-to-one-repository mapping. — *Verify:* CONF
+- **REG-018** `ACCEPTED` Every source unit MUST identify a full immutable Git commit object ID; branch and tag names MUST NOT be accepted as resolved revisions. — *Verify:* CONF
+- **REG-019** `ACCEPTED` Registry MUST verify Catalog Index metadata digests before parsing the referenced release metadata. — *Verify:* CONF
+- **REG-020** `ACCEPTED` Source subdirectories and workspace paths MUST be relative, normalized and confined to their declared source or workspace root. — *Verify:* CONF
+- **REG-021** `ACCEPTED` The prepared workspace MUST follow the deterministic component/variant/source-unit layout defined by this contract. — *Verify:* CONF
+- **REG-022** `ACCEPTED` Source collection MUST publish a workspace only after all selected sources have been retrieved and verified; failure MUST NOT publish a partial successful workspace. — *Verify:* INTEG
+- **REG-023** `ACCEPTED` The Resolved Manifest MUST record exact selected releases, source revisions, dependency edges, contract declarations and workspace-relative source paths. — *Verify:* CONF
+- **REG-024** `ACCEPTED` Manifest generation MUST be deterministic and MUST NOT include wall-clock timestamps, random identifiers or absolute machine paths. — *Verify:* CONF
+- **REG-025** `ACCEPTED` A failed resolution MUST produce structured conflict and rejected-candidate details and MUST NOT produce a successful manifest. — *Verify:* CONF
+- **REG-026** `ACCEPTED` Registry metadata MUST be treated as untrusted data and MUST NOT be executed as code, scripts, templates or plugins. — *Verify:* FUZZ
