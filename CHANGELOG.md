@@ -10,12 +10,18 @@ from the public Kernel ABI and the Spec release or compatibility target.
 
 ## [Unreleased]
 
+### Added
+
+- Accept ADR-0022 as the generic, consumer-independent Registry architecture and align ADR-0014 so a cohesive infrastructure system is distinguished from a catch-all shared-utilities repository.
+- Freeze Registry data contracts at baseline 1.0.0 with JSON Schemas for Product Definitions, Catalog Indexes, Component Release Metadata, Resolved Manifests and Resolution Reports.
+- Define deterministic SemVer/dependency/contract resolution, immutable source identity, staged workspace publication and manifest reproducibility requirements.
+- Record `cdin-editor/registry` as the independent implementation repository; keep implementation language, internal modules, CLI syntax, catalog distribution, cache policy and service deployment for its repository-design phase.
+
 ### Changed
 
-- Define Registry as a consumer-independent, data-driven Component Orchestration system. Product Definitions declare component and variant requirements as data; Registry manages release discovery, versioning, updates, resolution and source collection.
-- Define the Registry-to-consumer handoff as a prepared source workspace, resolved manifest and resolution report. CDIN owns product-specific integration, build, tests, packaging and launch; it does not own component version or update management.
-- Update ADR-0022, Registry architecture, system maps, architecture overview, CDIN composition-root responsibilities, README navigation and Changelog to reflect the new responsibility boundaries.
-- Preserve the principle: Registry must understand requirements, not consumer identity; the same Registry can serve CDIN Editor and unrelated future products without product-specific code.
+- Align Registry architecture, repository topology, system maps, overview, ADR index, documentation navigation and conventions with the accepted responsibility boundaries.
+- Preserve the core invariant: Registry understands requirements, not consumer identity; a new consumer supplies data and does not require product-specific Registry code.
+- Clarify that Registry is a build-time/delivery-plane tool. Consumers retain integration, build, product tests, packaging and launch.
 
 ## [1.3.0] - 2026-11-04
 

@@ -55,6 +55,7 @@ Normative requirements are single lines in this exact shape (tools may parse the
 | `EXT` | Extensions and cdin-x |
 | `DATA` | Data / persistence |
 | `ROOT` | `cdin` composition root |
+| `REG` | Generic Registry architecture and data contracts |
 | `SPEC` | This specification's own process |
 | `TEST` | Verification design |
 

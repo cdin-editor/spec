@@ -30,9 +30,9 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0019](ADR-0019-runtime-bridge.md) | PUC Lua 5.4 C API as Runtime Host bridge | `ACCEPTED` |
 | [ADR-0020](ADR-0020-frontend-topology-and-interaction.md) | Frontend topology, TUI-first delivery and presentation contracts | `ACCEPTED` |
 | [ADR-0021](ADR-0021-kernel-implementation-backed-contracts.md) | Kernel ABI 1.1.0 implementation-backed contract acceptance | `ACCEPTED` |
-| [ADR-0022](ADR-0022-minimal-static-release-catalog.md) | Data-driven Component Orchestration and consumer-independent Registry | `PROPOSED` |
+| [ADR-0022](ADR-0022-minimal-static-release-catalog.md) | Generic Consumer-Independent Registry and Component Orchestration | `ACCEPTED` |
 
 ## How owner approval is recorded
 
-Where the owner approved a proposal *in principle* during design discussion but has not yet reviewed the detailed text written here, the ADR says so and the corresponding requirements remain `PROPOSED`. They become `ACCEPTED` only after the owner reviews this text and says so (SPEC-020). The current resolved/open distinction is in [status.md](../reference/status.md) and [open-decisions.md](open-decisions.md).
+An ADR marked `ACCEPTED` records an owner-approved decision. Proposals awaiting owner review remain `PROPOSED`; they are never requirements until accepted (SPEC-020). The current resolved/open distinction is in [status.md](../reference/status.md) and [open-decisions.md](open-decisions.md).
 

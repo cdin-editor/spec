@@ -1,113 +1,99 @@
-# ADR-0022: Data-driven Component Orchestration
+# ADR-0022: Generic Consumer-Independent Registry
 
 - **ID:** ADR-0022
-- **Status:** PROPOSED
-- **Decision scope:** Generic Registry architecture, Product Definition input and product/Registry responsibility boundaries
+- **Status:** ACCEPTED
+- **Decision scope:** Registry purpose, responsibility boundaries, public data contracts and reproducible workspace handoff
 
 ## Context
 
-CDIN is assembled from independently developed and versioned components. Repository topology may evolve: one logical component may split across multiple repositories, a repository may publish multiple variants, and a product may need only a subset of available variants.
+CDIN is assembled from independently developed and versioned components. Repository topology can evolve: one logical component may use several source repositories, one repository may publish several variants, and a product may require only a subset of available components and variants.
 
-A static catalog that merely lists release URLs leaves version selection, update management, dependency resolution and source collection with each consumer. Putting those responsibilities inside CDIN couples its build system to repository layouts and package lifecycle concerns. Hardcoding CDIN-specific product identities or rules inside Registry makes Registry non-reusable.
+A static catalog that merely lists release URLs leaves version selection, update management, dependency resolution and source collection with every consumer. Putting those responsibilities inside CDIN couples the composition root to repository layouts and package lifecycle concerns. Hardcoding product identities or workflows inside Registry prevents reuse.
+
+The independent `cdin-editor/registry` repository has been created. This ADR defines its architectural responsibility and data boundary; it does not claim the implementation is complete or shipped.
 
 ## Decision
 
-**Proposal: define Registry as a consumer-independent, data-driven Component Orchestration system.**
+**Registry is a generic, consumer-independent Component Registry and Orchestration Engine.**
 
-Registry owns component discovery, release/version metadata, update tracking, dependency and compatibility resolution, source collection, immutable revision verification, and preparation of a reproducible workspace plus resolved manifest.
+Registry owns catalog ingestion, release metadata validation, version and update discovery, dependency and contract resolution, immutable source collection, workspace preparation, Resolved Manifest generation and Resolution Report generation.
 
-A separate declarative **Product Definition** supplies component IDs, variants, version constraints and other generic requirements. It is data, not executable product logic. Its storage location is independent and remains open; this ADR does not require a new repository.
+A declarative **Product Definition** supplies root component requirements, variants, version constraints and target-environment contracts. It is data, not executable product logic.
 
 > **Registry must understand requirements, not consumer identity.**
 
-The same Registry must serve CDIN Editor and a future unrelated product by consuming different Product Definitions. Supporting a new consumer must not require consumer-specific code, product-ID conditionals or custom workflows in the Registry engine.
+The same engine serves CDIN Editor and unrelated products through different Product Definitions. A new consumer requires no product-specific code path, product-ID conditional, plug-in or custom workflow.
 
-### Responsibilities
+## Responsibilities
 
-- **Component repositories:** own source, package versions, tags, release notes, component tests and publication workflows.
-- **Product Definition:** declares logical components, variants, version constraints and product composition requirements.
-- **Registry:** manages catalog, release/version lifecycle, update discovery, dependency resolution, compatibility metadata evaluation, source collection and workspace preparation.
-- **CDIN:** consumes the prepared workspace and manifest, performs product-specific configuration and integration, builds, runs product/integration tests, packages and launches the editor.
-- **Spec:** defines normative contracts and architecture; it does not execute Registry operations or contain component source.
+- **Component repositories** remain authoritative for source, package versions, release metadata, tags, release notes, component tests and publication.
+- **Catalog Indexes** reference immutable Component Release Metadata and SHA-256 digests. They do not mirror source or replace component release authority.
+- **Product Definitions** declare required logical components, variants, version constraints and environment contracts.
+- **Registry** validates metadata, discovers eligible releases, resolves dependency and contract graphs, collects exact source revisions and prepares a deterministic workspace, Resolved Manifest and Resolution Report.
+- **CDIN and other consumers** use the workspace as input and own product-specific configuration, integration, builds, tests, packaging and launch.
+- **Spec** defines architecture, public data contracts, requirements and decisions; it contains no Registry implementation.
 
-### Product Definition and generic resolution
+## Public contract
 
-A Product Definition is declarative data. It may request Frontend variants cli and gui-sdl without selecting other available variants. Registry resolves those requirements against component metadata and release records.
+Registry contract baseline `1.0.0` consists of five JSON Schema documents under `schemas/registry/v1/`: Product Definition, Catalog Index, Component Release Metadata, Resolved Manifest and Resolution Report.
 
-A logical component need not map one-to-one to a repository. Metadata may describe multiple source units for a component or multiple variants published from one repository. Repository splits and variant growth must not require product-specific Registry logic.
+Product Definitions may be authored as YAML 1.2 or JSON. The JSON data model is canonical; other public documents and Registry outputs are JSON. The schemas use JSON Schema Draft 2020-12. Schema compatibility, identity, SemVer constraints, resolver semantics, source revision rules, workspace layout and manifest determinism are normative in [Registry data contracts](../architecture/registry-contracts.md).
 
-Registry may evaluate declared version constraints, dependencies and contract metadata. It cannot prove that a set works as an integrated product; CDIN owns those tests.
+A logical component is independent of repository topology. A release may declare multiple source units, and source units identify repositories by URI and commits by full immutable Git object ID. A selected release is identified by component ID, variant and Semantic Version.
 
-### Workspace handoff
+## Resolution and reproducibility
 
-Registry returns:
-- a deterministic prepared workspace containing the exact source trees required by the resolved Product Definition;
-- a resolved manifest recording component IDs, variants, package versions, source repositories, immutable full commit revisions and available integrity metadata;
-- a resolution report describing selected candidates, applied constraints and warnings.
+Registry resolves root and transitive dependencies. Constraints for the same normalized component/variant key are intersected. A successful resolution selects exactly one active release per key and validates every required contract against exactly one compatible selected provider or environment declaration.
 
-A list of URLs and SHAs alone is not the handoff contract: Registry performs source collection before returning the prepared workspace. CDIN does not fetch component sources or resolve versions.
+Prereleases are disabled unless explicitly enabled in the Product Definition. Withdrawn releases are excluded from new resolutions. Cycles, missing dependencies, constraint conflicts, metadata ambiguity and missing/ambiguous contract providers fail explicitly. Catalog ordering and publication timestamps are never tie-breakers.
 
-The workspace layout and manifest schema are implementation contracts to be specified before Registry implementation; examples are not finalized schemas.
+A successful prepare operation materializes each source unit at its exact commit and emits a deterministic workspace, Resolved Manifest and Resolution Report. A new release creates a new resolution candidate; it never mutates an existing workspace or manifest. The manifest is the reproducibility record, not a mutable lockfile maintained by CDIN.
 
-### Versioning and updates
+## Repository placement and implementation boundary
 
-Registry owns release discovery, version selection and update tracking. Product Definitions supply constraints or update policy as data. A new release creates a new resolution candidate; it never mutates an existing workspace or manifest. Previous manifests retain exact revisions for reproducibility, subject to source availability and explicit security withdrawal policy.
+Registry belongs in the independent `cdin-editor/registry` infrastructure repository. It is not a `cdin-common`, `cdin-shared` or generic shared-utilities repository: it owns one cohesive system for component delivery and orchestration. No product component links to Registry or requires it at runtime.
 
-CDIN does not maintain component versions, an updater, a dependency solver or a component lockfile. The Registry-produced resolved manifest is the reproducibility record for a prepared set.
-
-### Product integration and verification
-
-Registry checks metadata consistency, declared dependency constraints and compatibility declarations. CDIN remains responsible for product-specific configuration, integration, build, contract/integration tests, packaging and launch. A Registry resolution is a candidate input, not proof that the assembled product works.
-
-### Architectural placement and complexity limits
-
-Registry belongs to the component delivery and orchestration plane, outside product runtime and product build implementation. No component links to Registry at runtime. Product-specific needs enter only through Product Definitions and generic component metadata; Registry must not contain product-ID conditionals.
-
-The proposal does not require microservices, a database, a permanently running API, a custom artifact host, a custom package format or a separate repository for every Registry responsibility. The first implementation may be one generic CLI/engine with version-controlled metadata, declarative definitions and deterministic workspace/manifest output.
+The first implementation may be one local engine with a CLI entry point and version-controlled metadata. A database, microservices, permanent service, custom package format, custom artifact host or product-specific extension mechanism is not required.
 
 ## Consequences
 
-- Component lifecycle and source collection are centralized rather than reimplemented by every consumer.
-- CDIN is limited to product composition, integration, build, tests, packaging and launch.
-- Registry can serve unrelated products without knowing their identities.
-- Component repository splits and additional variants are represented through metadata rather than consumer-specific code.
-- Exact resolved manifests make prepared workspaces auditable and reproducible.
-- Generic metadata, Product Definition and workspace/manifest contracts must be defined before implementation.
-- End-to-end compatibility remains the responsibility of each consuming product's integration tests.
+- Component lifecycle and source collection are implemented once instead of duplicated by every consumer.
+- Consumers remain independent of component repository topology and package update policy.
+- Exact manifests make prepared source sets auditable and reproducible.
+- Consumers retain ownership of integration and product verification.
+- Registry contract 1.0.0 is stable; implementation language, CLI spelling, catalog distribution, cache policy, credential UX and service deployment remain repository-design choices.
+- A Registry resolution is a candidate source set, not proof that the assembled product works.
 
 ## Alternatives considered
 
-### CDIN-owned discovery and dependency resolution
+### Consumer-owned discovery and dependency resolution
 
-Rejected. It couples CDIN to component repository topology, version/update management and source collection.
+Rejected. It couples each consumer to component topology, version/update management and source collection.
 
-### CDIN-specific Registry rules
+### Product-specific Registry rules
 
-Rejected. Product identity conditionals and hardcoded component lists prevent reuse by unrelated consumers.
+Rejected. Product identity conditionals and hardcoded component lists destroy consumer independence.
 
-### Static catalog only, with each consumer doing the rest
+### Static catalog only, with consumers doing the rest
 
-Not selected. It leaves version selection, updates, dependency resolution and source collection duplicated in consumers.
+Rejected. It duplicates version selection, update tracking, dependency resolution and source collection in each consumer.
 
-### Full artifact-hosting package manager
+### Full package manager and artifact-hosting platform
 
-Rejected for the initial architecture. Component repositories remain authoritative for source and releases; Registry collects source when preparing a workspace rather than becoming a second artifact store.
+Not required initially. Component repositories remain authoritative; Registry resolves metadata and collects exact source revisions without becoming a second source host.
 
-## Open implementation questions
+### Catch-all shared repository
 
-- Exact Product Definition schema and ownership/location.
-- Generic component metadata schema, including multiple source units and variants.
-- Dependency constraint syntax and resolution policy.
-- Workspace layout, lifecycle, caching and cleanup.
-- Resolved manifest schema and integrity fields.
-- How Registry update candidates are requested or scheduled.
+Rejected. Registry has its own bounded responsibility and is not a home for unrelated shared libraries or utilities. See ADR-0014.
 
-These are implementation contracts to resolve before implementation; they do not change the responsibility boundaries above.
+## Deferred implementation choices
+
+Implementation language/toolchain, internal modules, command names/flags, catalog distribution/transport, caching/garbage collection, download parallelism, authentication UX, publisher signing/trust roots, API deployment and release automation belong to Registry repository design. They do not change the accepted data contract.
 
 ## References
 
 - [Registry architecture](../architecture/registry.md)
+- [Registry data contracts](../architecture/registry-contracts.md)
+- [ADR-0014 — No catch-all shared repositories](ADR-0014-no-shared-repositories.md)
+- [Repository topology](../architecture/repositories.md)
 - [System maps](../architecture/system-maps.md)
-- [Architecture overview](../architecture/overview.md)
-- [CDIN composition root](../components/cdin.md)
-- [ADR-0014 — No shared or common repositories](ADR-0014-no-shared-repositories.md)

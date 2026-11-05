@@ -40,6 +40,10 @@ fix:
 custom:
   folders:
     - path: "scripts"
+    - path: "schemas"
+      structure:
+        registry:
+          v1: {}
     - path: "docs"
       structure:
         reference: {}
