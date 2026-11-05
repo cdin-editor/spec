@@ -113,7 +113,7 @@ sequenceDiagram
     F->>F: recalculate layout and render
 ```
 
-*Caption: `PROPOSED` for the cross-component path. Kernel call synchronicity, version-checked editing and bounded notifications are present in ABI 1.0.0. This diagram does not imply that the Runtime Host API or Frontend Protocol wire format is already implemented.*
+*Caption: target cross-component path. Kernel call synchronicity, version-checked editing and bounded notifications are present in ABI 1.0.0; the Runtime Host API and Frontend Protocol 1.0.0 are implemented in their pinned components. A live CDIN Frontend transport and interactive editing workflow remain separate product integration gates.*
 
 ## 6. State owned
 
