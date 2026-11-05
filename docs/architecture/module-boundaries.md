@@ -16,9 +16,9 @@ flowchart TB
         X["cdin-x extensions"]
     end
 
-    FP{{"Frontend Protocol<br/>semantic contract + deterministic CBOR v1.0.0 target (Backend currently v0.2.0)"}}
+    FP{{"Frontend Protocol<br/>deterministic CBOR 1.0.0"}}
     EXT{{"Lua Extension Contract"}}
-    RHA{{"Runtime Host API<br/>provisional contract"}}
+    RHA{{"Runtime Host API<br/>1.0.0 stable"}}
     ABI{{"Kernel C ABI 1.1.0"}}
 
     subgraph CORE["Target CDIN core"]
@@ -58,7 +58,7 @@ flowchart TB
     class CORE,CONSUMERS group
 ```
 
-*Caption: target architecture. The Runtime Host API remains provisional and is not yet version-aligned across Backend and Runtime; the Kernel ABI `1.1.0` is the current native boundary. Frontend Protocol wire decisions are accepted by ADR-0018. `cdin-runtime` and frontends do not link directly to the Kernel. Kernel package `1.2.1` publishes ABI `1.1.0`.*
+*Caption: target architecture. Runtime Host API `1.0.0` and Frontend Protocol `1.0.0` are implemented by the pinned Backend/Runtime/Frontend components; CDIN's live Frontend transport and interactive session remain integration work. The Kernel ABI `1.1.0` is the current native boundary. `cdin-runtime` and frontends do not link directly to the Kernel. Kernel package `1.2.1` publishes ABI `1.1.0`.*
 
 Read as rules:
 
