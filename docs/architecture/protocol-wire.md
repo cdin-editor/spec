@@ -24,7 +24,7 @@ Unknown fields in a known message are ignored when their CBOR value is valid and
 
 Every connection performs `hello`, `hello_ack`, `attach`, then steady-state messages. The first frame MUST be `hello`; `attach` is accepted only after successful negotiation. A client is not considered attached until `attach` succeeds. Messages are sequence-checked independently per connection.
 
-The session has one driver and zero or more observers. The first attached client gets the driver lease. Driver-only messages are `input.key`, `input.text`, `input.mouse`, `input.paste`, `window.resize`, `focus`, `view.set_position` and `request.command`. Observers may send `ack`, `view.request_lines`, and responses for requests addressed to them. A driver is promoted only when the current driver detaches or closes; the oldest still-attached observer is promoted.
+The session has one driver and zero or more observers. The first attached client gets the driver lease. Driver-only messages are `input.key`, `input.text`, `input.mouse`, `input.paste`, `window.resize`, `focus`, `view.set_position` and `request.command`. Observers may send `ack`, `view.request_lines`, and responses for requests addressed to them. A driver is promoted only when the current driver detaches or closes; the oldest still-attached observer is promoted. When a Frontend negotiates the optional `driver-role-events/1` capability, the Backend sends `driver.role_changed` after a live lease transition. The event carries a strictly increasing session-wide `epoch` and the new `driver` boolean. A Frontend applies only events with an epoch greater than its current role epoch; stale or duplicate updates are rejected. The Backend remains authoritative for every driver-only request. A client that does not negotiate this capability receives no role event and must reconnect to obtain a refreshed `driver` value in `hello_ack`.
 
 All accepted input is copied into a bounded inbound queue and dispatched on the Runtime owner thread. A full queue returns `QUEUE_FULL`; it MUST NOT silently discard input. Kernel wakeup callbacks may signal the owner loop but MUST NOT invoke Lua.
 
@@ -32,7 +32,7 @@ All accepted input is copied into a bounded inbound queue and dispatched on the 
 
 The terms below mean: `uint` = unsigned CBOR integer; `bool` = CBOR false/true; `text` = valid UTF-8 CBOR text; `bytes` = CBOR byte string; `map` = definite CBOR map with text keys; `array<T>` = definite array; `null` = CBOR null. All payloads are maps. Fields marked `required` MUST appear exactly once. Unlisted fields are optional extension fields.
 
-The Backend 1.0.0 reference server currently accepts only the `core` namespace and advertises no optional capabilities. Protocol 1.0.0 permits optional capabilities only when registered and negotiated; a frontend MUST NOT assume clipboard, dialog or other optional services are available merely because it requested them.
+The reference Backend registers the optional `driver-role-events/1` capability. A Frontend requests it by including that exact identifier in `hello.capabilities`; the Backend returns it in `hello_ack.accepted_capabilities` only when the role lifecycle event path is enabled. Clipboard, dialog and other optional services remain independently negotiated and MUST NOT be assumed available merely because they were requested.
 
 ### 3.1 Frontend to Backend
 
@@ -58,7 +58,7 @@ The Backend 1.0.0 reference server currently accepts only the `core` namespace a
 
 | Message | Required fields | Optional fields / semantics |
 |---|---|---|
-| `hello_ack` | `major:uint`, `minor:uint`, `session_id:uint`, `client_id:uint`, `driver:bool`, `accepted_capabilities:array<text>` | — |
+| `hello_ack` | `major:uint`, `minor:uint`, `session_id:uint`, `client_id:uint`, `driver:bool`, `accepted_capabilities:array<text>` | `driver_role_epoch:uint`; starts the monotonic role epoch for this connection/session |
 | `ui.options` | `revision:uint`, `theme:text`, `options:map` | The map may be empty; its only defined keys are `title:text`, `tab_width:uint` (1..64), `wrap:bool`, `line_numbers:bool`, `relative_line_numbers:bool`, `cursor_shape:text` (`block`, `bar` or `underline`), and `cursor_blink:bool`. Unknown optional keys follow the version-evolution rules. |
 | `ui.style_table` | `revision:uint`, `styles:map` | Role IDs map to attributes; no palette-specific pixel values required |
 | `ui.layout` | `revision:uint`, `layout:map` | `layout` contains `root:map|null` and `active_leaf:text|null`. `root` is a recursive PaneTree node: a leaf is `{kind:"leaf",id:text,views:array<text>,active_view:text|null}`; `active_view` is either null or an ID contained in `views`. a split is `{kind:"split",id:text,axis:"vertical"|"horizontal",ratio_bp:uint,first:node,second:node}`. `ratio_bp` is fixed-point in `[1000,8999]`; it is not a float. |
@@ -75,6 +75,7 @@ The Backend 1.0.0 reference server currently accepts only the `core` namespace a
 | `request.dialog` | `request_id:uint`, `kind:text`, `options:map` | Requires negotiated `dialogs` capability |
 | `ui.flush` | `scope:text`, `sequence:uint` | Ends one atomic update. `scope` is `snapshot` or `response`. `sequence` is the monotonically increasing flush-group ID used by `ack`; the envelope `seq` remains the ordinary per-message sequence. `revision:uint` is required only for `snapshot` and forbidden for `response`. |
 | `detach_ack` | — | — |
+| `driver.role_changed` | `epoch:uint`, `driver:bool` | Optional; sent only when `driver-role-events/1` was accepted. `epoch` is strictly increasing for the Backend session; `driver` is the new lease state for this client. It is not an authorization token. |
 | `error` | `code:text`, `message:text` | `request_id:uint` |
 
 ## 4. Atomic updates, versions and flow control
@@ -93,7 +94,7 @@ Protocol version is `[major, minor]`. While major is unchanged, new optional fie
 
 ## 7. Validation profile implemented by the reference codec
 
-The v1.0.0 reference C codec validates every message type listed in §3, including recursive PaneTree layout nodes and active-leaf membership. It additionally enforces these semantic bounds: frontend and view identifiers are non-empty and bounded; dimensions are in `1..32768`; key names are at most 64 bytes; modifiers are unique members of `ctrl`, `alt`, `altgr`, `shift`; key actions are `press`, `release`, or `repeat`; mouse actions are `press`, `release`, `move`, or `scroll`; line requests ask for `1..4096` lines; notification text is at most 4096 bytes; and all byte spans are bounded by their line byte-string length. Unknown optional payload fields are skipped only after the CBOR value has passed structural/depth/canonical validation. The reference server currently accepts the core namespace only and advertises no optional capabilities.
+The v1.0.0 reference C codec validates every message type listed in §3, including recursive PaneTree layout nodes, active-leaf membership and the optional `driver.role_changed` schema. It additionally enforces these semantic bounds: frontend and view identifiers are non-empty and bounded; dimensions are in `1..32768`; key names are at most 64 bytes; modifiers are unique members of `ctrl`, `alt`, `altgr`, `shift`; key actions are `press`, `release`, or `repeat`; mouse actions are `press`, `release`, `move`, or `scroll`; line requests ask for `1..4096` lines; notification text is at most 4096 bytes; and all byte spans are bounded by their line byte-string length. Unknown optional payload fields are skipped only after the CBOR value has passed structural/depth/canonical validation. The reference server continues to accept the mandatory `core` namespace and negotiates the optional `driver-role-events/1` capability; other optional services remain independently gated.
 
 The C codec exposes frame encode/decode and callback-based partial read/write helpers. The Backend server adds per-client sequence checking, role enforcement, bounded input/output queues, keyed outbound coalescing, flush markers and ACK release. The Backend Lua Host bridge projects `cdin.ui-model.v1` to atomic message groups, queues inbound events and dispatches them on the Lua owner thread. Concrete socket and named-pipe creation remains a separate transport integration gate; see the Backend's `docs/spec-traceability.md`.
 
@@ -101,3 +102,8 @@ The C codec exposes frame encode/decode and callback-based partial read/write he
 ## 8. Implementation conformance note for v1.0.0
 
 The pinned Backend 1.0.0 implementation declares `CDIN_BACKEND_PROTOCOL_MAJOR/MINOR` as `1.0` and `src/protocol/codec.c` validates the Protocol 1.0.0 schemas, including nullable `active_view`, the typed `ui.options` map and bounded `ratio_bp`. `src/runtime/lua_host_protocol.c` projects the typed options map and fixed-point layout values. The Backend protocol codec tests cover these schema rules. This confirms the Backend's in-process protocol implementation; it does not prove that CDIN has connected a real Frontend transport or launched an interactive TUI.
+
+
+## 9. Driver role lifecycle extension
+
+`driver-role-events/1` is an optional capability. It is included in `hello.capabilities` only by Frontends that implement the `driver.role_changed` state transition. The Backend MUST send the initial `driver` role and `driver_role_epoch` in `hello_ack`; after a negotiated client's role changes while attached, it MUST enqueue one `driver.role_changed` message in that client's ordered outbound stream. Epochs are monotonic across role changes in the session, not per message type. A receiver MUST reject epoch zero, duplicate epochs and older epochs. The event is state synchronization only: the Backend MUST continue validating the current lease for every inbound driver-only message, regardless of what a client reports locally. When the capability is not accepted, no new core message is sent to that client, preserving compatibility with v1.0 consumers; that client refreshes its local role by reconnecting and negotiating again.
