@@ -27,7 +27,7 @@ Every document carries `schema_version`. The schemas in `schemas/registry/v1/` d
 - Component IDs, variant IDs and source-unit IDs use lowercase ASCII letters and digits with dot and hyphen separators. Published IDs are immutable.
 - An omitted variant normalizes to the literal ID `default` before lookup, dependency coalescing, conflict detection and manifest generation.
 - Package and contract versions use Semantic Versioning 2.0.0. Package version, source revision and contract version are independent axes.
-- Version constraints are one exact version (for example `1.2.3`, optionally prefixed by `=`) or a space-separated conjunction of comparators (for example `>=1.2.0 <2.0.0`). Supported comparators are `=`, `>`, `>=`, `<` and `<=`. OR, wildcards, partial versions, hyphen ranges, caret ranges and tilde ranges are outside contract 1.0.0.
+- Version constraints are one exact version (for example `1.2.3`, optionally prefixed by `=`) or a space-separated conjunction of comparators (for example `>=1.2.0 <2.0.0`). Supported comparators are `=`, `>`, `>=`, `<` and `<=`. OR, wildcards, partial versions, hyphen ranges, caret ranges and tilde ranges are outside contract 1.1.0.
 - Build metadata does not affect SemVer precedence. Distinct candidates with equal precedence but different version strings or metadata identities are ambiguous and fail resolution; catalog order is never a tie-breaker.
 
 ## 3. Product Definition
@@ -84,8 +84,6 @@ Resolution is deterministic and independent of catalog ordering, repository name
 9. If no compatible provider exists, resolution fails as `CONTRACT_PROVIDER_MISSING`; the report distinguishes an absent declaration from declarations that exist but are version-incompatible.
 10. The selected dependency graph must be acyclic. A cycle fails and the report identifies its exact path.
 11. Output order is a deterministic topological order. Independent nodes at the same depth are ordered lexicographically by component ID, then variant ID.
-8. The selected dependency graph must be acyclic. A cycle fails and the report identifies its path.
-9. Output order is a deterministic topological order. Independent nodes at the same depth are ordered lexicographically by component ID, then variant ID.
 
 Optional dependencies, feature negotiation, arbitrary solver plugins and consumer-specific compatibility callbacks are outside contract 1.0.0.
 
@@ -122,7 +120,7 @@ A later catalog update creates a new resolution and manifest; it never mutates a
 
 The Resolution Report explains success or failure. It records selected candidates and every applied version constraint. Each constraint identifies its target component/variant and whether it came from a Product Definition root or a dependency edge; dependency evidence identifies the requiring component, variant and selected release version.
 Rejected candidates identify the component, variant and version, include the stable rejection reason, and preserve catalog/release-metadata provenance whenever that candidate has it. Conflict records identify involved component/variant nodes. Contract-provider conflicts include the required contract ID and constraint plus every declared provider candidate, its version, origin, identity and compatibility result. An empty provider list means no declaration exists; a non-empty list with no compatible item means all declarations are incompatible.
-Constraint evidence, candidate evidence and provider evidence use deterministic ordering and are scoped to the final failure state selected by the deterministic resolver; evidence gathered only from abandoned backtracking branches MUST NOT appear in the report. The v1.1.0 schema defines closed conflict and rejected-candidate reason-code vocabularies.
+Constraint evidence, candidate evidence and provider evidence use deterministic ordering: applied constraints sort by target component ID, variant, constraint text, source type and source identity; rejected candidates sort by component ID, variant, version, reason code and release provenance; provider candidates sort by origin, provider identity and version; involved nodes sort by component ID and variant. Duplicate entries remain duplicated where multiplicity is semantically significant. Evidence is scoped to the exact final failure branch represented by the surfaced conflict; evidence gathered only from other abandoned backtracking branches MUST NOT be aggregated into the report. The v1.1.0 schema defines closed conflict and rejected-candidate reason-code vocabularies.
 A failed resolution produces neither a Resolved Manifest nor a published workspace.
 
 Manifest generation is deterministic: set-like arrays are sorted by identity keys, and no timestamp, random identifier, absolute host path or catalog iteration order is embedded. JSON serialization for digesting or signing follows RFC 8785 (JSON Canonicalization Scheme). A detached digest may be calculated over canonical manifest bytes; it is not embedded in the document it hashes.
