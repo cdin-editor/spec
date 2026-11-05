@@ -93,7 +93,7 @@ Verification plan and external test evidence. This repository contains no execut
 ## Decisions
 
 [adr/README.md](adr/README.md) indexes the ADRs and says how owner approval is
-recorded. [ADR-0022](adr/ADR-0022-minimal-static-release-catalog.md) proposes a minimal static release catalog rather than a full artifact-hosting package registry. [adr/open-decisions.md](adr/open-decisions.md) is the register of every
+recorded. [ADR-0022](adr/ADR-0022-minimal-static-release-catalog.md) proposes a generic, data-driven Component Orchestration system in which Product Definitions describe needs and the Registry resolves and collects components without consumer-specific logic. [adr/open-decisions.md](adr/open-decisions.md) is the register of every
 unresolved question, with options and trade-offs. Unresolved questions are never
 requirements.
 
