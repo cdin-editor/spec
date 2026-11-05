@@ -84,6 +84,10 @@ flowchart TB
 
 *Caption: target architecture. Solid arrows in this context view show message or call paths; dotted arrows are build-time, bundling or contract-governance relationships. A box marked `PROPOSED`, `OPEN` or `DEFERRED` is not evidence of an implementation.*
 
+### Component delivery and composition
+
+The delivery plane uses a generic, data-driven Registry proposal. Product Definitions declare component and variant requirements as data; Registry manages release discovery, version/update selection, dependency resolution and source collection, then prepares a reproducible workspace and manifest. The Registry is consumer-independent: it must understand requirements, not consumer identity. CDIN consumes the prepared workspace and owns product-specific integration, build, tests, packaging and launch. See [Registry architecture](registry.md).
+
 ### The four main contracts
 
 | Boundary | Caller / consumer | Provider / authority | What it deliberately does not define |
