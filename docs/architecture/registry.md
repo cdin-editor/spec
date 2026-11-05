@@ -39,7 +39,7 @@ It may live in the consuming product's repository or another independently gover
 
 Illustrative definition:
 
-\`\`\`yaml
+```yaml
 product:
   id: cdin-editor
   version: 1.0.0
@@ -58,7 +58,7 @@ components:
   - id: kernel
     variant: library
     version: "^2.0"
-\`\`\`
+```
 
 This is illustrative, not a finalized schema. Registry interprets generic fields such as component identity, variant, version constraint, dependencies and compatibility metadata. It must not contain logic such as an if-condition for product identity.
 
@@ -66,7 +66,7 @@ The definition selects only the Frontend variants required by a build. If Fronte
 
 ## 4. End-to-end orchestration
 
-\`\`\`mermaid
+```mermaid
 flowchart TB
     subgraph SOURCES["Independent component ownership"]
         C1["Component repository A"]
@@ -95,7 +95,7 @@ flowchart TB
         BUILD --> TEST --> LAUNCH
     end
     WS --> BUILD
-\`\`\`
+```
 
 1. Component maintainers publish independently versioned releases and metadata.
 2. A product supplies a Product Definition describing components, variants and constraints.
@@ -117,7 +117,7 @@ The handoff consists of:
 
 Illustrative workspace:
 
-\`\`\`text
+```text
 prepared/
 ├── components/
 │   ├── backend/
@@ -127,7 +127,7 @@ prepared/
 │   ├── runtime/
 │   └── kernel/
 └── registry-manifest.json
-\`\`\`
+```
 
 The final workspace contract must be generic and must not assume one logical component always maps to one repository. A component may use multiple source units; multiple variants may originate from one repository.
 
