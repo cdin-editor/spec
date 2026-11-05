@@ -12,6 +12,7 @@ from the public Kernel ABI and the Spec release or compatibility target.
 
 ### Added
 
+- Extend Registry Data Contracts to baseline 1.1.0 with fully sourced applied constraints, candidate provenance, structured contract-provider evidence, closed conflict/rejection reason codes and explicit self-provider semantics.
 - Accept ADR-0022 as the generic, consumer-independent Registry architecture and align ADR-0014 so a cohesive infrastructure system is distinguished from a catch-all shared-utilities repository.
 - Freeze Registry data contracts at baseline 1.0.0 with JSON Schemas for Product Definitions, Catalog Indexes, Component Release Metadata, Resolved Manifests and Resolution Reports.
 - Define deterministic SemVer/dependency/contract resolution, immutable source identity, staged workspace publication and manifest reproducibility requirements.

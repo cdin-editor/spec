@@ -1,7 +1,7 @@
 # Registry data contracts
 
 - **Status:** ACCEPTED
-- **Contract baseline:** Registry data contracts `1.0.0`
+- **Contract baseline:** Registry data contracts `1.1.0`
 - **Schema dialect:** JSON Schema Draft 2020-12
 - **Implementation owner:** `cdin-editor/registry`
 
@@ -79,7 +79,11 @@ Resolution is deterministic and independent of catalog ordering, repository name
 4. Select exactly one active release per required key, satisfying all accumulated constraints and the prerelease policy.
 5. Prereleases are excluded unless `allow_prerelease` is true. Stable candidates are ordered by SemVer precedence, highest first.
 6. Missing candidates, empty constraint intersections, conflicting catalog metadata and equal-precedence ambiguity fail with structured conflicts. Registry never chooses the first catalog entry.
-7. Each required contract must be satisfied by exactly one selected release or one declared environment contract. Missing, incompatible or multiple providers fail.
+7. Each required contract must be satisfied by exactly one compatible provider declaration across selected releases and the declared target environment. A selected release may satisfy its own requirement when it declares a compatible provider for that contract; self-providers are not implicitly excluded.
+8. Identical duplicate `(contract_id, version)` provider declarations within one selected release are coalesced. Each environment declaration is a distinct provider, and distinct compatible versions declared by one release are distinct providers. More than one compatible provider is ambiguous.
+9. If no compatible provider exists, resolution fails as `CONTRACT_PROVIDER_MISSING`; the report distinguishes an absent declaration from declarations that exist but are version-incompatible.
+10. The selected dependency graph must be acyclic. A cycle fails and the report identifies its exact path.
+11. Output order is a deterministic topological order. Independent nodes at the same depth are ordered lexicographically by component ID, then variant ID.
 8. The selected dependency graph must be acyclic. A cycle fails and the report identifies its path.
 9. Output order is a deterministic topological order. Independent nodes at the same depth are ordered lexicographically by component ID, then variant ID.
 
@@ -116,7 +120,10 @@ The Resolved Manifest records normalized roots, selected component IDs/variants/
 
 A later catalog update creates a new resolution and manifest; it never mutates an existing manifest or prepared workspace. The manifest is the reproducibility record, not a mutable lockfile maintained by CDIN.
 
-The Resolution Report explains success or failure. It records selected candidates and applied constraints; failures include structured conflicts and rejected candidates with stable reason codes. A failed resolution produces neither a Resolved Manifest nor a published workspace.
+The Resolution Report explains success or failure. It records selected candidates and every applied version constraint. Each constraint identifies its target component/variant and whether it came from a Product Definition root or a dependency edge; dependency evidence identifies the requiring component, variant and selected release version.
+Rejected candidates identify the component, variant and version, include the stable rejection reason, and preserve catalog/release-metadata provenance whenever that candidate has it. Conflict records identify involved component/variant nodes. Contract-provider conflicts include the required contract ID and constraint plus every declared provider candidate, its version, origin, identity and compatibility result. An empty provider list means no declaration exists; a non-empty list with no compatible item means all declarations are incompatible.
+Constraint evidence, candidate evidence and provider evidence use deterministic ordering and are scoped to the final failure state selected by the deterministic resolver; evidence gathered only from abandoned backtracking branches MUST NOT appear in the report. The v1.1.0 schema defines closed conflict and rejected-candidate reason-code vocabularies.
+A failed resolution produces neither a Resolved Manifest nor a published workspace.
 
 Manifest generation is deterministic: set-like arrays are sorted by identity keys, and no timestamp, random identifier, absolute host path or catalog iteration order is embedded. JSON serialization for digesting or signing follows RFC 8785 (JSON Canonicalization Scheme). A detached digest may be calculated over canonical manifest bytes; it is not embedded in the document it hashes.
 
@@ -134,7 +141,8 @@ Registry is a build-time/delivery-plane tool. CDIN and unrelated consumers invok
 
 ## 10. Deliberately not frozen
 
-Implementation language/toolchain, internal module boundaries, CLI command names and flags, catalog distribution/update transport, local cache and garbage collection, parallel downloads, authentication UX, signing/trust, API service deployment and release automation belong to the next repository-design phase. They can be decided without changing this data contract. Changes to public schemas, resolution behavior, source identity or workspace/manifest semantics require a Spec change and, where compatibility is affected, a new contract version.
+Implementation language/toolchain, internal module boundaries, CLI command names and flags, catalog distribution/update transport, local cache and garbage collection, parallel downloads, authentication UX, signing/trust, API service deployment and release automation belong to the next repository-design phase. They can be decided without changing this data contract. Changes to public schemas, resolution behavior, source identity or workspace/manifest semantics require a Spec change. Registry Data Contract versions follow SemVer independently of the Spec repository release: additive optional report evidence and clarifications that preserve existing success/failure decisions increment the contract minor version; compatible errata that do not alter schemas or behavior increment the patch version; breaking wire-format or resolution-semantic changes increment the major version.
+Resolution Reports produced under this baseline MUST declare `schema_version: "1.1.0"` and include `applied_constraints` (an empty array is valid). The additional evidence fields are additive within contract major version 1; v1.0 consumers may ignore unknown optional fields, while v1.1 consumers validate the v1.1.0 report schema.
 
 ## 11. Normative Registry requirements
 
