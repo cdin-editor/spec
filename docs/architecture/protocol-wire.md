@@ -1,6 +1,6 @@
 # Frontend Protocol wire contract 1.0.0
 
-**Status:** `ACCEPTED` by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md) and [ADR-0020](../adr/ADR-0020-frontend-topology-and-interaction.md). Version 1.0.0 is the accepted major-version schema target; the currently inspected Backend codec still implements 0.2.0 and must be upgraded before claiming 1.0.0 conformance.
+**Status:** `ACCEPTED` by [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md) and [ADR-0020](../adr/ADR-0020-frontend-topology-and-interaction.md). The pinned Backend 1.0.0 source declares Protocol 1.0.0 and implements the accepted nullable `active_view`, typed `ui.options` map and fixed-point `ratio_bp` schema. Concrete OS transport creation remains a separate integration responsibility.
 
 ## 1. Frame and envelope
 
@@ -32,7 +32,7 @@ All accepted input is copied into a bounded inbound queue and dispatched on the 
 
 The terms below mean: `uint` = unsigned CBOR integer; `bool` = CBOR false/true; `text` = valid UTF-8 CBOR text; `bytes` = CBOR byte string; `map` = definite CBOR map with text keys; `array<T>` = definite array; `null` = CBOR null. All payloads are maps. Fields marked `required` MUST appear exactly once. Unlisted fields are optional extension fields.
 
-The currently inspected Backend 0.2.0 reference decoder accepts only the `core` namespace and no optional capabilities. The accepted Protocol 1.0.0 contract permits optional capabilities only when registered and negotiated; a frontend MUST NOT assume clipboard, dialog or other optional services are available merely because it requested them.
+The Backend 1.0.0 reference server currently accepts only the `core` namespace and advertises no optional capabilities. Protocol 1.0.0 permits optional capabilities only when registered and negotiated; a frontend MUST NOT assume clipboard, dialog or other optional services are available merely because it requested them.
 
 ### 3.1 Frontend to Backend
 
@@ -100,4 +100,4 @@ The C codec exposes frame encode/decode and callback-based partial read/write he
 
 ## 8. Implementation conformance note for v1.0.0
 
-The 1.0.0 contract is an accepted target, not a statement about the current Backend checkout. The inspected Backend codec (`src/protocol/codec.c`) still validates `ui.options` as only `revision` plus `theme`, and still requires a non-empty text `active_view` in a leaf. Its Lua projector (`src/runtime/lua_host_protocol.c`) emits the theme/revision pair and does not yet project the typed options map. Until those validators, projection code, protocol version negotiation and conformance tests are updated, the Backend remains a v0.2.0 implementation and MUST NOT advertise v1.0.0 support.
+The pinned Backend 1.0.0 implementation declares `CDIN_BACKEND_PROTOCOL_MAJOR/MINOR` as `1.0` and `src/protocol/codec.c` validates the Protocol 1.0.0 schemas, including nullable `active_view`, the typed `ui.options` map and bounded `ratio_bp`. `src/runtime/lua_host_protocol.c` projects the typed options map and fixed-point layout values. The Backend protocol codec tests cover these schema rules. This confirms the Backend's in-process protocol implementation; it does not prove that CDIN has connected a real Frontend transport or launched an interactive TUI.
