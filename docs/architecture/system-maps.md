@@ -230,7 +230,7 @@ Version labels describe different contracts; they are not interchangeable.
 
 The Registry is a generic, consumer-independent Component Orchestration system. Product Definitions provide requirements as data; Registry manages component versions, updates, resolution and source collection. CDIN consumes a prepared workspace and owns product integration, build, tests, packaging and launch.
 
-\`\`\`mermaid
+```mermaid
 flowchart TB
     subgraph COMPONENTS["Component repositories and releases"]
         C1["Backend source units"]
@@ -266,7 +266,7 @@ flowchart TB
     SPEC -. "defines generic contracts" .-> CATALOG
     SPEC -.-> PD
     SPEC -.-> CDIN
-\`\`\`
+```
 
 **Core invariant:** Registry must understand requirements, not consumer identity. The same Registry can serve CDIN Editor and a future unrelated product by processing different Product Definitions without product-specific code.
 
