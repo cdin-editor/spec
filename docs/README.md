@@ -47,7 +47,8 @@ System-level design: who owns what, how components talk, how they start and stop
 | Page | What it settles |
 | --- | --- |
 | [overview](architecture/overview.md) | goals, principles, system context, the component list |
-| [system-maps](architecture/system-maps.md) | layered landscape, dependency map, edit sequence, lifecycle, versioning and Registry placement |\n| [registry](architecture/registry.md) | Registry purpose, architectural placement, Kernel 2.0.0 example, release discovery and ownership boundaries |
+| [system-maps](architecture/system-maps.md) | layered landscape, dependency map, edit sequence, lifecycle, versioning and Registry placement |
+| [registry](architecture/registry.md) | data-driven component orchestration, Product Definitions, version resolution, source collection and consumer-independent Registry architecture |
 | [repositories](architecture/repositories.md) | which component lives in which repository, today and at the target |
 | [module-boundaries](architecture/module-boundaries.md) | who may depend on whom; who owns which state |
 | [abi-and-compatibility](architecture/abi-and-compatibility.md) | the C ABI rules every binary boundary follows |
