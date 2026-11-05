@@ -1,6 +1,6 @@
 # Frontend Protocol
 
-The accepted contract between the Backend and any number of frontends (GUI, TUI, CLI, headless, a different GUI toolkit, web). Status: **`ACCEPTED`** by [ADR-0005](../adr/ADR-0005-frontend-protocol.md), [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md) and [ADR-0020](../adr/ADR-0020-frontend-topology-and-interaction.md). The accepted next wire target is Protocol `1.0.0`; the current Backend implementation remains `0.2.0`. The exact wire envelope and every payload schema are normative in [protocol-wire.md](protocol-wire.md); `cdin.ui-model.v1` is normative in [ui-model-v1.md](ui-model-v1.md).
+The accepted contract between the Backend and any number of frontends (GUI, TUI, CLI, headless, a different GUI toolkit, web). Status: **`ACCEPTED`** by [ADR-0005](../adr/ADR-0005-frontend-protocol.md), [ADR-0018](../adr/ADR-0018-frontend-protocol-wire.md) and [ADR-0020](../adr/ADR-0020-frontend-topology-and-interaction.md). Protocol `1.0.0` is the accepted wire contract and is implemented by the pinned Backend 1.0.0 reference codec/server. The exact wire envelope and every payload schema are normative in [protocol-wire.md](protocol-wire.md); `cdin.ui-model.v1` is normative in [ui-model-v1.md](ui-model-v1.md).
 
 ## 1. Model
 
@@ -81,7 +81,7 @@ The capability registry is the canonical catalogue of optional frontend services
 | `truecolor` | Full 24-bit foreground/background colour presentation. |
 | `ime` | Input-method composition support; committed text still travels through `input.text`. |
 
-The frontend declares capabilities in `hello`; the Backend returns only the intersection actually supported by both peers for that session. A registered capability is not necessarily implemented. The currently inspected Backend Protocol 0.2.0 server accepts only mandatory `core` and no optional capabilities.
+The frontend declares capabilities in `hello`; the Backend returns only the intersection actually supported by both peers for that session. A registered capability is not necessarily implemented. The pinned Backend 1.0.0 reference server currently accepts only mandatory `core` and no optional capabilities.
 - **PROTO-011** `ACCEPTED` Capabilities are declared by the frontend and accepted or reduced by the backend in `hello_ack`. Unknown capability names MUST be ignored. — *Verify:* CONF
 - **PROTO-012** `ACCEPTED` Several frontends MAY attach to one session simultaneously. Each has an independent handshake, capability set and flush sequence. — *Verify:* INTEG
 - **PROTO-013** `ACCEPTED` Exactly one attached frontend holds the driver lease. Other frontends are observers. The oldest attached observer is promoted only when the driver detaches/closes; permission details are normative in [protocol-wire.md](protocol-wire.md#2-protocol-flow-and-permissions). — *Verify:* CONF, INTEG
@@ -170,6 +170,6 @@ Resolved protocol decisions: wire encoding, client library and mutation authorit
 
 ## Accepted keyboard and capability rules
 
-The capability registry is the canonical catalogue of capability names, versions and semantics. A frontend declares what it can implement in `hello`; the Backend returns the intersection it actually supports in `hello_ack`. Requested capabilities are not active capabilities. A frontend MUST NOT infer support from a request it sent, and a Backend MUST NOT advertise a capability whose implementation is absent or unavailable in the current session. The current Backend v0.2.0 reference server accepts only the mandatory `core` namespace and no optional capabilities.
+The capability registry is the canonical catalogue of capability names, versions and semantics. A frontend declares what it can implement in `hello`; the Backend returns the intersection it actually supports in `hello_ack`. Requested capabilities are not active capabilities. A frontend MUST NOT infer support from a request it sent, and a Backend MUST NOT advertise a capability whose implementation is absent or unavailable in the current session. The pinned Backend 1.0.0 reference server accepts only the mandatory `core` namespace and no optional capabilities.
 
 `input.key` carries key identity, action and modifiers (with an optional platform scancode); `input.text` carries committed text, including IME composition output. These are different events. The frontend translates device events but MUST NOT resolve editor keymaps or commands. Runtime owns keymap interpretation and command policy. A terminal frontend maps cell-based visual actions back to logical byte positions before sending position changes.
