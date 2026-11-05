@@ -12,7 +12,7 @@ Is any auxiliary repository justified now?
 ## Decision
 No. No `cdin-common`, `cdin-shared` or `cdin-scripts` repository is created (ARCH-005). Tooling stays in `cdin` because it depends on the Makefile and the source layout. Code needed by two components is either part of a contract (the ABI, the protocol) or duplicated deliberately.
 
-The protocol reference codec is justified, but it stays as the independently linkable `cdin_protocol` target inside the Backend repository. [ADR-0018](ADR-0018-frontend-protocol-wire.md) accepts this placement and explicitly avoids a separate shared/client-library repository.
+The protocol reference codec is justified, but it stays as the independently linkable `cdin_protocol` target inside the Backend repository. [ADR-0018](ADR-0018-frontend-protocol-wire.md) accepts this placement and explicitly avoids a separate shared/client-library repository. The proposed `cdin-editor/registry` is not an exception for shared code: [ADR-0022](ADR-0022-minimal-static-release-catalog.md) limits it to static release-discovery metadata and references; it hosts no shared implementation.
 
 ## Options
 - **A. No shared repositories (decision).** Pros: every repository has one responsibility and one owner. Cons: some duplication.
