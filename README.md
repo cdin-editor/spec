@@ -41,7 +41,9 @@ flowchart TB
     EXTAPI{{"Lua Extension Contract"}}
     X["cdin-x<br/>plugins, themes, fonts, workflows"]
     OS[("Operating system<br/>filesystem, processes, clock, devices")]
-    ROOT["cdin composition root<br/>build, bundle, release, launcher"]
+    ROOT["cdin composition root<br/>product integration, build, test, launch"]
+    PD["Product Definition<br/>declarative requirements"]
+    REG["generic Registry<br/>versions, updates, resolve, collect"]
     SPEC["spec repository<br/>architecture and contracts"]
 
     USER --> GUI
@@ -55,6 +57,12 @@ CLI <--> FP
     FP <--> BE
     X --> EXTAPI --> RT
     BE --> OS
+    PD --> REG
+    REG -->|"prepared workspace + manifest"| ROOT
+    REG <-->|"component releases + metadata"| K
+    REG <-->|"component releases + metadata"| RT
+    REG <-->|"component releases + metadata"| BE
+    REG <-->|"component releases + metadata"| GUI
     ROOT -. "build / bundle / launch" .-> PRESENTATION
     ROOT -.-> PRODUCT
     ROOT -. "bundle extension assets" .-> X
