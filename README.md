@@ -59,10 +59,8 @@ CLI <--> FP
     BE --> OS
     PD --> REG
     REG -->|"prepared workspace + manifest"| ROOT
-    REG <-->|"component releases + metadata"| K
-    REG <-->|"component releases + metadata"| RT
-    REG <-->|"component releases + metadata"| BE
-    REG <-->|"component releases + metadata"| GUI
+    COMPONENTS["component repositories<br/>source + release metadata"]
+    COMPONENTS --> REG
     ROOT -. "build / bundle / launch" .-> PRESENTATION
     ROOT -.-> PRODUCT
     ROOT -. "bundle extension assets" .-> X
