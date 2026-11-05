@@ -14,7 +14,7 @@ All notable changes to this specification are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-The specification version is defined in `docs/reference/status.md`
+## [Unreleased]\n\n### Added\n\n- Propose ADR-0022 and a dedicated Registry architecture page defining `cdin-editor/registry` as a minimal static release catalog for component release discovery.\n- Document Registry placement in the release/discovery plane, its relationship to component repositories, CDIN coordination and Spec contracts, and a Kernel package `2.0.0` publication-to-lockfile example.\n\n### Changed\n\n- Clarify that Registry stores release metadata and references only; component repositories remain authoritative for source and releases, while CDIN owns resolution and `deps.lock`.\n- Clarify that the proposed Registry is not a shared-code repository and does not supersede ADR-0014.\n\nThe specification version is defined in `docs/reference/status.md`
 (SPEC-010). The Kernel package release version is tracked independently
 from the public Kernel ABI and the Spec release or compatibility target.
 
