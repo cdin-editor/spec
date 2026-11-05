@@ -129,7 +129,7 @@ flowchart TB
 - **No second canonical document store exists.** The kernel owns document bytes, document versions and undo/redo history. Runtime views may own selections and logical scroll anchors; frontends may own disposable visual caches.
 - **The kernel is presentation-neutral.** It does not know about SDL, terminals, Lua, `cdin-x`, the filesystem or release tooling.
 - **The root is not a runtime service.** `cdin` can know about components to assemble them but no component depends on the composition root.
-- **The language bridge is decided.** PUC Lua 5.4 C API is the only supported v1 bridge under [ADR-0019](../adr/ADR-0019-runtime-bridge.md); Backend owns the Lua state and callbacks. LuaJIT FFI and MetaCall are not v1 alternatives. The Runtime Host API remains a separate provisional compatibility contract.
+- **The language bridge is decided.** PUC Lua 5.4 C API is the only supported v1 bridge under [ADR-0019](../adr/ADR-0019-runtime-bridge.md); Backend owns the Lua state and callbacks. LuaJIT FFI and MetaCall are not v1 alternatives. The Runtime Host API is a separate stable `1.0.0` compatibility contract.
 
 ## 3. Detailed request path — one edit from input to pixels
 
