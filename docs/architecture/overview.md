@@ -68,10 +68,8 @@ flowchart TB
     BE --> OS
     PD --> REG
     REG -->|"prepared workspace + manifest"| ROOT
-    REG <-->|"component release metadata"| K
-    REG <-->|"component release metadata"| RT
-    REG <-->|"component release metadata"| BE
-    REG <-->|"component release metadata"| GUI
+    COMPONENTS["component repositories<br/>source + release metadata"]
+    COMPONENTS --> REG
     ROOT -. "build / bundle / launch" .-> UI
     ROOT -.-> CORE
     ROOT -. "bundles assets" .-> XREPO
