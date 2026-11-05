@@ -45,6 +45,259 @@
     "gitRevision": {
       "type": "string",
       "pattern": "^(?:[a-fA-F0-9]{40}|[a-fA-F0-9]{64})$"
+    },
+    "conflictCode": {
+      "type": "string",
+      "enum": [
+        "NO_ROOT_REQUIREMENTS",
+        "INVALID_COMPONENT_ID",
+        "INVALID_VERSION_CONSTRAINT",
+        "INVALID_CATALOG",
+        "INVALID_RELEASE_IDENTITY",
+        "INVALID_RELEASE_VERSION",
+        "INVALID_RELEASE_STATUS",
+        "MISSING_SOURCE_UNITS",
+        "INVALID_SOURCE_IDENTITY",
+        "RESOLUTION_LIMIT",
+        "INVALID_DEPENDENCY_ID",
+        "INVALID_DEPENDENCY_CONSTRAINT",
+        "CONSTRAINT_INTERSECTION_EMPTY",
+        "AMBIGUOUS_RELEASE",
+        "NO_COMPATIBLE_RELEASE",
+        "DEPENDENCY_CONFLICT",
+        "DEPENDENCY_CYCLE",
+        "INVALID_CONTRACT_ID",
+        "INVALID_CONTRACT_VERSION",
+        "INVALID_ENVIRONMENT_CONTRACT",
+        "INVALID_CONTRACT_CONSTRAINT",
+        "CONTRACT_PROVIDER_MISSING",
+        "CONTRACT_PROVIDER_AMBIGUOUS",
+        "INTERNAL_UNRESOLVED_DEPENDENCY"
+      ]
+    },
+    "rejectionReasonCode": {
+      "type": "string",
+      "enum": [
+        "WITHDRAWN",
+        "PRERELEASE_DISABLED",
+        "CONSTRAINT_MISMATCH"
+      ]
+    },
+    "resolutionNode": {
+      "type": "object",
+      "properties": {
+        "component_id": {
+          "$ref": "#/$defs/componentId"
+        },
+        "variant": {
+          "$ref": "#/$defs/variantId"
+        },
+        "version": {
+          "$ref": "#/$defs/semver"
+        }
+      },
+      "required": [
+        "component_id",
+        "variant"
+      ],
+      "additionalProperties": true
+    },
+    "constraintSource": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "root",
+            "dependency"
+          ]
+        },
+        "component_id": {
+          "$ref": "#/$defs/componentId"
+        },
+        "variant": {
+          "$ref": "#/$defs/variantId"
+        },
+        "version": {
+          "$ref": "#/$defs/semver"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "dependency"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "component_id",
+              "variant",
+              "version"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "appliedConstraint": {
+      "type": "object",
+      "properties": {
+        "component_id": {
+          "$ref": "#/$defs/componentId"
+        },
+        "variant": {
+          "$ref": "#/$defs/variantId"
+        },
+        "version_constraint": {
+          "$ref": "#/$defs/versionConstraint"
+        },
+        "source": {
+          "$ref": "#/$defs/constraintSource"
+        }
+      },
+      "required": [
+        "component_id",
+        "variant",
+        "version_constraint",
+        "source"
+      ],
+      "additionalProperties": true
+    },
+    "contractProviderEvidence": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "type": "string",
+          "enum": [
+            "component",
+            "environment"
+          ]
+        },
+        "component_id": {
+          "$ref": "#/$defs/componentId"
+        },
+        "variant": {
+          "$ref": "#/$defs/variantId"
+        },
+        "version": {
+          "$ref": "#/$defs/semver"
+        },
+        "catalog_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "release_metadata_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "release_metadata_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "environment_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "compatible": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "origin",
+        "version",
+        "compatible"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "origin": {
+                "const": "component"
+              }
+            },
+            "required": [
+              "origin"
+            ]
+          },
+          "then": {
+            "required": [
+              "component_id",
+              "variant"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "origin": {
+                "const": "environment"
+              }
+            },
+            "required": [
+              "origin"
+            ]
+          },
+          "then": {
+            "required": [
+              "environment_index"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "contractEvidence": {
+      "type": "object",
+      "properties": {
+        "contract_id": {
+          "$ref": "#/$defs/contractId"
+        },
+        "requested_constraint": {
+          "$ref": "#/$defs/versionConstraint"
+        },
+        "requiring_component": {
+          "type": "object",
+          "properties": {
+            "component_id": {
+              "$ref": "#/$defs/componentId"
+            },
+            "variant": {
+              "$ref": "#/$defs/variantId"
+            },
+            "version": {
+              "$ref": "#/$defs/semver"
+            }
+          },
+          "required": [
+            "component_id",
+            "variant",
+            "version"
+          ],
+          "additionalProperties": true
+        },
+        "providers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contractProviderEvidence"
+          }
+        }
+      },
+      "required": [
+        "contract_id",
+        "requested_constraint",
+        "requiring_component",
+        "providers"
+      ],
+      "additionalProperties": true
     }
   },
   "properties": {
@@ -98,13 +351,23 @@
             "$ref": "#/$defs/semver"
           },
           "reason_code": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
+            "$ref": "#/$defs/rejectionReasonCode"
           },
           "detail": {
             "type": "string",
             "maxLength": 4000
+          },
+          "catalog_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "release_metadata_uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "release_metadata_sha256": {
+            "$ref": "#/$defs/sha256"
           }
         },
         "required": [
@@ -123,9 +386,7 @@
         "type": "object",
         "properties": {
           "code": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
+            "$ref": "#/$defs/conflictCode"
           },
           "message": {
             "type": "string",
@@ -160,6 +421,15 @@
               ],
               "additionalProperties": true
             }
+          },
+          "involved_nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/resolutionNode"
+            }
+          },
+          "contract_evidence": {
+            "$ref": "#/$defs/contractEvidence"
           }
         },
         "required": [
@@ -192,6 +462,13 @@
     },
     "extensions": {
       "type": "object"
+    },
+    "applied_constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/appliedConstraint"
+      },
+      "default": []
     }
   },
   "required": [
@@ -200,7 +477,8 @@
     "selected",
     "rejected_candidates",
     "conflicts",
-    "warnings"
+    "warnings",
+    "applied_constraints"
   ],
   "additionalProperties": true
 }
