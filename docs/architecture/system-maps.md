@@ -226,4 +226,47 @@ Version labels describe different contracts; they are not interchangeable.
 | Runtime Host API version | `1.0.0` stable | Backend Host API contract | Runtime-to-Backend service surface; live native integration remains a Runtime package release gate |
 | Extension-contract version | follows the extension contract | `cdin` extension contract | Compatibility between runtime and `cdin-x` extensions |
 
+## 6. Release discovery and Registry placement
+
+The Registry is a **release and discovery catalog**, not another runtime component. It indexes component-owned releases so the CDIN composition root can discover candidates from one place. It does not own component source, build outputs, dependency solving or `deps.lock`.
+
+```mermaid
+flowchart LR
+    K["Kernel repository"] --> KR["Kernel release"]
+    R["Runtime repository"] --> RR["Runtime release"]
+    B["Backend repository"] --> BR["Backend release"]
+    F["Frontend repository"] --> FR["Frontend release"]
+    KR -. "metadata reference" .-> REG["Registry<br/>static JSON catalog"]
+    RR -.-> REG
+    BR -.-> REG
+    FR -.-> REG
+    REG --> CDIN["CDIN coordinator"]
+    CDIN --> RES["Resolver + compatibility policy"]
+    RES --> LOCK["deps.lock candidate"]
+    LOCK --> TEST["Build + contract + integration tests"]
+    TEST --> PR["Lockfile pull request"]
+    SPEC["Spec repository"] -. "defines contracts and architecture" .-> REG
+    SPEC -.-> CDIN
+```
+
+*Status: `PROPOSED`. The Registry is outside the product runtime and is not linked into any component. This diagram describes the intended release/discovery path, not an implemented workflow.*
+
+### Kernel 2.0.0 example
+
+If the Kernel repository publishes package `2.0.0`, its own CI tests and publishes that release. The Registry adds a small entry containing the stable component ID, package version, tag, full commit SHA, contract versions and release URL. It does not copy source or binaries.
+
+CDIN reads the catalog, checks whether the Kernel's **contract version** satisfies the integration profile, resolves a complete candidate set, fetches the exact revision and runs integration gates. If successful, CDIN opens a pull request with the candidate `deps.lock` update. Package version `2.0.0` does not imply ABI `2.0.0`; those version axes are independent.
+
+### Ownership summary
+
+| Owner | Responsibility |
+|---|---|
+| Component repository | Source, package version, tag, build/test and release assets |
+| Registry | Static catalog of release references and contract declarations |
+| CDIN | Discovery consumption, resolver, compatibility policy, lockfile and integration CI |
+| Spec | Normative architecture, contract definitions and decision records |
+
+For the full record shape, publication flow, integrity limits and non-goals, see [Registry architecture](registry.md) and [ADR-0022](../adr/ADR-0022-minimal-static-release-catalog.md).
+
+
 The Kernel package `1.2.1` publishes ABI `1.1.0`; the ABI is independently versioned from the package and the Kernel-declared Spec compatibility target `1.1.0`. Spec release `1.3.0` is an application-level architecture release and does not change the Kernel header or its declared target. If the accepted kernel contract changes, update the kernel ABI and its declared Spec target through an explicit review, and update the Spec release according to `SPEC-010`; do not infer a kernel ABI bump from package-only or documentation-only changes.
