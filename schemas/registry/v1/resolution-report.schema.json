@@ -205,6 +205,9 @@
         },
         "compatible": {
           "type": "boolean"
+        },
+        "component_version": {
+          "$ref": "#/$defs/semver"
         }
       },
       "required": [
@@ -275,6 +278,38 @@
         "requested_constraint",
         "requiring_component",
         "providers"
+      ],
+      "additionalProperties": true
+    },
+    "releaseIdentity": {
+      "type": "object",
+      "properties": {
+        "component_id": {
+          "$ref": "#/$defs/componentId"
+        },
+        "variant": {
+          "$ref": "#/$defs/variantId"
+        },
+        "version": {
+          "$ref": "#/$defs/semver"
+        },
+        "catalog_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "release_metadata_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "release_metadata_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "component_id",
+        "variant",
+        "version"
       ],
       "additionalProperties": true
     }
@@ -409,6 +444,12 @@
           },
           "contract_evidence": {
             "$ref": "#/$defs/contractEvidence"
+          },
+          "candidate_evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/releaseIdentity"
+            }
           }
         },
         "required": [
