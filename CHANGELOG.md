@@ -12,20 +12,10 @@ from the public Kernel ABI and the Spec release or compatibility target.
 
 ### Changed
 
-- Replace the CDIN-specific static-catalog proposal with generic, data-driven Component Orchestration: independent Product Definitions describe requirements; Registry resolves versions, tracks updates, collects exact component sources and prepares reproducible workspaces for any consumer.
-- Clarify that CDIN owns product-specific integration, build, tests, packaging and launch, while Registry owns component discovery, release/version management, update handling, resolution and source collection.
-- Update Registry architecture diagrams, CDIN composition-root responsibilities, README navigation and ADR-0022 to remove consumer-specific Registry logic and resolver/lockfile ownership from CDIN.
-
-
-### Added
-
-- Propose ADR-0022 and a dedicated Registry architecture page defining `cdin-editor/registry` as a minimal static release catalog for component release discovery.
-- Document Registry placement in the release/discovery plane, its relationship to component repositories, CDIN coordination and Spec contracts, and a Kernel package `2.0.0` publication-to-lockfile example.
-
-### Changed
-
-- Clarify that Registry stores release metadata and references only; component repositories remain authoritative for source and releases, while CDIN owns resolution and `deps.lock`.
-- Clarify that the proposed Registry is not a shared-code repository and does not supersede ADR-0014.
+- Define Registry as a consumer-independent, data-driven Component Orchestration system. Product Definitions declare component and variant requirements as data; Registry manages release discovery, versioning, updates, resolution and source collection.
+- Define the Registry-to-consumer handoff as a prepared source workspace, resolved manifest and resolution report. CDIN owns product-specific integration, build, tests, packaging and launch; it does not own component version or update management.
+- Update ADR-0022, Registry architecture, system maps, architecture overview, CDIN composition-root responsibilities, README navigation and Changelog to reflect the new responsibility boundaries.
+- Preserve the principle: Registry must understand requirements, not consumer identity; the same Registry can serve CDIN Editor and unrelated future products without product-specific code.
 
 ## [1.3.0] - 2026-11-04
 
