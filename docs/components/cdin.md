@@ -1,6 +1,6 @@
 # cdin: the composition root
 
-`cdin` is the point where the components of CDIN are assembled, built, bundled and launched. It contains no domain logic.
+`cdin` is the product composition root: it consumes a prepared component workspace, performs product-specific integration, builds, tests, packages and launches the editor. It contains no component domain logic and does not manage component discovery, versions, updates, dependency resolution or source collection; those are Registry responsibilities.
 
 ## 1. Purpose
 
@@ -9,7 +9,25 @@
 - Release (packaging, installers, workflows) and developer tooling (benchmarks, checks, size and memory measurements).
 - Launch: choose a frontend, start the backend, attach.
 
-## 2. Is and is not
+## 2. Delivery boundary
+
+Under the proposed [Data-Driven Component Orchestration model](../architecture/registry.md), CDIN receives a prepared workspace and resolved manifest from a consumer-independent Registry.
+
+CDIN MUST:
+- consume the prepared source workspace as an input to its build pipeline;
+- perform product-specific configuration and integration between components;
+- build and run component/product tests, including end-to-end integration tests;
+- package, release and launch the assembled editor.
+
+CDIN MUST NOT:
+- query component repositories to discover releases;
+- select component versions or manage update policies;
+- solve component dependencies or collect source repositories;
+- contain Registry-specific logic for individual components or variants.
+
+CDIN may validate manifest integrity and required contract declarations, but it does not become a package manager or maintain component update logic.
+
+## 3. Is and is not
 
 | Is | Is not |
 |---|---|
@@ -17,7 +35,7 @@
 | Build files, release workflows, installer scripts, launcher | Depended on by any component |
 | The home of tooling that checks the include-direction rules | A shared-code repository (ARCH-005) |
 
-## 3. Requirements
+## 4. Requirements
 
 - **ROOT-001** `ACCEPTED` The composition root MUST NOT reimplement kernel, runtime, frontend or backend logic (ARCH-001). — *Verify:* INSPECT
 - **ROOT-002** `PROPOSED` No component MAY depend on the composition root (ARCH-045). — *Verify:* STATIC
@@ -30,7 +48,7 @@
 - **ROOT-009** `EXISTING` Product release workflows for Linux, Windows and macOS and the website deployment are defined in the `cdin` repository. — *Verify:* INSPECT — *Anchor:* `.github/workflows/`
 - **ROOT-010** `PROPOSED` The standalone `cdin-kernel` repository is consumed by `cdin` as a pinned version (a release or a submodule at a tag), never as a floating branch. — *Verify:* INSPECT
 
-## 4. Existing layout mapped here
+## 5. Existing layout mapped here
 
 | Existing | Role |
 |---|---|
@@ -43,7 +61,7 @@
 
 The tooling stays here; it depends on the layout of `src/` and on the Makefile, so a separate scripts repository would break whenever the layout changes. (Rationale in [ADR-0001](../adr/ADR-0001-repository-topology.md).)
 
-## 5. Launch sequence
+## 6. Launch sequence
 
 ```mermaid
 sequenceDiagram
@@ -68,7 +86,7 @@ sequenceDiagram
 *Caption: `PROPOSED`. Today the GUI and backend are one process and the launcher is `src/main.c`.*
 
 
-## 6. Build and release boundaries
+## 7. Build and release boundaries
 
 ```mermaid
 flowchart LR
