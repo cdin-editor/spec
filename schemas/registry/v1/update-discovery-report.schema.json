@@ -1,0 +1,342 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/cdin-editor/spec/schemas/registry/v1/update-discovery-report.schema.json",
+  "title": "Registry Update Discovery Report",
+  "description": "Deterministic, non-mutating comparison of a verified historical Resolved Manifest with current Product Definition and Catalog state.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "operation": {
+      "const": "manifest.update-discovery"
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "no_changes",
+        "changes_detected",
+        "resolution_failed"
+      ]
+    },
+    "historical_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "historical_registry_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    },
+    "product_definition_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "current_catalogs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "catalog_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "metadata_uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "metadata_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "catalog_id",
+          "metadata_uri",
+          "metadata_sha256"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "current_resolution": {
+      "$ref": "https://github.com/cdin-editor/spec/schemas/registry/v1/resolution-report.schema.json"
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+            "maxLength": 128
+          },
+          "variant": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+            "maxLength": 64
+          },
+          "historical": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "metadata_uri": {
+                "type": "string"
+              },
+              "metadata_sha256": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "version",
+              "metadata_uri",
+              "metadata_sha256"
+            ],
+            "additionalProperties": false
+          },
+          "historical_release_state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "withdrawn",
+              "identity_changed",
+              "unavailable",
+              "not_present"
+            ]
+          },
+          "current": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+              },
+              "metadata_uri": {
+                "type": "string",
+                "format": "uri"
+              },
+              "metadata_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "version",
+              "metadata_uri",
+              "metadata_sha256"
+            ],
+            "additionalProperties": false
+          },
+          "selection_reason_code": {
+            "type": "string",
+            "enum": [
+              "UNCHANGED",
+              "UPDATE_AVAILABLE",
+              "SELECTION_CHANGED",
+              "RELEASE_IDENTITY_CHANGED",
+              "HISTORICAL_RELEASE_WITHDRAWN",
+              "HISTORICAL_RELEASE_UNAVAILABLE",
+              "HISTORICAL_RELEASE_IDENTITY_CHANGED",
+              "COMPONENT_REMOVED_FROM_RESOLUTION",
+              "CURRENT_RESOLUTION_FAILED",
+              "NEWLY_SELECTED"
+            ]
+          }
+        },
+        "required": [
+          "component_id",
+          "variant",
+          "historical",
+          "historical_release_state",
+          "selection_reason_code"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "historical_release_state": {
+                  "const": "not_present"
+                }
+              },
+              "required": [
+                "historical_release_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "historical": {
+                  "properties": {
+                    "version": {
+                      "const": ""
+                    },
+                    "metadata_uri": {
+                      "const": ""
+                    },
+                    "metadata_sha256": {
+                      "const": ""
+                    }
+                  }
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "historical": {
+                  "properties": {
+                    "version": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+                    },
+                    "metadata_uri": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "metadata_sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "candidate_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+            "maxLength": 128
+          },
+          "variant": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+            "maxLength": 64
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+          },
+          "catalog_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "metadata_uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "metadata_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "withdrawn"
+            ]
+          },
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "SELECTED",
+              "MIRRORED_IMMUTABLE_RELEASE",
+              "NOT_SELECTED",
+              "WITHDRAWN",
+              "PRERELEASE_DISABLED",
+              "CONSTRAINT_MISMATCH",
+              "BRANCH_CONFLICT"
+            ]
+          }
+        },
+        "required": [
+          "component_id",
+          "variant",
+          "version",
+          "catalog_id",
+          "metadata_uri",
+          "metadata_sha256",
+          "status",
+          "reason_code"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "extensions": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "operation",
+    "result",
+    "historical_manifest_sha256",
+    "historical_registry_version",
+    "product_definition_sha256",
+    "current_catalogs",
+    "current_resolution",
+    "decisions",
+    "candidate_decisions"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "resolution_failed"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "current_resolution": {
+            "properties": {
+              "result": {
+                "const": "failure"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "enum": [
+              "no_changes",
+              "changes_detected"
+            ]
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "current_resolution": {
+            "properties": {
+              "result": {
+                "const": "success"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
