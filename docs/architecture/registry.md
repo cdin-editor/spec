@@ -3,7 +3,7 @@
 - **Status:** ACCEPTED — [ADR-0022](../adr/ADR-0022-minimal-static-release-catalog.md).
 - **Implementation status:** NOT IMPLEMENTED in this Spec repository; implementation belongs to [`cdin-editor/registry`](https://github.com/cdin-editor/registry).
 - **Architecture:** Generic Consumer-Independent Component Registry.
-- **Contract baseline:** `1.0.0`; see [Registry data contracts](registry-contracts.md).
+- **Contract baseline:** `1.2.0`; see [Registry data contracts](registry-contracts.md).
 
 ## 1. Purpose
 
@@ -30,13 +30,14 @@ Registry is an independent infrastructure repository, not a catch-all shared-cod
 
 ## 3. Public inputs and outputs
 
-The data boundary consists of five versioned artifacts:
+The public data boundary consists of six versioned artifacts:
 
 1. **Product Definition:** requested components and target-environment contracts.
 2. **Catalog Index:** references to release metadata and SHA-256 digests.
 3. **Component Release Metadata:** component/variant/version, source units, dependencies and contract declarations.
 4. **Resolved Manifest:** selected graph, metadata identities, source revisions and workspace paths.
 5. **Resolution Report:** selected/rejected candidates, warnings and conflicts.
+6. **Update Discovery Report:** a deterministic, schema-validated comparison of a verified historical Manifest with current Product Definition and Catalog state.
 
 Their canonical schemas and validation rules are in [Registry data contracts](registry-contracts.md) and `schemas/registry/v1/`. These contracts do not prescribe a hosting provider, implementation language or CLI syntax.
 
@@ -52,7 +53,7 @@ Resolution is deterministic. Catalog order and publication timestamps are not se
 
 Registry collects each selected source unit at its immutable full Git commit revision. A component may map to multiple repositories, and a repository may contribute source to multiple components or variants. Workspace paths derive from stable component, variant and source-unit IDs, not repository names.
 
-A successful prepare operation publishes a complete workspace, Resolved Manifest and Resolution Report. The manifest records enough information to reproduce the exact selected graph without re-running version selection. A new release creates a new resolution; existing manifests and workspaces are not silently changed.
+A successful prepare operation publishes a complete workspace, Resolved Manifest and Resolution Report. The manifest records enough information to reproduce the exact selected graph without re-running version selection. A new release creates a new resolution; existing manifests and workspaces are not silently changed. Update discovery is a separate read-only report operation: it verifies the historical Manifest first, resolves current state through the generic Resolver, and records historical/current selection decisions without collecting sources or publishing a Workspace.
 
 Registry does not run component build scripts or perform product integration. CDIN consumes the prepared input and performs configuration, build, product tests, packaging and launch.
 
@@ -66,7 +67,7 @@ The implementation repository owns its engine, CLI or API entry point, internal 
 
 Registry treats declarative inputs as untrusted data, validates them before collection and never evaluates metadata as code. It retrieves only declared source units and exact commit revisions, verifies release-metadata digests, and stages workspace publication so failed collection cannot look successful.
 
-Manifest output is deterministic and uses workspace-relative paths. Immutable Git revisions and SHA-256 metadata digests do not by themselves establish signed publisher provenance, vulnerability scanning or security-policy overrides.
+Manifest output is deterministic and uses workspace-relative paths. Update Discovery Reports bind the exact historical Manifest and Product Definition input digests plus current Catalog identities; they contain stable reason codes and never mutate historical artifacts. Immutable Git revisions and SHA-256 metadata digests do not by themselves establish signed publisher provenance, vulnerability scanning or security-policy overrides.
 
 ## 8. Non-goals
 
