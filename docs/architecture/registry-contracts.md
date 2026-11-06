@@ -1,7 +1,7 @@
 # Registry data contracts
 
 - **Status:** ACCEPTED
-- **Contract baseline:** Registry data contracts `1.1.0`
+- **Contract baseline:** Registry data contracts `1.2.0`
 - **Schema dialect:** JSON Schema Draft 2020-12
 - **Implementation owner:** `cdin-editor/registry`
 
@@ -16,6 +16,7 @@ This page and the schemas under `schemas/registry/v1/` freeze the portable data 
 | Component Release Metadata | Component publisher → Registry | JSON | [component-release](../../schemas/registry/v1/component-release.schema.json) |
 | Resolved Manifest | Registry → consumer | JSON | [resolved-manifest](../../schemas/registry/v1/resolved-manifest.schema.json) |
 | Resolution Report | Registry → caller | JSON | [resolution-report](../../schemas/registry/v1/resolution-report.schema.json) |
+| Update Discovery Report | Registry → caller | JSON | [update-discovery-report](../../schemas/registry/v1/update-discovery-report.schema.json) |
 
 The JSON data model is canonical. YAML 1.2 is an authoring convenience for Product Definitions only; it is parsed into the JSON data model before validation. Duplicate mapping keys, non-string mapping keys, custom YAML tags and non-JSON values are invalid. Catalog indexes, release metadata and Registry outputs are JSON.
 
@@ -27,7 +28,7 @@ Every document carries `schema_version`. The schemas in `schemas/registry/v1/` d
 - Component IDs, variant IDs and source-unit IDs use lowercase ASCII letters and digits with dot and hyphen separators. Published IDs are immutable.
 - An omitted variant normalizes to the literal ID `default` before lookup, dependency coalescing, conflict detection and manifest generation.
 - Package and contract versions use Semantic Versioning 2.0.0. Package version, source revision and contract version are independent axes.
-- Version constraints are one exact version (for example `1.2.3`, optionally prefixed by `=`) or a space-separated conjunction of comparators (for example `>=1.2.0 <2.0.0`). Supported comparators are `=`, `>`, `>=`, `<` and `<=`. OR, wildcards, partial versions, hyphen ranges, caret ranges and tilde ranges are outside contract 1.1.0.
+- Version constraints are one exact version (for example `1.2.3`, optionally prefixed by `=`) or a space-separated conjunction of comparators (for example `>=1.2.0 <2.0.0`). Supported comparators are `=`, `>`, `>=`, `<` and `<=`. OR, wildcards, partial versions, hyphen ranges, caret ranges and tilde ranges are outside contract 1.2.0.
 - Build metadata does not affect SemVer precedence. Distinct candidates with equal precedence but different version strings or metadata identities are ambiguous and fail resolution; catalog order is never a tie-breaker.
 
 ## 3. Product Definition
@@ -85,7 +86,7 @@ Resolution is deterministic and independent of catalog ordering, repository name
 10. The selected dependency graph must be acyclic. A cycle fails and the report identifies its exact path.
 11. Output order is a deterministic topological order. Independent nodes at the same depth are ordered lexicographically by component ID, then variant ID.
 
-Optional dependencies, feature negotiation, arbitrary solver plugins and consumer-specific compatibility callbacks are outside contract 1.1.0.
+Optional dependencies, feature negotiation, arbitrary solver plugins and consumer-specific compatibility callbacks are outside contract 1.2.0.
 
 ## 6. Source collection and workspace
 
@@ -110,7 +111,7 @@ Every source unit has its own declared path. Physical cache deduplication is an 
 
 The collector stages privately, verifies all revisions, materializes all source units and validates the final layout before publishing the destination. Failure cannot leave a successful-looking partial workspace. Existing destinations are not implicitly overwritten. Registry does not run build scripts, package hooks or collected code.
 
-Contract 1.1.0 does not automatically materialize Git submodules or Git LFS objects. Required content must be represented as separately declared source units or through a future explicit asset contract; Registry does not silently fetch unlisted content.
+Contract 1.2.0 does not automatically materialize Git submodules or Git LFS objects. Required content must be represented as separately declared source units or through a future explicit asset contract; Registry does not silently fetch unlisted content.
 
 ## 7. Resolved Manifest and Resolution Report
 
@@ -124,6 +125,14 @@ Constraint evidence, candidate evidence and provider evidence use deterministic 
 A failed resolution produces neither a Resolved Manifest nor a published workspace.
 
 Manifest generation is deterministic: set-like arrays are sorted by identity keys, and no timestamp, random identifier, absolute host path or catalog iteration order is embedded. JSON serialization for digesting or signing follows RFC 8785 (JSON Canonicalization Scheme). A detached digest may be calculated over canonical manifest bytes; it is not embedded in the document it hashes.
+
+### Update Discovery Report
+
+Update discovery is a read-only comparison operation over three independently identified inputs: a previously verified Resolved Manifest, the exact current Product Definition bytes and one or more freshly loaded Catalog Indexes with their verified SHA-256 identities. The Registry resolves the current Product Definition against the current Catalogs through the same generic Resolver used by normal resolution; it does not infer consumer identity or apply a separate update-selection algorithm.
+
+The Update Discovery Report is a separate public JSON artifact validated against `update-discovery-report.schema.json`. It binds the exact historical Manifest SHA-256, Product Definition input SHA-256, current Catalog URI/digest identities and the complete current Resolution Report. Historical component selections and current candidates carry stable reason codes. The report is deterministic: Catalog references sort by Catalog ID, URI and digest; component decisions sort by component ID and variant; candidate decisions sort by component ID, variant, version, Catalog ID and metadata URI. It contains no timestamp or random identifier.
+
+The operation MUST verify the historical Manifest before loading current Catalog state. It MUST NOT rewrite, replace or invalidate the historical Manifest or prepared Workspace. It MUST NOT collect Git sources or publish a Workspace. A withdrawal or identity change is reported as current evidence; it does not rewrite what the historical Manifest recorded. The report schema has its own `schema_version: "1.0.0"`; the Registry Data Contract baseline is `1.2.0`, while the Resolution Report retains its independent `schema_version: "1.1.0"`.
 
 ## 8. Security and trust boundary
 
@@ -140,7 +149,7 @@ Registry is a build-time/delivery-plane tool. CDIN and unrelated consumers invok
 ## 10. Deliberately not frozen
 
 Implementation language/toolchain, internal module boundaries, CLI command names and flags, catalog distribution/update transport, local cache and garbage collection, parallel downloads, authentication UX, signing/trust, API service deployment and release automation belong to the next repository-design phase. They can be decided without changing this data contract. Changes to public schemas, resolution behavior, source identity or workspace/manifest semantics require a Spec change. Registry Data Contract versions follow SemVer independently of the Spec repository release: additive report evidence and clarifications that preserve existing success/failure decisions increment the contract minor version; compatible errata that do not alter schemas or behavior increment the patch version; breaking wire-format or resolution-semantic changes increment the major version.
-Resolution Reports produced under this baseline MUST declare `schema_version: "1.1.0"` and include `applied_constraints` (an empty array is valid). The additional evidence fields are additive within contract major version 1; v1.0 consumers may ignore unknown optional fields, while v1.1 consumers validate the v1.1.0 report schema.
+Resolution Reports produced under this baseline MUST declare `schema_version: "1.1.0"` and include `applied_constraints` (an empty array is valid). The additional evidence fields are additive within contract major version 1; v1.0 consumers may ignore unknown optional fields, while v1.1 consumers validate the v1.1.0 report schema. Update Discovery Reports MUST declare `schema_version: "1.0.0"` and validate against the dedicated Update Discovery Report schema. That report schema references the existing v1.1 Resolution Report contract for its `current_resolution` field; it does not redefine or change Resolver selection semantics.
 
 ## 11. Normative Registry requirements
 
@@ -170,3 +179,4 @@ Resolution Reports produced under this baseline MUST declare `schema_version: "1
 - **REG-024** `ACCEPTED` Manifest generation MUST be deterministic and MUST NOT include wall-clock timestamps, random identifiers or absolute machine paths. — *Verify:* CONF
 - **REG-025** `ACCEPTED` A failed resolution MUST produce structured conflict and rejected-candidate details and MUST NOT produce a successful manifest. — *Verify:* CONF
 - **REG-026** `ACCEPTED` Registry metadata MUST be treated as untrusted data and MUST NOT be executed as code, scripts, templates or plugins. — *Verify:* FUZZ
+- **REG-027** `ACCEPTED` Update discovery MUST verify the historical Manifest before loading current Catalogs, resolve current state through the generic Resolver, and emit a deterministic schema-validated report bound to the exact historical Manifest SHA-256, exact Product Definition input SHA-256 and verified current Catalog Index identities. It MUST record stable historical-selection and candidate-decision reason codes, MUST NOT rewrite or invalidate the historical Manifest or prepared Workspace, and MUST NOT collect source or publish a Workspace. — *Verify:* CONF
