@@ -13,8 +13,9 @@ from the public Kernel ABI and the Spec release or compatibility target.
 ### Added
 
 - Extend Registry Data Contracts to baseline 1.1.0 with fully sourced applied constraints, candidate provenance, structured contract-provider evidence, closed conflict/rejection reason codes and explicit self-provider semantics.
+- Extend Registry Data Contracts to baseline 1.2.0 with a dedicated, deterministic Update Discovery Report schema bound to historical Manifest, Product Definition and current Catalog identities; define immutable withdrawal/update audit semantics without changing historical manifests or workspaces.
 - Accept ADR-0022 as the generic, consumer-independent Registry architecture and align ADR-0014 so a cohesive infrastructure system is distinguished from a catch-all shared-utilities repository.
-- Maintain the versioned Registry v1 JSON Schemas for Product Definitions, Catalog Indexes, Component Release Metadata, Resolved Manifests and Resolution Reports; the Resolution Report baseline advances to 1.1.0.
+- Maintain the versioned Registry v1 JSON Schemas for Product Definitions, Catalog Indexes, Component Release Metadata, Resolved Manifests, Resolution Reports and Update Discovery Reports; the Resolution Report schema remains at 1.1.0 while Update Discovery Report is introduced at 1.0.0.
 - Define deterministic SemVer/dependency/contract resolution, immutable source identity, staged workspace publication and manifest reproducibility requirements.
 - Record `cdin-editor/registry` as the independent implementation repository; keep implementation language, internal modules, CLI syntax, catalog distribution, cache policy and service deployment for its repository-design phase.
 
