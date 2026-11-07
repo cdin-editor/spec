@@ -21,6 +21,8 @@ from the public Kernel ABI and the Spec release or compatibility target.
 
 ### Changed
 
+- Reconcile the repository inventory with the extracted standalone Backend repository and distinguish repository existence from completion of the CDIN Composition Root migration.
+
 - Align Registry architecture, repository topology, system maps, overview, ADR index, documentation navigation and conventions with the accepted responsibility boundaries.
 - Preserve the core invariant: Registry understands requirements, not consumer identity; a new consumer supplies data and does not require product-specific Registry code.
 - Clarify that Registry is a build-time/delivery-plane tool. Consumers retain integration, build, product tests, packaging and launch.

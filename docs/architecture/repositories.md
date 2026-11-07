@@ -125,9 +125,9 @@ ARCH-030 applies to all new repositories; Registry meets its justification throu
 - **Is:** Lua policy layer and extension environment.
 - **Is not:** a document store or owner of canonical document content/history.
 
-### backend (inside `cdin`)
-- **Is:** headless core that can run without a frontend.
-- **Is not:** tied to SDL, a terminal or any display.
+### Backend (`cdin-editor/backend`)
+- **Is:** the standalone headless coordinator that hosts Kernel and Runtime, owns sessions and OS services, and serves the Frontend Protocol. It is the direct client of the Kernel ABI.
+- **Is not:** the product composition root, a display toolkit or a Frontend adapter.
 
 ### frontend (`cdin-editor/frontend`)
 - **Is:** peer `core`, `gui-sdl`, `tui` and `headless` adapters.
@@ -144,4 +144,4 @@ ARCH-030 applies to all new repositories; Registry meets its justification throu
 
 ## 6. Current migration limits
 
-The current `cdin` archive still contains backend, runtime and GUI-related code together; its SDL3-dependent build/test path could not be verified in the available environment because SDL3 headers are absent and the archived test baseline is empty. Kernel ABI is stable, but composition-root integration requires an integration test. Runtime and Frontend repository boundaries are accepted while remaining product integration gates are tracked separately. Supplied archives have no Git history, so migration history preservation cannot be assessed here. See [migration.md](migration.md).
+The standalone Kernel, Runtime, Backend and Frontend repositories now exist, but repository extraction alone does not establish that the CDIN product migration is complete. The `cdin` main branch still contains legacy combined backend/runtime/GUI source; the Composition Root migration is tracked in [CDIN PR #110](https://github.com/cdin-editor/cdin/pull/110) and product-level acceptance remains tracked by [CDIN issue #111](https://github.com/cdin-editor/cdin/issues/111). The standalone Frontend repository also retains its own TUI and GUI-SDL release gates in [Frontend issue #15](https://github.com/cdin-editor/frontend/issues/15). Historical archive snapshots used by earlier audits did not retain Git history; current repositories expose their own histories, so new extraction/migration work can be checked against those histories. See [migration.md](migration.md).
