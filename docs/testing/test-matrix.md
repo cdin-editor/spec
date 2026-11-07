@@ -23,6 +23,7 @@ Methods are defined in [conventions.md](../reference/conventions.md): `INSPECT`,
 | 13 | Raw-byte search | SEARCH-008, SEARCH-040 to SEARCH-042 | CONF | `search.bytes` | planned |
 | 14 | Results bound to a document version | SEARCH-007, SEARCH-010 | CONF | `search.*` | planned |
 | 15 | Module ABI and compatibility | ABI-001 to ABI-022 | STATIC, CONF, INTEG | `abi` | planned |
+| 16 | IME composition lifecycle (proposed) | PROTO-060 to PROTO-067, BE-012 to BE-014, RT-017, FE-024 | CONF, FUZZ, INTEG | `proto.ime-composition` | proposed; no implementation result claimed |
 
 ## 2. Further groups from this specification
 

@@ -79,7 +79,7 @@ The capability registry is the canonical catalogue of optional frontend services
 | `rich_text` | Extended styled-text presentation beyond mandatory semantic spans. |
 | `images` | Image-bearing UI content. |
 | `truecolor` | Full 24-bit foreground/background colour presentation. |
-| `ime` | Input-method composition support; committed text still travels through `input.text`. |
+| `ime` | Legacy native input-method text support; the committed result travels through `input.text`. This capability alone does not enable the proposed preedit lifecycle namespace. |
 
 The frontend declares capabilities in `hello`; the Backend returns only the intersection actually supported by both peers for that session. A registered capability is not necessarily implemented. The pinned Backend 1.0.0 reference server currently accepts only mandatory `core` and no optional capabilities.
 - **PROTO-011** `ACCEPTED` Capabilities are declared by the frontend and accepted or reduced by the backend in `hello_ack`. Unknown capability names MUST be ignored. — *Verify:* CONF
@@ -157,6 +157,21 @@ The payload fields for every message in §4 are fully specified in [protocol-wir
 | web, remote | network transport | not planned; the serialized transport does not preclude it |
 
 - **PROTO-050** `ACCEPTED` Frontends are peers (same rule as FE-001, stated here from the protocol's side). The GUI MUST NOT use any private backend call that the protocol cannot express. Existing SDL-specific functionality (window control, title-bar hit regions, native dialogs) becomes capabilities or requests. — *Verify:* INSPECT, STATIC
+
+**Proposed capability extension (not active until owner acceptance):** `ime-composition/1`
+registers the optional `ime` namespace and the composition lifecycle schemas
+in [the IME composition proposal](../proposals/ime-composition-contract-v1.md). The existing
+`ime` capability is not an alias for this extension.
+
+- **PROTO-060** `PROPOSED` A Frontend MUST send the optional `ime` namespace only when `ime-composition/1` is present in that connection's `hello_ack.accepted_capabilities`; a request alone MUST NOT enable it. — *Verify:* CONF, INTEG
+- **PROTO-061** `PROPOSED` A negotiated IME composition MUST use the `composition.start`, `composition.update` and `composition.cancel` schemas in the optional `ime` namespace; a composition commit MUST use the existing `core/input.text` message with its matching `composition_id`. — *Verify:* CONF
+- **PROTO-062** `PROPOSED` Preedit text MUST be valid UTF-8 and bounded to 4096 bytes. Preedit cursor and selection offsets MUST be unsigned UTF-8 byte offsets on code-point boundaries, not code-point, UTF-16, grapheme or pixel offsets. — *Verify:* CONF, FUZZ
+- **PROTO-063** `PROPOSED` Preedit MUST remain transient: it MUST NOT change canonical document bytes/version or undo history, enter `cdin.ui-model.v1`, be dispatched to Runtime as committed text, or be broadcast to Observer Frontends. — *Verify:* CONF, INTEG
+- **PROTO-064** `PROPOSED` A Backend MUST bind a composition to one Driver connection, focused visible view, document version and Runtime-owned selection; it MUST admit a matching commit to Runtime at most once. A queue-full result MUST leave the active composition retryable. — *Verify:* CONF, INTEG
+- **PROTO-065** `PROPOSED` A composition MUST be cancelled on focus loss, view/selection change, document-version change, view removal, Driver-role revocation or session reset; a cancelled or stale identifier MUST NOT commit. — *Verify:* CONF, INTEG
+- **PROTO-066** `PROPOSED` A peer that did not negotiate `ime-composition/1` MUST receive no `ime` namespace messages and MUST retain the existing committed-only `input.text` behavior. — *Verify:* CONF, INTEG
+- **PROTO-067** `PROPOSED` Shared IME conformance vectors MUST cover valid multibyte/combining preedit, malformed UTF-8, oversized payloads, invalid byte offsets, cancellation, stale context, duplicate commit, queue-full retry, Driver permission and capability fallback. — *Verify:* CONF
+
 
 ## 8. Existing code relation
 
