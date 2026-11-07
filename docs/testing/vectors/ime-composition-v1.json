@@ -167,7 +167,11 @@
         ],
         "active_composition": false,
         "subsequent_commit": "INVALID_STATE"
-      }
+      },
+      "capabilities": [
+        "ime-composition/1",
+        "driver-role-events/1"
+      ]
     },
     {
       "id": "duplicate-commit-is-dispatched-once",
