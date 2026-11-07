@@ -115,6 +115,16 @@ sequenceDiagram
 
 *Caption: target cross-component path. Kernel call synchronicity, version-checked editing and bounded notifications are present in ABI 1.0.0; the Runtime Host API and Frontend Protocol 1.0.0 are implemented in their pinned components. A live CDIN Frontend transport and interactive editing workflow remain separate product integration gates.*
 
+## Proposed IME composition responsibilities
+
+The following requirements depend on owner acceptance of
+[ADR-0023](../adr/ADR-0023-ime-composition-contract.md). They are not claims
+about the current Backend implementation.
+
+- **BE-012** `PROPOSED` The Protocol server MUST accept the optional `ime` namespace only for a connection that negotiated `ime-composition/1`; it MUST enforce Driver role, one active composition per client, monotonic per-connection identifiers and the configured preedit/offset bounds. — *Verify:* CONF, FUZZ, INTEG
+- **BE-013** `PROPOSED` The Backend MUST retain only bounded composition metadata, MUST NOT publish preedit to Runtime, the semantic UI model or Observer Frontends, and MUST send an ordered cancellation to the originating Frontend when the bound view/version/selection/focus/Driver/session becomes invalid. — *Verify:* CONF, INTEG
+- **BE-014** `PROPOSED` The Backend MUST admit a matching composition commit to the Runtime owner-thread input queue at most once; it MUST preserve the active composition on `QUEUE_FULL`, consume its identifier only after successful admission, and forward the captured view/version/selection context for Runtime revalidation. — *Verify:* CONF, INTEG
+
 ## 6. State owned
 
 Session (open documents, attached frontends); OS handles; the Lua state; logging and accounting. It does **not** own document content (kernel), selections (view in the runtime), or visual layout (frontend).
