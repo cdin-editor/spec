@@ -31,6 +31,7 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0020](ADR-0020-frontend-topology-and-interaction.md) | Frontend topology, TUI-first delivery and presentation contracts | `ACCEPTED` |
 | [ADR-0021](ADR-0021-kernel-implementation-backed-contracts.md) | Kernel ABI 1.1.0 implementation-backed contract acceptance | `ACCEPTED` |
 | [ADR-0022](ADR-0022-minimal-static-release-catalog.md) | Generic Consumer-Independent Registry and Component Orchestration | `ACCEPTED` |
+| [ADR-0023](ADR-0023-ime-composition-contract.md) | Versioned Frontend IME composition contract | `PROPOSED` |
 
 ## How owner approval is recorded
 
