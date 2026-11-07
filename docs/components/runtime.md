@@ -68,6 +68,10 @@ flowchart TB
 - **RT-015** `ACCEPTED` Runtime v1 loader MUST resolve only explicit extension roots/catalog entries supplied by CDIN composition or the selected bundle; it MUST NOT perform remote fetch/clone or unrestricted filesystem discovery. A loaded extension MUST execute under Runtime-owned lifecycle, capability and cleanup controls and MUST NOT receive Kernel handles, native pointers or Backend-private APIs. Path traversal outside declared roots MUST be rejected. Duplicate precedence, dependency/cycle handling, module isolation, metadata schema and unload-failure semantics remain open implementation details and MUST NOT be inferred from this requirement. — *Verify:* INTEG
 - **RT-016** `ACCEPTED` Every native C object reachable from Lua MUST have one Backend-owned lifetime authority and an explicit deterministic `close()`; `__gc` is a best-effort backstop only. Release MUST be at most once. Lua callbacks, allocation and GC MUST NOT execute while a Kernel lock is held. — *Verify:* SAN, INTEG
 
+- **RT-017** `PROPOSED` Runtime MUST receive only committed IME text through its owner-thread text-input dispatch path. For a negotiated composition commit, it MUST revalidate the captured target view, document version and Runtime-owned selection before applying the text through ordinary committed-text semantics; a mismatch MUST reject without document mutation. Preedit MUST NOT be exposed to commands/keymaps as a key event, extensions or the canonical document. — *Verify:* CONF, INTEG
+
+
+
 ## 5. Runtime host API (summary)
 
 The Lua-visible environment the runtime and plugins can rely on. The legacy integrated implementation registers tables such as `system`, `renderer`, `search`, `fs` and `path` in `src/api/api.c`; the target contract separates Runtime policy APIs from Backend Host services. These legacy names are not a promise that all current tables survive unchanged.
@@ -105,6 +109,14 @@ Regex until Kernel support, Kernel anchors, search normalization profiles, hot-s
 
 - **RT-020** `PROPOSED` A compatibility shim MUST be provided only for a legacy Lua API explicitly listed in an owner-approved migration inventory as deprecated-but-supported. Each deprecated API identity MUST emit at most one warning per process with a stable replacement reference. APIs that cannot be preserved without violating accepted ownership boundaries MUST be listed as intentionally removed with migration guidance; they MUST NOT be emulated through private renderer, Kernel or transport access. The inventory and transition window remain prerequisites for acceptance. — *Verify:* INTEG
 - **RT-021** `PROPOSED` During migration, Runtime's document layer MUST preserve behavior observable through the approved extension contract and editor commands, except for explicitly approved/documented changes in the migration inventory. Runtime document objects remain thin clients over Backend Host handles; Kernel owns document bytes, versions, snapshots and history. Undocumented private fields and internal implementation identity are not compatibility promises. Acceptance requires a black-box inventory and parity tests for every retained public operation. — *Verify:* INTEG — see [migration.md](../architecture/migration.md)
+
+### Proposed IME composition integration
+
+The proposed [IME composition contract](../proposals/ime-composition-contract-v1.md)
+does not add a Runtime Host API 1.0.0 method. Backend delivers only committed
+text to the existing Runtime owner-thread input-dispatch path, with a captured
+view/version/selection context for stale-state validation. Preedit stays in
+Frontend presentation and is not part of the Runtime semantic UI model.
 
 ### Runtime v1 verification gates
 
