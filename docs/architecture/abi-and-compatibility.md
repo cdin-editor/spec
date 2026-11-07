@@ -8,7 +8,7 @@ Every native binary boundary between CDIN components uses the **C ABI** (`ACCEPT
 |---|---:|---|
 | Kernel package release | `1.2.1` | Kernel package metadata and release tag |
 | C ABI | `1.1.0` | `cdin-kernel/include/cdin/kernel.h` |
-| Spec release | `1.1.0` | `docs/reference/status.md` |
+| Spec release | `1.4.0` | `docs/reference/status.md` |
 | Kernel-declared Spec target | `1.1.0` | The header's `CDIN_KERNEL_SPEC_VERSION_*` macros |
 
 Package `1.2.1` publishes ABI `1.1.0`. The ABI 1.1 addition includes the Kernel-owned logging API (`cdin_kernel_log` and logger configuration); it does not renumber existing statuses or change existing ABI 1.x layouts/signatures. Package and ABI versions are independent: never derive one from the other. Any future contract change must update the header, compatibility declaration and conformance evidence together.

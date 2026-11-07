@@ -21,6 +21,8 @@ from the public Kernel ABI and the Spec release or compatibility target.
 
 ### Changed
 
+- Refresh Backend requirement evidence anchors to the standalone repository layout and synchronize the ABI compatibility table with the current Spec release version (`1.4.0`).
+
 - Reconcile the repository inventory with the extracted standalone Backend repository and distinguish repository existence from completion of the CDIN Composition Root migration.
 
 - Align Registry architecture, repository topology, system maps, overview, ADR index, documentation navigation and conventions with the accepted responsibility boundaries.
