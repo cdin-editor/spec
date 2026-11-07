@@ -45,7 +45,7 @@ Type: `composition.start`
 | `view_id` | text | yes | Stable Runtime view ID being composed into. |
 | `document_version` | uint | yes | Exact document version observed by the Frontend when composition begins. |
 
-The Backend accepts start only from the current Driver, for a visible and focused Runtime view, when the supplied document version equals the current version. The Backend captures the Runtime-owned selection (`anchor`, `caret`) at that same version; the Frontend does not supply or own the replacement range. A client may have at most one active composition. Starting another while one is active is an `INVALID_STATE` error; the current composition must first be cancelled.
+The Backend accepts start only from the current Driver, for a visible and focused Runtime view, when the supplied document version equals the current version. A start from an Observer is rejected with `INVALID_STATE`. The Backend captures the Runtime-owned selection (`anchor`, `caret`) at that same version; the Frontend does not supply or own the replacement range. A client may have at most one active composition. Starting another while one is active is an `INVALID_STATE` error; the current composition must first be cancelled.
 
 Composition identifiers are scoped to one attached client connection. They MUST be non-zero, strictly increasing and never reused within that connection. A reconnect starts a new identifier sequence because it starts a new client connection and never resumes an old composition.
 
