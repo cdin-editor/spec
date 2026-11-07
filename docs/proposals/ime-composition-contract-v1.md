@@ -81,7 +81,7 @@ The existing required field `text:text` remains the committed UTF-8 text. When a
 
 For a composition commit, `composition_id` MUST equal the active composition identifier. It MUST NOT be present on ordinary keyboard text input or on a peer that did not negotiate the capability. The Backend uses the view ID, document version and selection captured at `composition.start`; the Frontend cannot redirect a commit by changing those values.
 
-The Backend admits the commit to the Runtime owner-thread input queue atomically. If the bounded queue reports `QUEUE_FULL`, the composition remains active and the Frontend may retry the same commit identifier. Once the commit has been successfully admitted, the Backend consumes the identifier and clears the active composition before another message can commit it. A duplicate or late commit for a consumed/cancelled identifier is rejected and MUST NOT be dispatched again.
+The Backend admits the commit to the Runtime owner-thread input queue atomically. If the bounded queue reports `QUEUE_FULL`, the composition remains active and the Frontend may retry the same commit identifier. Once the commit has been successfully admitted, the Backend consumes the identifier and clears the active composition before another message can commit it. A duplicate or late commit for a consumed/cancelled identifier is rejected and MUST NOT be dispatched again. While a composition is active, a bare `input.text` without the matching `composition_id` is rejected with `INVALID_STATE`; the Frontend must cancel first rather than accidentally committing outside the captured view context.
 
 An empty final string is represented by `composition.cancel`, not by a commit.
 
@@ -107,6 +107,8 @@ Reason values sent by Backend:
 
 - `focus_lost`
 - `stale_document`
+- `view_changed`
+- `selection_changed`
 - `view_removed`
 - `driver_revoked`
 - `session_reset`
@@ -124,8 +126,8 @@ A detached connection has no cancellation delivery guarantee; both sides discard
 The Backend MUST cancel and send `ime.composition.cancel` to the originating Frontend when any of the following occurs while a composition is active:
 
 - the client sends `focus{focused:false}`;
-- the view is removed, becomes hidden/unfocused, or another view becomes the active text-input target;
-- the Runtime selection for that view changes from the captured selection;
+- the view is removed, becomes hidden/unfocused, or another view becomes the active text-input target (reason `view_changed`);
+- the Runtime selection for that view changes from the captured selection (reason `selection_changed`);
 - the document version advances from the captured version;
 - the client's Driver lease is revoked or the client becomes an Observer;
 - the Backend resets the session's semantic state.
