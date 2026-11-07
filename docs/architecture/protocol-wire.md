@@ -107,3 +107,20 @@ The pinned Backend 1.0.0 implementation declares `CDIN_BACKEND_PROTOCOL_MAJOR/MI
 ## 9. Driver role lifecycle extension
 
 `driver-role-events/1` is an optional capability. It is included in `hello.capabilities` only by Frontends that implement the `driver.role_changed` state transition. The Backend MUST send the initial `driver` role and `driver_role_epoch` in `hello_ack`; after a negotiated client's role changes while attached, it MUST enqueue one `driver.role_changed` message in that client's ordered outbound stream. `epoch` MUST equal the outbound envelope `seq` of that message. The `hello_ack` role epoch follows the same rule. This makes the epoch monotonic per client and avoids adding mutable role counters or fields to public Frontend session structs. A receiver MUST reject epoch zero and any payload/envelope mismatch; the protocol client's normal receive sequence check rejects duplicate, older and skipped frames. The event is state synchronization only: the Backend MUST continue validating the current lease for every inbound driver-only message, regardless of what a client reports locally. When the capability is not accepted, no new core message is sent to that client, preserving compatibility with v1.0 consumers; that client refreshes its local role by reconnecting and negotiating again.
+
+## 10. Proposed IME composition extension (not part of accepted Protocol 1.0.0)
+
+The optional `ime-composition/1` capability and `ime` namespace are proposed,
+not currently registered as an active Protocol 1.0.0 implementation contract.
+They MUST NOT be advertised or used unless the proposal is accepted and both
+peers negotiate the capability. The detailed proposed schemas, state machine,
+UTF-8 byte-offset rules, cancellation behavior and fallback are documented in
+[IME composition and preedit contract v1](../proposals/ime-composition-contract-v1.md)
+and tracked by [ADR-0023](../adr/ADR-0023-ime-composition-contract.md).
+
+The proposal deliberately keeps committed text on the existing
+`core/input.text` message. Preedit remains transient and client-local; it is
+not a new `ui-model.v1` field and is not sent to Runtime or Observer Frontends.
+This section does not change the accepted §3 message catalogue or the §7
+reference-codec conformance statement.
+
