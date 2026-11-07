@@ -1,0 +1,282 @@
+{
+  "schema": "cdin.frontend-protocol.conformance.v1",
+  "family": "proto.pane-splitter",
+  "status": "PROPOSED",
+  "protocol_version": [
+    1,
+    0
+  ],
+  "capability": "pane-splitter-resize/1",
+  "optional_namespace": "pane",
+  "ratio_bp": {
+    "min": 1000,
+    "max": 8999
+  },
+  "cases": [
+    {
+      "id": "horizontal-split-commit",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 7,
+      "tree": {
+        "split_id": "split-root",
+        "axis": "horizontal"
+      },
+      "request": {
+        "namespace": "pane",
+        "type": "splitter.resize",
+        "payload": {
+          "request_id": 1,
+          "split_id": "split-root",
+          "layout_revision": 7,
+          "ratio_bp": 4200
+        }
+      },
+      "expect": {
+        "result": "applied",
+        "new_layout_revision": 8,
+        "first_child_ratio_bp": 4200,
+        "snapshot_atomic": true
+      }
+    },
+    {
+      "id": "nested-vertical-split-commit",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 12,
+      "tree": {
+        "split_id": "split-inner",
+        "axis": "vertical"
+      },
+      "request": {
+        "namespace": "pane",
+        "type": "splitter.resize",
+        "payload": {
+          "request_id": 2,
+          "split_id": "split-inner",
+          "layout_revision": 12,
+          "ratio_bp": 6100
+        }
+      },
+      "expect": {
+        "result": "applied",
+        "only_selected_split_changed": true,
+        "new_layout_revision": 13
+      }
+    },
+    {
+      "id": "minimum-and-maximum-ratios",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 1,
+      "requests": [
+        {
+          "request_id": 3,
+          "split_id": "split-a",
+          "layout_revision": 1,
+          "ratio_bp": 1000
+        },
+        {
+          "request_id": 4,
+          "split_id": "split-a",
+          "layout_revision": 2,
+          "ratio_bp": 8999
+        }
+      ],
+      "expect": {
+        "statuses": [
+          "applied",
+          "applied"
+        ],
+        "ratios": [
+          1000,
+          8999
+        ]
+      }
+    },
+    {
+      "id": "ratio-below-minimum-rejected",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 1,
+      "request": {
+        "namespace": "pane",
+        "type": "splitter.resize",
+        "payload": {
+          "request_id": 5,
+          "split_id": "split-a",
+          "layout_revision": 1,
+          "ratio_bp": 999
+        }
+      },
+      "expect": {
+        "result": "invalid_ratio",
+        "tree_unchanged": true
+      }
+    },
+    {
+      "id": "ratio-above-maximum-rejected",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 1,
+      "request": {
+        "namespace": "pane",
+        "type": "splitter.resize",
+        "payload": {
+          "request_id": 6,
+          "split_id": "split-a",
+          "layout_revision": 1,
+          "ratio_bp": 9000
+        }
+      },
+      "expect": {
+        "result": "invalid_ratio",
+        "tree_unchanged": true
+      }
+    },
+    {
+      "id": "stale-layout-revision-rejected",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 5,
+      "request": {
+        "namespace": "pane",
+        "type": "splitter.resize",
+        "payload": {
+          "request_id": 7,
+          "split_id": "split-a",
+          "layout_revision": 4,
+          "ratio_bp": 5000
+        }
+      },
+      "expect": {
+        "result": "stale_revision",
+        "tree_unchanged": true
+      }
+    },
+    {
+      "id": "unknown-split-rejected",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 5,
+      "request": {
+        "namespace": "pane",
+        "type": "splitter.resize",
+        "payload": {
+          "request_id": 8,
+          "split_id": "missing",
+          "layout_revision": 5,
+          "ratio_bp": 5000
+        }
+      },
+      "expect": {
+        "result": "not_found",
+        "tree_unchanged": true
+      }
+    },
+    {
+      "id": "leaf-id-is-not-a-split-id",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 5,
+      "request": {
+        "namespace": "pane",
+        "type": "splitter.resize",
+        "payload": {
+          "request_id": 9,
+          "split_id": "leaf-a",
+          "layout_revision": 5,
+          "ratio_bp": 5000
+        }
+      },
+      "expect": {
+        "result": "not_found",
+        "tree_unchanged": true
+      }
+    },
+    {
+      "id": "observer-cannot-resize",
+      "driver": false,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 5,
+      "request": {
+        "namespace": "pane",
+        "type": "splitter.resize",
+        "payload": {
+          "request_id": 10,
+          "split_id": "split-a",
+          "layout_revision": 5,
+          "ratio_bp": 5000
+        }
+      },
+      "expect": {
+        "result": "not_driver",
+        "tree_unchanged": true
+      }
+    },
+    {
+      "id": "capability-absent-does-not-send-extension",
+      "driver": true,
+      "capability": null,
+      "layout_revision": 5,
+      "gesture": {
+        "local_preview": true,
+        "release": true
+      },
+      "expect": {
+        "pane_messages_sent": 0,
+        "committed_layout_unchanged": true
+      }
+    },
+    {
+      "id": "cancel-before-release-does-not-mutate",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 5,
+      "gesture": {
+        "begin": true,
+        "move": true,
+        "cancel": "focus_lost"
+      },
+      "expect": {
+        "pane_messages_sent": 0,
+        "committed_layout_unchanged": true
+      }
+    },
+    {
+      "id": "revision-change-during-drag-cancels-preview",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 5,
+      "gesture": {
+        "begin_revision": 5,
+        "external_snapshot_revision": 6,
+        "move": true
+      },
+      "expect": {
+        "drag_cancelled": true,
+        "resize_request_sent": false
+      }
+    },
+    {
+      "id": "success-result-precedes-atomic-snapshot",
+      "driver": true,
+      "capability": "pane-splitter-resize/1",
+      "layout_revision": 5,
+      "request": {
+        "request_id": 11,
+        "split_id": "split-a",
+        "layout_revision": 5,
+        "ratio_bp": 5200
+      },
+      "expect": {
+        "outbound_order": [
+          "pane.splitter.result",
+          "ui.layout",
+          "ui.flush"
+        ],
+        "flush_revision": 6
+      }
+    }
+  ]
+}
