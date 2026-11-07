@@ -1,0 +1,196 @@
+{
+  "schema": "cdin.frontend-protocol.conformance.v1",
+  "family": "proto.view-scroll-anchor-line",
+  "status": "PROPOSED",
+  "protocol_version": [
+    1,
+    0
+  ],
+  "capability": "view-scroll-anchor-line/1",
+  "indexing": "zero-based; greatest line-start offset <= byte anchor; LF/CRLF/CR",
+  "cases": [
+    {
+      "id": "empty-document-anchor-zero",
+      "bytes_hex": "",
+      "anchor": 0,
+      "version": 1,
+      "expect": {
+        "line": 0,
+        "total_lines": 1
+      }
+    },
+    {
+      "id": "lf-anchor-on-terminator",
+      "bytes_hex": "6162630a646566",
+      "anchor": 3,
+      "version": 2,
+      "expect": {
+        "line": 0
+      }
+    },
+    {
+      "id": "lf-anchor-after-terminator",
+      "bytes_hex": "6162630a646566",
+      "anchor": 4,
+      "version": 2,
+      "expect": {
+        "line": 1
+      }
+    },
+    {
+      "id": "crlf-counts-as-one-terminator",
+      "bytes_hex": "610d0a62",
+      "anchor": 3,
+      "version": 3,
+      "expect": {
+        "line": 1,
+        "total_lines": 2
+      }
+    },
+    {
+      "id": "crlf-anchor-on-lf-byte",
+      "bytes_hex": "610d0a62",
+      "anchor": 2,
+      "version": 3,
+      "expect": {
+        "line": 0
+      }
+    },
+    {
+      "id": "lone-cr-terminator",
+      "bytes_hex": "610d62",
+      "anchor": 2,
+      "version": 4,
+      "expect": {
+        "line": 1,
+        "total_lines": 2
+      }
+    },
+    {
+      "id": "trailing-lf-has-final-empty-line",
+      "bytes_hex": "610a",
+      "anchor": 2,
+      "version": 5,
+      "expect": {
+        "line": 1,
+        "total_lines": 2
+      }
+    },
+    {
+      "id": "eof-in-unterminated-last-line",
+      "bytes_hex": "6162630a646566",
+      "anchor": 7,
+      "version": 6,
+      "expect": {
+        "line": 1,
+        "total_lines": 2
+      }
+    },
+    {
+      "id": "eof-after-trailing-crlf",
+      "bytes_hex": "610d0a",
+      "anchor": 3,
+      "version": 7,
+      "expect": {
+        "line": 1,
+        "total_lines": 2
+      }
+    },
+    {
+      "id": "out-of-range-anchor-rejected",
+      "bytes_hex": "616263",
+      "anchor": 4,
+      "version": 8,
+      "expect": {
+        "accepted": false,
+        "reason": "anchor_out_of_range"
+      }
+    },
+    {
+      "id": "stale-line-index-not-paired-with-new-version",
+      "bytes_hex": "610a62",
+      "anchor": 2,
+      "version": 9,
+      "projection": {
+        "scroll_anchor_line": 0,
+        "computed_for_version": 8
+      },
+      "expect": {
+        "accepted": false,
+        "reason": "version_mismatch"
+      }
+    },
+    {
+      "id": "legacy-peer-does-not-receive-line-field",
+      "capability": null,
+      "anchor": 12,
+      "version": 10,
+      "expect": {
+        "scroll_anchor_line_present": false,
+        "legacy_behavior": true
+      }
+    },
+    {
+      "id": "accepted-capability-requires-paired-field",
+      "capability": "view-scroll-anchor-line/1",
+      "anchor": 12,
+      "version": 10,
+      "expect": {
+        "scroll_anchor_line_required": true
+      }
+    },
+    {
+      "id": "bounded-window-around-anchor-line",
+      "capability": "view-scroll-anchor-line/1",
+      "anchor": 30,
+      "version": 11,
+      "scroll_anchor_line": 9,
+      "visible_capacity": 5,
+      "leading_context": 0,
+      "total_lines": 20,
+      "expect": {
+        "request_first_line": 9,
+        "request_count": 5
+      }
+    },
+    {
+      "id": "multiple-views-have-independent-anchors",
+      "capability": "view-scroll-anchor-line/1",
+      "views": [
+        {
+          "id": "left",
+          "version": 3,
+          "scroll_anchor_line": 2
+        },
+        {
+          "id": "right",
+          "version": 8,
+          "scroll_anchor_line": 14
+        }
+      ],
+      "expect": {
+        "requests": [
+          {
+            "view_id": "left",
+            "first_line": 2
+          },
+          {
+            "view_id": "right",
+            "first_line": 14
+          }
+        ]
+      }
+    },
+    {
+      "id": "line-count-revision-invalidates-old-anchor",
+      "capability": "view-scroll-anchor-line/1",
+      "version": 12,
+      "scroll_anchor_line": 6,
+      "total_lines": 5,
+      "expect": {
+        "accepted": false,
+        "reason": "stale_or_inconsistent_line_count"
+      }
+    }
+  ]
+}
