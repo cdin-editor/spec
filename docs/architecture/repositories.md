@@ -78,7 +78,7 @@ flowchart TB
 | spec | `cdin-editor/spec` | same | `ACCEPTED`; architecture and contracts |
 | kernel | standalone `cdin-editor/kernel`, package `1.2.1` | same; public C ABI `1.1.0` | `ACCEPTED` |
 | runtime | standalone `cdin-editor/runtime`, latest candidate package `1.0.0-rc.1` | same; stable Host API `1.0.0`; live Backend integration and extension/migration conformance remain gates | `ACCEPTED` repository boundary; package and integration remain in progress |
-| backend | standalone Backend source repository, audited release `1.0.0` | same; composition root remains `cdin` | `ACCEPTED` repository boundary; product integration remains in progress |
+| backend | standalone `cdin-editor/backend`; latest GitHub Release/tag inspected: `v1.0.0`; Registry Catalog currently references component package metadata `1.2.0` at immutable source revision `c0a88090460929796bd7cd731966f04115256910` | same; composition root remains `cdin` | `ACCEPTED` repository boundary; reconcile the `1.2.0` Catalog/changelog/tag publication state in [Backend issue #19](https://github.com/cdin-editor/backend/issues/19); product integration remains in progress |
 | frontend | standalone `cdin-editor/frontend` package `1.0.0`; adapters `core`, `gui-sdl`, `tui`, `headless` | same | `ACCEPTED` repository/Protocol contract; implementation remains in progress |
 | cli | does not exist | optional non-interactive adapter, separate from TUI | `DEFERRED` |
 | data | not a component in code | no repository | `DEFERRED` |
