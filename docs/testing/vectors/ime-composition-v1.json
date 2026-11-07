@@ -1,0 +1,521 @@
+{
+  "schema": "cdin.frontend-protocol.conformance.v1",
+  "family": "proto.ime-composition",
+  "status": "PROPOSED",
+  "protocol_version": [
+    1,
+    0
+  ],
+  "capability": "ime-composition/1",
+  "optional_namespace": "ime",
+  "max_preedit_bytes": 4096,
+  "offset_unit": "UTF-8 byte offset at code-point boundary",
+  "cases": [
+    {
+      "id": "valid-multibyte-and-combining-offsets",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "initial": {
+        "view_id": "view-1",
+        "document_version": 7,
+        "selection": {
+          "anchor": 4,
+          "caret": 9
+        }
+      },
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 41,
+            "view_id": "view-1",
+            "document_version": 7
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.update",
+          "payload": {
+            "id": 41,
+            "preedit": "e\\u0301ب",
+            "cursor_byte": 3,
+            "selection_start_byte": 3,
+            "selection_end_byte": 5
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "core",
+          "type": "input.text",
+          "payload": {
+            "text": "éب",
+            "composition_id": 41
+          }
+        }
+      ],
+      "expect": {
+        "start": "accepted",
+        "update": "accepted",
+        "runtime_committed_text_dispatches": 1,
+        "commit_target": {
+          "view_id": "view-1",
+          "document_version": 7,
+          "selection": {
+            "anchor": 4,
+            "caret": 9
+          }
+        },
+        "document_mutations_before_commit": 0,
+        "preedit_bytes": 5
+      }
+    },
+    {
+      "id": "empty-preedit-is-not-a-commit",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 42,
+            "view_id": "view-1",
+            "document_version": 3
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.update",
+          "payload": {
+            "id": 42,
+            "preedit": "",
+            "cursor_byte": 0,
+            "selection_start_byte": 0,
+            "selection_end_byte": 0
+          }
+        }
+      ],
+      "expect": {
+        "accepted": true,
+        "runtime_committed_text_dispatches": 0,
+        "document_version_unchanged": true
+      }
+    },
+    {
+      "id": "native-cancel-discards-preedit",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 43,
+            "view_id": "view-1",
+            "document_version": 3
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.update",
+          "payload": {
+            "id": 43,
+            "preedit": "draft",
+            "cursor_byte": 5,
+            "selection_start_byte": 5,
+            "selection_end_byte": 5
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.cancel",
+          "payload": {
+            "id": 43,
+            "reason": "ime_cancelled"
+          }
+        }
+      ],
+      "expect": {
+        "accepted": true,
+        "active_composition": false,
+        "runtime_committed_text_dispatches": 0,
+        "document_version_unchanged": true
+      }
+    },
+    {
+      "id": "duplicate-commit-is-dispatched-once",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 44,
+            "view_id": "view-1",
+            "document_version": 5
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "core",
+          "type": "input.text",
+          "payload": {
+            "text": "done",
+            "composition_id": 44
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "core",
+          "type": "input.text",
+          "payload": {
+            "text": "done",
+            "composition_id": 44
+          }
+        }
+      ],
+      "expect": {
+        "first_commit": "accepted",
+        "second_commit": "INVALID_STATE",
+        "runtime_committed_text_dispatches": 1
+      }
+    },
+    {
+      "id": "queue-full-commit-can-be-retried",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 45,
+            "view_id": "view-1",
+            "document_version": 5
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "core",
+          "type": "input.text",
+          "payload": {
+            "text": "retry",
+            "composition_id": 45
+          },
+          "runtime_queue": "full"
+        },
+        {
+          "action": "drain_runtime_input_queue"
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "core",
+          "type": "input.text",
+          "payload": {
+            "text": "retry",
+            "composition_id": 45
+          },
+          "runtime_queue": "available"
+        }
+      ],
+      "expect": {
+        "first_commit": "QUEUE_FULL",
+        "composition_remains_active_after_queue_full": true,
+        "retry": "accepted",
+        "runtime_committed_text_dispatches": 1
+      }
+    },
+    {
+      "id": "stale-document-version-cancels-and-rejects",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 46,
+            "view_id": "view-1",
+            "document_version": 5
+          }
+        },
+        {
+          "action": "runtime_document_version_changes",
+          "view_id": "view-1",
+          "document_version": 6
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "core",
+          "type": "input.text",
+          "payload": {
+            "text": "stale",
+            "composition_id": 46
+          }
+        }
+      ],
+      "expect": {
+        "backend_cancel_to_frontend": {
+          "namespace": "ime",
+          "type": "composition.cancel",
+          "payload": {
+            "id": 46,
+            "reason": "stale_document"
+          }
+        },
+        "commit": "STALE_VERSION",
+        "runtime_committed_text_dispatches": 0,
+        "document_version_unchanged_by_rejected_commit": true
+      }
+    },
+    {
+      "id": "invalid-utf8-preedit-is-rejected-by-envelope",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 47,
+            "view_id": "view-1",
+            "document_version": 2
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.update",
+          "payload": {
+            "id": 47,
+            "preedit_utf8_hex": "c328",
+            "cursor_byte": 0,
+            "selection_start_byte": 0,
+            "selection_end_byte": 0
+          }
+        }
+      ],
+      "expect": {
+        "update": "INVALID_ARGUMENT",
+        "runtime_committed_text_dispatches": 0,
+        "document_version_unchanged": true
+      },
+      "notes": "preedit_utf8_hex denotes a malformed CBOR text payload; it is not a valid replacement for the required preedit text field."
+    },
+    {
+      "id": "preedit-over-limit",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 48,
+            "view_id": "view-1",
+            "document_version": 2
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.update",
+          "payload": {
+            "id": 48,
+            "preedit": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "cursor_byte": 4097,
+            "selection_start_byte": 4097,
+            "selection_end_byte": 4097
+          }
+        }
+      ],
+      "expect": {
+        "update": "LIMIT_EXCEEDED",
+        "runtime_committed_text_dispatches": 0
+      }
+    },
+    {
+      "id": "offset-inside-multibyte-sequence-is-rejected",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 49,
+            "view_id": "view-1",
+            "document_version": 2
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.update",
+          "payload": {
+            "id": 49,
+            "preedit": "é",
+            "cursor_byte": 1,
+            "selection_start_byte": 0,
+            "selection_end_byte": 0
+          }
+        }
+      ],
+      "expect": {
+        "update": "INVALID_ARGUMENT",
+        "runtime_committed_text_dispatches": 0
+      }
+    },
+    {
+      "id": "observer-cannot-start-composition",
+      "capability": "ime-composition/1",
+      "driver": false,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 50,
+            "view_id": "view-1",
+            "document_version": 2
+          }
+        }
+      ],
+      "expect": {
+        "start": "UNSUPPORTED_OR_PERMISSION_DENIED",
+        "active_composition": false,
+        "runtime_committed_text_dispatches": 0
+      }
+    },
+    {
+      "id": "focus-loss-forces-cancellation",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 51,
+            "view_id": "view-1",
+            "document_version": 2
+          }
+        },
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "core",
+          "type": "focus",
+          "payload": {
+            "focused": false
+          }
+        }
+      ],
+      "expect": {
+        "backend_cancel_to_frontend": {
+          "namespace": "ime",
+          "type": "composition.cancel",
+          "payload": {
+            "id": 51,
+            "reason": "focus_lost"
+          }
+        },
+        "active_composition": false,
+        "document_version_unchanged": true
+      }
+    },
+    {
+      "id": "view-removal-forces-cancellation",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 52,
+            "view_id": "view-1",
+            "document_version": 2
+          }
+        },
+        {
+          "action": "runtime_snapshot_removes_view",
+          "view_id": "view-1"
+        }
+      ],
+      "expect": {
+        "backend_cancel_to_frontend": {
+          "namespace": "ime",
+          "type": "composition.cancel",
+          "payload": {
+            "id": 52,
+            "reason": "view_removed"
+          }
+        },
+        "active_composition": false
+      }
+    },
+    {
+      "id": "capability-absent-uses-committed-only-fallback",
+      "capability": null,
+      "driver": true,
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "core",
+          "type": "input.text",
+          "payload": {
+            "text": "committed"
+          }
+        }
+      ],
+      "expect": {
+        "input_text": "accepted",
+        "ime_namespace_messages_sent": 0,
+        "composition_id_fields_sent": 0,
+        "preedit_document_mutations": 0
+      }
+    },
+    {
+      "id": "composition-id-must-increase",
+      "capability": "ime-composition/1",
+      "driver": true,
+      "previously_used_ids": [
+        9
+      ],
+      "steps": [
+        {
+          "direction": "frontend_to_backend",
+          "namespace": "ime",
+          "type": "composition.start",
+          "payload": {
+            "id": 9,
+            "view_id": "view-1",
+            "document_version": 2
+          }
+        }
+      ],
+      "expect": {
+        "start": "INVALID_STATE",
+        "active_composition": false
+      }
+    }
+  ]
+}
