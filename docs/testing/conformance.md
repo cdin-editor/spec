@@ -49,10 +49,12 @@ flowchart LR
 | `proto.updates` | protocol | flush atomicity, backpressure, versioned lines, invalidation |
 | `proto.input` | protocol | raw key and text events, resize, focus, paste |
 | `proto.ime-composition` | protocol | negotiated preedit lifecycle, UTF-8 byte offsets, cancellation, stale/duplicate commit and fallback |
+| `proto.pane-splitter` | protocol/runtime/frontend | revision-checked split resize, Driver authorization, local drag cancellation and atomic layout publication |
+| `proto.ui-presentation` | protocol/runtime/frontend | style roles, byte spans, declarative widgets, snapshot replacement, capability fallback and safe activation |
 | `ext.contract` | runtime | the existing extension contract's behaviour (to be derived from the contract document and the current Lua tests) |
 
-The proposed IME lifecycle vectors are stored in
-[ime-composition-v1.json](vectors/ime-composition-v1.json). They remain
+The proposed IME, PaneTree splitter and UI presentation vectors are stored in
+[ime-composition-v1.json](vectors/ime-composition-v1.json), [pane-splitter-v1.json](vectors/pane-splitter-v1.json) and [ui-presentation-v1.json](vectors/ui-presentation-v1.json). They remain
 `PROPOSED` fixtures until ADR-0023 is accepted and executable Frontend,
 Backend and Runtime runners consume them. The Spec repository has no Protocol
 vector runner; the JSON file is not evidence that any implementation passed.
