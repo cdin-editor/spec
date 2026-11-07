@@ -92,6 +92,14 @@ Verification plan and external test evidence. This repository contains no execut
 [test-matrix](testing/test-matrix.md) maps requirement groups;
 [kernel implementation status](kernel/implementation-status.md) records actual `cdin-kernel` checks.
 
+## Proposals
+
+The following frontend presentation and interaction contracts are proposals only; they do not amend accepted Protocol 1.0.0 semantics until owner approval:
+
+- [PaneTree splitter resize v1](proposals/panetree-splitter-resize-v1.md) — stable split IDs, revision-checked resize and local drag lifecycle.
+- [UI presentation contract v1](proposals/ui-presentation-contract-v1.md) — style-role, line-span, panel, prompt and widget schemas.
+- [IME composition and preedit v1](proposals/ime-composition-contract-v1.md) — negotiated native text composition lifecycle.
+
 ## Decisions
 
 [adr/README.md](adr/README.md) indexes the ADRs and says how owner approval is
