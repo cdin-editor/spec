@@ -88,6 +88,9 @@ The protocol carries **semantic state and intent**, not toolkit objects or pixel
 - **FE-022** `EXISTING` The pre-extraction `cdin` renderer contains a cached command-list/render-cache implementation. This is legacy migration evidence only, not proof of a current standalone `gui-sdl` frontend. — *Verify:* INSPECT — *Anchor:* `src/ui/renderer.h`, `src/ui/renderer_cache.c`
 - **FE-023** `ACCEPTED` SDL-specific features (window controls, title-bar hit regions, native dialogs) become capabilities (`hit_regions`, `dialogs`) so another GUI toolkit can implement them or decline. — *Verify:* INSPECT, INTEG
 
+- **FE-024** `PROPOSED` A Frontend that negotiates `ime-composition/1` MUST translate native IME lifecycle events to the optional composition contract, map cursor/selection positions to valid UTF-8 byte boundaries, render preedit locally without committing it, and discard the matching preedit on cancellation or Backend-forced lifecycle cancellation. — *Verify:* CONF, INTEG
+
+
 ## 5. Rewriting a frontend
 
 A frontend can be replaced by a different implementation, in a different language, provided it passes the protocol conformance vectors ([conformance.md](../testing/conformance.md)). It may use the shared client API in `cdin-editor/frontend` or implement the accepted wire contract independently; it must not depend on Backend internals.
