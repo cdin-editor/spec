@@ -32,6 +32,7 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0021](ADR-0021-kernel-implementation-backed-contracts.md) | Kernel ABI 1.1.0 implementation-backed contract acceptance | `ACCEPTED` |
 | [ADR-0022](ADR-0022-minimal-static-release-catalog.md) | Generic Consumer-Independent Registry and Component Orchestration | `ACCEPTED` |
 | [ADR-0023](ADR-0023-ime-composition-contract.md) | Versioned Frontend IME composition contract | `ACCEPTED` |
+| [ADR-0024](ADR-0024-pane-tree-splitter-resize.md) | PaneTree splitter resize protocol contract | `ACCEPTED` |
 
 ## How owner approval is recorded
 
