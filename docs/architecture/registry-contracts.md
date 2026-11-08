@@ -88,7 +88,7 @@ or claim that all legacy extension behavior has been migrated.
 A Product Definition declares root component requirements and optional contracts supplied by the target environment. It is declarative data, never executable product logic.
 
 ```yaml
-schema_version: "1.0.0"
+schema_version: "1.1.0"
 product:
   id: com.example.editor
   name: Example Editor
