@@ -365,6 +365,87 @@
       "expected": {
         "result": "reject-metadata"
       }
+    },
+    {
+      "id": "artifact-metadata-with-old-document-schema-version",
+      "schema_version": "1.0.0",
+      "artifacts": [
+        {
+          "artifact_id": "a"
+        }
+      ],
+      "expected": {
+        "result": "reject-metadata",
+        "code": "SCHEMA_VERSION_UNSUPPORTED"
+      }
+    },
+    {
+      "id": "artifact-policy-with-old-product-definition-schema-version",
+      "schema_version": "1.0.0",
+      "resolution": {
+        "delivery_mode": "artifact",
+        "target": {
+          "os": "linux",
+          "architecture": "x86_64",
+          "abi": "gnu"
+        }
+      },
+      "expected": {
+        "result": "reject-product-definition"
+      }
+    },
+    {
+      "id": "artifact-manifest-missing-source-provenance",
+      "schema_version": "1.1.0",
+      "selected_artifact": {
+        "source_unit_ids": [
+          "source-a"
+        ],
+        "source_provenance": []
+      },
+      "expected": {
+        "result": "reject-manifest"
+      }
+    },
+    {
+      "id": "artifact-manifest-incomplete-source-provenance",
+      "selected_artifact": {
+        "source_unit_ids": [
+          "source-a",
+          "source-b"
+        ],
+        "source_provenance": [
+          {
+            "source_unit_id": "source-a",
+            "repository_uri": "https://example.invalid/repo",
+            "revision": "0123456789abcdef0123456789abcdef01234567"
+          }
+        ]
+      },
+      "expected": {
+        "result": "reject-manifest"
+      }
+    },
+    {
+      "id": "artifact-build-recipe-source-not-in-provenance",
+      "selected_artifact": {
+        "source_unit_ids": [
+          "source-a"
+        ],
+        "source_provenance": [
+          {
+            "source_unit_id": "source-a"
+          }
+        ],
+        "build": {
+          "recipe": {
+            "source_unit_id": "source-b"
+          }
+        }
+      },
+      "expected": {
+        "result": "reject-manifest"
+      }
     }
   ],
   "integrity_cases": [
