@@ -1,7 +1,7 @@
 # Registry data contracts
 
 - **Status:** ACCEPTED
-- **Contract baseline:** Registry data contracts `1.2.0`
+- **Contract baseline:** Registry data contracts `1.3.0`
 - **Schema dialect:** JSON Schema Draft 2020-12
 - **Implementation owner:** `cdin-editor/registry`
 
@@ -104,9 +104,15 @@ environment_contracts:
     version: "1.0.0"
 policy:
   allow_prerelease: false
+resolution:
+  delivery_mode: artifact
+  target:
+    os: linux
+    architecture: x86_64
+    abi: gnu-glibc-2.28
 ```
 
-The optional `product.id`, `product.name` and `product.version` are provenance labels. They may be copied into outputs, but the Registry engine MUST NOT branch, select behavior, alter defaults or choose a catalog based on them. The Product Definition supplies required components, variants, constraints and external contract declarations.
+The optional `product.id`, `product.name` and `product.version` are provenance labels. They may be copied into outputs, but the Registry engine MUST NOT branch, select behavior, alter defaults or choose a catalog based on them. The Product Definition supplies required components, variants, constraints, external contract declarations and an optional explicit delivery policy. Omitting `resolution` preserves source delivery. Artifact modes require an exact target tuple; Registry never guesses a target or ABI.
 
 `environment_contracts` identifies contracts supplied by the target environment rather than a Registry-managed component. It does not permit Registry to inspect or identify the consumer. Contract IDs are opaque namespaced strings; Registry compares declared versions and infers no semantics from their names.
 
@@ -116,7 +122,7 @@ A Catalog Index references immutable release-metadata documents; it does not mir
 
 Identical entries may be deduplicated. Different metadata identities for the same `(component_id, variant, version)` are a catalog conflict.
 
-Component Release Metadata is published and owned by the component maintainer. It declares stable component/variant IDs, package version and release status; one or more source units with repository URI and immutable full Git commit revision; required component dependencies; and contracts provided or required by the release.
+Component Release Metadata is published and owned by the component maintainer. It declares stable component/variant IDs, package version and release status; one or more source units with repository URI and immutable full Git commit revision; optional immutable target-specific artifacts; required component dependencies; and contracts provided or required by the release. Artifact fields, target matching, package layouts, provenance and integrity semantics are normative in [Immutable target-specific artifact delivery](immutable-artifact-delivery.md).
 
 One logical component may use multiple source units. Several variants may come from one repository. Several components may reference the same repository and revision. Registry does not assume a one-component-to-one-repository mapping.
 
@@ -137,12 +143,14 @@ Resolution is deterministic and independent of catalog ordering, repository name
 9. If no compatible provider exists, resolution fails as `CONTRACT_PROVIDER_MISSING`; the report distinguishes an absent declaration from declarations that exist but are version-incompatible.
 10. The selected dependency graph must be acyclic. A cycle fails and the report identifies its exact path.
 11. Output order is a deterministic topological order. Independent nodes at the same depth are ordered lexicographically by component ID, then variant ID.
+12. After release selection, Registry applies the Product Definition delivery policy to each selected component/variant. Version/dependency/contract selection is unchanged. Artifact target selection follows exact OS/architecture/ABI matching, with only the explicit universal `any/any/none` target as a fallback. Ambiguous artifact matches fail; no catalog ordering or publication timestamp is a tie-breaker.
+13. `artifact-or-source` falls back only when no compatible artifact is declared. A selected artifact that fails retrieval, size/digest validation, archive validation or extraction fails the operation and MUST NOT fall back to source.
 
-Optional dependencies, feature negotiation, arbitrary solver plugins and consumer-specific compatibility callbacks are outside contract 1.2.0.
+Optional dependencies, feature negotiation, arbitrary solver plugins and consumer-specific compatibility callbacks are outside contract 1.3.0.
 
-## 6. Source collection and workspace
+## 6. Source and artifact delivery workspace
 
-Each source unit is retrieved at its declared full immutable Git commit object ID. Branch names, tags and other movable references are not valid resolved revisions. Full 40-character and 64-character hexadecimal object IDs are accepted; the retrieved commit must resolve to exactly that ID.
+In `source` mode, each source unit is retrieved at its declared full immutable Git commit object ID. Branch names, tags and other movable references are not valid resolved revisions. Full 40-character and 64-character hexadecimal object IDs are accepted; the retrieved commit must resolve to exactly that ID. In `artifact` mode, Registry retrieves the selected release asset by its exact URI and verifies its declared byte count and SHA-256 before safe extraction. In `artifact-or-source` mode, source collection is permitted only when no artifact matches the requested target; it is not a recovery path for a corrupt or unavailable selected artifact.
 
 The Catalog Index digest protects release metadata. Git object verification protects the declared source revision. Neither implies publisher identity or signed provenance.
 
@@ -153,21 +161,21 @@ prepared/
 ├── components/
 │   └── <component-id>/
 │       └── <variant-id>/
-│           └── sources/
-│               └── <source-unit-id>/
+│           ├── sources/<source-unit-id>/   # source delivery only
+│           └── package/                    # artifact delivery only
 ├── registry-manifest.json
 └── resolution-report.json
 ```
 
-Every source unit has its own declared path. Physical cache deduplication is an implementation optimization and must not change manifest paths or visible contents. A declared subdirectory is a safe relative path inside the checked-out revision; absolute paths, parent traversal and escape from the source root are invalid.
+Every source unit has its own declared path. Every selected artifact has one package path and exact artifact identity in the manifest. Physical cache deduplication is an implementation optimization and must not change manifest paths or visible contents. A declared subdirectory is a safe relative path inside the checked-out revision; absolute paths, parent traversal and escape from the source root are invalid.
 
-The collector stages privately, verifies all revisions, materializes all source units and validates the final layout before publishing the destination. Failure cannot leave a successful-looking partial workspace. Existing destinations are not implicitly overwritten. Registry does not run build scripts, package hooks or collected code.
+The collector stages privately, verifies all revisions or artifact digests, safely materializes all selected content and validates the final layout before publishing the destination. Failure cannot leave a successful-looking partial workspace. Existing destinations are not implicitly overwritten. Registry does not run build scripts, package hooks or collected code.
 
 Contract 1.2.0 does not automatically materialize Git submodules or Git LFS objects. Required content must be represented as separately declared source units or through a future explicit asset contract; Registry does not silently fetch unlisted content.
 
 ## 7. Resolved Manifest and Resolution Report
 
-The Resolved Manifest records normalized roots, selected component IDs/variants/versions, release-metadata identities, source repositories and exact revisions, workspace-relative source paths, resolved dependency edges, contract declarations and environment contracts. Consumers do not rerun version selection to reproduce the selected graph.
+The Resolved Manifest records normalized roots, selected component IDs/variants/versions, release-metadata identities, effective delivery mode and target, resolved dependency edges and contract declarations. Source-delivered components record source repositories, exact revisions and workspace-relative source paths. Artifact-delivered components record the exact artifact ID, target, URI, format, byte count, SHA-256, layout, build provenance and extracted workspace-relative package path. Consumers do not rerun version or artifact selection to reproduce the selected graph.
 
 A later catalog update creates a new resolution and manifest; it never mutates an existing manifest or prepared workspace. The manifest is the reproducibility record, not a mutable lockfile maintained by CDIN.
 
@@ -188,9 +196,9 @@ The operation MUST verify the historical Manifest before loading current Catalog
 
 ## 8. Security and trust boundary
 
-Product Definitions, Catalog Indexes and release metadata are untrusted data. They are parsed and validated, never evaluated as scripts, templates or plugins. Invalid metadata fails closed. Registry retrieves only declared sources at exact revisions and does not execute source code during resolution or collection.
+Product Definitions, Catalog Indexes, release metadata and package archives are untrusted data. They are parsed and validated, never evaluated as scripts, templates or plugins. Artifact downloads require HTTPS, configured host/redirect policy, byte-count and SHA-256 verification. Extraction rejects traversal, links, special files, ambiguous/colliding paths and configured resource-limit violations. Registry stages privately and atomically publishes only a fully validated workspace; it never executes package scripts or source code.
 
-Repository authentication, credential storage, publisher signing, trust roots, vulnerability policy and security-withdrawal overrides are deployment/security concerns. They must not be improvised as product-specific resolver logic.
+Repository authentication, credential storage, publisher signing, trust roots, vulnerability policy and security-withdrawal overrides are deployment/security concerns. A SHA-256 match proves byte integrity relative to the pinned metadata, not publisher identity or binary safety. Registry MUST NOT claim signature verification unless an explicit trust policy validates it. These concerns must not be improvised as product-specific resolver logic.
 
 ## 9. Repository boundary
 
@@ -200,8 +208,10 @@ Registry is a build-time/delivery-plane tool. CDIN and unrelated consumers invok
 
 ## 10. Deliberately not frozen
 
-Implementation language/toolchain, internal module boundaries, CLI command names and flags, catalog distribution/update transport, local cache and garbage collection, parallel downloads, authentication UX, signing/trust, API service deployment and release automation belong to the next repository-design phase. They can be decided without changing this data contract. Changes to public schemas, resolution behavior, source identity or workspace/manifest semantics require a Spec change. Registry Data Contract versions follow SemVer independently of the Spec repository release: additive report evidence and clarifications that preserve existing success/failure decisions increment the contract minor version; compatible errata that do not alter schemas or behavior increment the patch version; breaking wire-format or resolution-semantic changes increment the major version.
+Implementation language/toolchain, internal module boundaries, CLI command names and flags, catalog distribution/update transport, local cache and garbage collection, parallel downloads, authentication UX, signing/trust, API service deployment and release automation belong to the next repository-design phase. They can be decided without changing this data contract. Changes to public schemas, resolution behavior, source identity or workspace/manifest semantics require a Spec change. Registry Data Contract versions follow SemVer independently of the Spec repository release: additive fields and compatible delivery semantics increment the contract minor version; compatible errata that do not alter schemas or behavior increment the patch version; breaking wire-format or resolution-semantic changes increment the major version. Contract 1.3.0 adds artifact delivery while retaining the 1.x source-only behavior as the default.
 Resolution Reports produced under this baseline MUST declare `schema_version: "1.1.0"` and include `applied_constraints` (an empty array is valid). The additional evidence fields are additive within contract major version 1; v1.0 consumers may ignore unknown optional fields, while v1.1 consumers validate the v1.1.0 report schema. Update Discovery Reports MUST declare `schema_version: "1.0.0"` and validate against the dedicated Update Discovery Report schema. That report schema references the existing v1.1 Resolution Report contract for its `current_resolution` field; it does not redefine or change Resolver selection semantics.
+
+The artifact-specific requirements REG-028 through REG-041 are normative within contract 1.3.0 and are listed in [Immutable target-specific artifact delivery](immutable-artifact-delivery.md).
 
 ## 11. Normative Registry requirements
 
