@@ -224,6 +224,147 @@
       "expected": {
         "result": "reject-schema"
       }
+    },
+    {
+      "id": "same-artifact-id-with-different-targets-is-invalid",
+      "artifacts": [
+        {
+          "artifact_id": "package",
+          "target": {
+            "os": "linux",
+            "architecture": "x86_64",
+            "abi": "gnu"
+          }
+        },
+        {
+          "artifact_id": "package",
+          "target": {
+            "os": "windows",
+            "architecture": "x86_64",
+            "abi": "ucrt"
+          }
+        }
+      ],
+      "expected": {
+        "result": "reject-metadata",
+        "code": "ARTIFACT_ID_DUPLICATE"
+      }
+    },
+    {
+      "id": "artifact-source-reference-unknown",
+      "source_units": [
+        {
+          "source_unit_id": "source-a"
+        }
+      ],
+      "artifact": {
+        "source_unit_ids": [
+          "source-b"
+        ]
+      },
+      "expected": {
+        "result": "reject-metadata",
+        "code": "ARTIFACT_SOURCE_REFERENCE_INVALID"
+      }
+    },
+    {
+      "id": "build-recipe-source-unit-not-in-artifact-provenance",
+      "source_units": [
+        {
+          "source_unit_id": "source-a"
+        },
+        {
+          "source_unit_id": "source-b"
+        }
+      ],
+      "artifact": {
+        "source_unit_ids": [
+          "source-a"
+        ],
+        "build": {
+          "recipe": {
+            "source_unit_id": "source-b",
+            "path": "scripts/package.sh"
+          }
+        }
+      },
+      "expected": {
+        "result": "reject-metadata",
+        "code": "ARTIFACT_RECIPE_SOURCE_MISMATCH"
+      }
+    },
+    {
+      "id": "runtime-module-cannot-be-native-target",
+      "artifact": {
+        "kind": "runtime-module-archive",
+        "target": {
+          "os": "linux",
+          "architecture": "x86_64",
+          "abi": "gnu"
+        },
+        "layout": "lua-module-tree-v1"
+      },
+      "expected": {
+        "result": "reject-metadata"
+      }
+    },
+    {
+      "id": "native-sdk-cannot-be-universal-target",
+      "artifact": {
+        "kind": "sdk-package",
+        "target": {
+          "os": "any",
+          "architecture": "any",
+          "abi": "none"
+        },
+        "layout": "cmake-prefix-v1"
+      },
+      "expected": {
+        "result": "reject-metadata"
+      }
+    },
+    {
+      "id": "runtime-module-cannot-use-cmake-layout",
+      "artifact": {
+        "kind": "runtime-module-archive",
+        "target": {
+          "os": "any",
+          "architecture": "any",
+          "abi": "none"
+        },
+        "layout": "cmake-prefix-v1"
+      },
+      "expected": {
+        "result": "reject-metadata"
+      }
+    },
+    {
+      "id": "recipe-path-parent-traversal",
+      "artifact": {
+        "build": {
+          "recipe": {
+            "source_unit_id": "source-a",
+            "path": "../../build.sh"
+          }
+        }
+      },
+      "expected": {
+        "result": "reject-metadata"
+      }
+    },
+    {
+      "id": "recipe-path-windows-drive",
+      "artifact": {
+        "build": {
+          "recipe": {
+            "source_unit_id": "source-a",
+            "path": "C:/build.ps1"
+          }
+        }
+      },
+      "expected": {
+        "result": "reject-metadata"
+      }
     }
   ],
   "integrity_cases": [
@@ -262,6 +403,26 @@
     {
       "id": "offline-cache-absent",
       "expected": "ARTIFACT_OFFLINE_MISS"
+    },
+    {
+      "id": "dns-rebinding-to-private-address",
+      "expected": "ARTIFACT_HOST_REJECTED"
+    },
+    {
+      "id": "redirect-loop",
+      "expected": "ARTIFACT_REDIRECT_REJECTED"
+    },
+    {
+      "id": "streamed-bytes-exceed-declared-size",
+      "expected": "ARTIFACT_SIZE_MISMATCH"
+    },
+    {
+      "id": "archive-crc-or-container-structure-invalid",
+      "expected": "ARTIFACT_ARCHIVE_REJECTED"
+    },
+    {
+      "id": "concurrent-cache-write",
+      "expected": "one-complete-verified-entry-no-partial-entry"
     }
   ],
   "archive_cases": [
@@ -391,6 +552,24 @@
       "id": "special-file-permissions",
       "mode": "04755",
       "expected": "reject"
+    },
+    {
+      "id": "pax-effective-path-parent-traversal",
+      "raw_path": "safe/file",
+      "pax_path": "../../outside",
+      "expected": "reject"
+    },
+    {
+      "id": "zip-symlink-via-unix-external-attributes",
+      "entry": "bin/current",
+      "zip_unix_mode": "0120777",
+      "expected": "reject"
+    },
+    {
+      "id": "setuid-bit-is-not-preserved",
+      "entry": "bin/tool",
+      "mode": "04755",
+      "expected": "reject-or-normalize-to-nonprivileged-regular-file"
     }
   ]
 }
