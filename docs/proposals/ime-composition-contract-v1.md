@@ -1,6 +1,6 @@
 # IME composition and preedit contract v1
 
-**Status:** `PROPOSED`. This document is a design proposal for owner review. It is not part of the accepted Frontend Protocol 1.0.0 contract until [ADR-0023](../adr/ADR-0023-ime-composition-contract.md) is accepted. Implementations MUST NOT advertise or emit this extension while it remains proposed.
+**Status:** `ACCEPTED` by [ADR-0023](../adr/ADR-0023-ime-composition-contract.md). This optional capability is part of the accepted Protocol 1.0.0 extension surface; implementations MUST still withhold capability advertisement until their complete negotiated lifecycle is implemented and conformance-tested.
 
 **Related:** [Spec #14](https://github.com/cdin-editor/spec/issues/14), [Frontend #15](https://github.com/cdin-editor/frontend/issues/15), [CDIN #111](https://github.com/cdin-editor/cdin/issues/111), [Protocol wire contract](../architecture/protocol-wire.md), [Runtime UI Model](../architecture/ui-model-v1.md).
 
@@ -188,4 +188,4 @@ The Spec repository has no executable Protocol runner. The vector file is a prop
 - [x] Define cancellation on focus, view, document, Driver-role and session changes.
 - [x] Add shared positive and negative conformance cases.
 - [x] Assign implementation work to Frontend, Backend, Runtime and CDIN.
-- [ ] Owner accepts ADR-0023; until then, this proposal does not activate the extension.
+- [x] Owner accepts ADR-0023. Capability advertisement remains gated on complete component and CDIN integration conformance.
