@@ -45,6 +45,248 @@
     "gitRevision": {
       "type": "string",
       "pattern": "^(?:[a-fA-F0-9]{40}|[a-fA-F0-9]{64})$"
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "os": {
+          "type": "string",
+          "enum": [
+            "linux",
+            "darwin",
+            "windows",
+            "freebsd",
+            "openbsd",
+            "any"
+          ]
+        },
+        "architecture": {
+          "type": "string",
+          "enum": [
+            "x86_64",
+            "arm64",
+            "any"
+          ]
+        },
+        "abi": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._+-]{0,63}$"
+        }
+      },
+      "required": [
+        "os",
+        "architecture",
+        "abi"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "properties": {
+            "os": {
+              "const": "any"
+            },
+            "architecture": {
+              "const": "any"
+            },
+            "abi": {
+              "const": "none"
+            }
+          },
+          "required": [
+            "os",
+            "architecture",
+            "abi"
+          ]
+        },
+        {
+          "properties": {
+            "os": {
+              "enum": [
+                "linux",
+                "darwin",
+                "windows",
+                "freebsd",
+                "openbsd"
+              ]
+            },
+            "architecture": {
+              "enum": [
+                "x86_64",
+                "arm64"
+              ]
+            },
+            "abi": {
+              "pattern": "^(?!none$)[a-z0-9][a-z0-9._+-]{0,63}$"
+            }
+          },
+          "required": [
+            "os",
+            "architecture",
+            "abi"
+          ]
+        }
+      ]
+    },
+    "artifact": {
+      "type": "object",
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "native-development-package",
+            "runtime-module-archive",
+            "sdk-package"
+          ]
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "tar.gz",
+            "tar.xz",
+            "zip"
+          ]
+        },
+        "file_name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,254}$"
+        },
+        "uri": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "layout": {
+          "type": "string",
+          "enum": [
+            "cmake-prefix-v1",
+            "lua-module-tree-v1"
+          ]
+        },
+        "source_unit_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/sourceUnitId"
+          }
+        },
+        "build": {
+          "type": "object",
+          "properties": {
+            "recipe": {
+              "type": "object",
+              "properties": {
+                "source_unit_id": {
+                  "$ref": "#/$defs/sourceUnitId"
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1024
+                }
+              },
+              "required": [
+                "source_unit_id",
+                "path"
+              ],
+              "additionalProperties": true
+            },
+            "toolchain": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "name",
+                  "version"
+                ],
+                "additionalProperties": true
+              }
+            },
+            "runner": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "recipe",
+            "toolchain"
+          ],
+          "additionalProperties": true
+        },
+        "attestations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "uri": {
+                "type": "string",
+                "format": "uri",
+                "pattern": "^https://"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              },
+              "predicate_type": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            },
+            "required": [
+              "uri",
+              "sha256",
+              "predicate_type"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [
+        "artifact_id",
+        "kind",
+        "target",
+        "format",
+        "file_name",
+        "uri",
+        "sha256",
+        "size_bytes",
+        "layout",
+        "source_unit_ids",
+        "build"
+      ],
+      "additionalProperties": true
     }
   },
   "properties": {
@@ -176,6 +418,14 @@
     },
     "extensions": {
       "type": "object"
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/artifact"
+      },
+      "description": "Optional immutable target-specific package artifacts. Source units remain the authoritative source identity."
     }
   },
   "required": [
