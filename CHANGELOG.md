@@ -10,6 +10,12 @@ from the public Kernel ABI and the Spec release or compatibility target.
 
 ## [Unreleased]
 
+### Accepted contracts
+
+- Accept ADR-0023, IME Composition v1: capability-gated, client-local preedit state and exact-once committed-text semantics, with cancellation and stale-context rules.
+- Accept ADR-0024, PaneTree Splitter Resize v1: stable semantic split identity, Driver-authorized ratio changes, revision checks and atomic UI projection requirements.
+- Add shared positive/negative conformance fixtures for IME lifecycle and nested PaneTree splitter resizing; component implementations remain separately release-gated.
+
 ### Added
 
 - Extend Registry Data Contracts to baseline 1.1.0 with fully sourced applied constraints, candidate provenance, structured contract-provider evidence, closed conflict/rejection reason codes and explicit self-provider semantics.
