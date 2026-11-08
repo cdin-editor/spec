@@ -116,7 +116,10 @@
               ]
             },
             "abi": {
-              "pattern": "^(?!none$)[a-z0-9][a-z0-9._+-]{0,63}$"
+              "not": {
+                "const": "none"
+              },
+              "pattern": "^[a-z0-9][a-z0-9._+-]{0,63}$"
             }
           },
           "required": [
@@ -199,7 +202,28 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 1024,
-                  "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(/|$)).+$"
+                  "allOf": [
+                    {
+                      "not": {
+                        "pattern": "^/"
+                      }
+                    },
+                    {
+                      "not": {
+                        "pattern": "^[A-Za-z]:"
+                      }
+                    },
+                    {
+                      "not": {
+                        "pattern": "\\\\"
+                      }
+                    },
+                    {
+                      "not": {
+                        "pattern": "(^|/)\\.\\.?(/|$)"
+                      }
+                    }
+                  ]
                 }
               },
               "required": [
