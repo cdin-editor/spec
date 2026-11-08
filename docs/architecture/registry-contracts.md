@@ -114,7 +114,7 @@ resolution:
 
 The optional `product.id`, `product.name` and `product.version` are provenance labels. They may be copied into outputs, but the Registry engine MUST NOT branch, select behavior, alter defaults or choose a catalog based on them. The Product Definition supplies required components, variants, constraints, external contract declarations and an optional explicit delivery policy. Omitting `resolution` preserves source delivery. Artifact modes require an exact target tuple; Registry never guesses a target or ABI.
 
-`environment_contracts` identifies contracts supplied by the target environment rather than a Registry-managed component. It does not permit Registry to inspect or identify the consumer. Contract IDs are opaque namespaced strings; Registry compares declared versions and infers no semantics from their names.
+`environment_contracts` identifies contracts supplied by the target environment rather than a Registry-managed component. A product may use this for a separately pinned platform SDK or an independently installed binary package; the Product Composition Root remains responsible for provisioning that package and ensuring the declared contract is actually present. It does not permit Registry to inspect or identify the consumer. Contract IDs are opaque namespaced strings; Registry compares declared versions and infers no semantics from their names.
 
 ## 4. Catalog Index and Component Release Metadata
 
@@ -192,7 +192,7 @@ Update discovery is a read-only comparison operation over three independently id
 
 The Update Discovery Report is a separate public JSON artifact validated against `update-discovery-report.schema.json`. It binds the exact historical Manifest SHA-256, Product Definition input SHA-256, current Catalog URI/digest identities and the complete current Resolution Report. Historical component selections and current candidates carry stable reason codes. The report is deterministic: Catalog references sort by Catalog ID, URI and digest; component decisions sort by component ID and variant; candidate decisions sort by component ID, variant, version, Catalog ID and metadata URI. It contains no timestamp or random identifier.
 
-The operation MUST verify the historical Manifest before loading current Catalog state. It MUST NOT rewrite, replace or invalidate the historical Manifest or prepared Workspace. It MUST NOT collect Git sources or publish a Workspace. A withdrawal or identity change is reported as current evidence; it does not rewrite what the historical Manifest recorded. The report schema has its own `schema_version: "1.0.0"`; the Registry Data Contract baseline is `1.2.0`, while the Resolution Report retains its independent `schema_version: "1.1.0"`.
+The operation MUST verify the historical Manifest before loading current Catalog state. It MUST NOT rewrite, replace or invalidate the historical Manifest or prepared Workspace. It MUST NOT collect Git sources or publish a Workspace. A withdrawal or identity change is reported as current evidence; it does not rewrite what the historical Manifest recorded. The report schema has its own `schema_version: "1.0.0"`; the Registry Data Contract baseline is `1.3.0`, while the Resolution Report retains its independent `schema_version: "1.1.0"`.
 
 ## 8. Security and trust boundary
 
