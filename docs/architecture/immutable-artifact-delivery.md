@@ -27,7 +27,7 @@ Each artifact declares:
 | `artifact_id` | Stable ID unique within this exact component release metadata document. |
 | `kind` | `native-development-package`, `runtime-module-archive`, or `sdk-package`. |
 | `target` | Exact OS, architecture and ABI tuple, or the one universal tuple. |
-| `format` | `tar.gz`, `tar.xz`, or `zip`. |
+| `format` | `tar.gz` or `zip`. |
 | `file_name` | Safe basename used for cache and diagnostics; never used as identity. |
 | `uri` | Absolute HTTPS asset URI. |
 | `sha256` | SHA-256 of the exact downloaded bytes. |
