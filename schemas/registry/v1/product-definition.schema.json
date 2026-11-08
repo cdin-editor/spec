@@ -45,6 +45,87 @@
     "gitRevision": {
       "type": "string",
       "pattern": "^(?:[a-fA-F0-9]{40}|[a-fA-F0-9]{64})$"
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "os": {
+          "type": "string",
+          "enum": [
+            "linux",
+            "darwin",
+            "windows",
+            "freebsd",
+            "openbsd",
+            "any"
+          ]
+        },
+        "architecture": {
+          "type": "string",
+          "enum": [
+            "x86_64",
+            "arm64",
+            "any"
+          ]
+        },
+        "abi": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._+-]{0,63}$"
+        }
+      },
+      "required": [
+        "os",
+        "architecture",
+        "abi"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "properties": {
+            "os": {
+              "const": "any"
+            },
+            "architecture": {
+              "const": "any"
+            },
+            "abi": {
+              "const": "none"
+            }
+          },
+          "required": [
+            "os",
+            "architecture",
+            "abi"
+          ]
+        },
+        {
+          "properties": {
+            "os": {
+              "enum": [
+                "linux",
+                "darwin",
+                "windows",
+                "freebsd",
+                "openbsd"
+              ]
+            },
+            "architecture": {
+              "enum": [
+                "x86_64",
+                "arm64"
+              ]
+            },
+            "abi": {
+              "pattern": "^(?!none$)[a-z0-9][a-z0-9._+-]{0,63}$"
+            }
+          },
+          "required": [
+            "os",
+            "architecture",
+            "abi"
+          ]
+        }
+      ]
     }
   },
   "properties": {
@@ -127,11 +208,65 @@
     },
     "extensions": {
       "type": "object"
+    },
+    "resolution": {
+      "type": "object",
+      "properties": {
+        "delivery_mode": {
+          "type": "string",
+          "enum": [
+            "source",
+            "artifact",
+            "artifact-or-source"
+          ],
+          "default": "source"
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        }
+      },
+      "required": [
+        "delivery_mode"
+      ],
+      "additionalProperties": true
     }
   },
   "required": [
     "schema_version",
     "components"
   ],
-  "additionalProperties": true
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "resolution"
+        ],
+        "properties": {
+          "resolution": {
+            "required": [
+              "delivery_mode"
+            ],
+            "properties": {
+              "delivery_mode": {
+                "enum": [
+                  "artifact",
+                  "artifact-or-source"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "resolution": {
+            "required": [
+              "target"
+            ]
+          }
+        }
+      }
+    }
+  ]
 }
