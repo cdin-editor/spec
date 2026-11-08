@@ -33,6 +33,7 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0022](ADR-0022-minimal-static-release-catalog.md) | Generic Consumer-Independent Registry and Component Orchestration | `ACCEPTED` |
 | [ADR-0023](ADR-0023-ime-composition-contract.md) | Versioned Frontend IME composition contract | `ACCEPTED` |
 | [ADR-0024](ADR-0024-pane-tree-splitter-resize.md) | PaneTree splitter resize protocol contract | `ACCEPTED` |
+| [ADR-0025](ADR-0025-immutable-target-artifact-delivery.md) | Immutable target-specific artifact delivery | `ACCEPTED` |
 
 ## How owner approval is recorded
 
