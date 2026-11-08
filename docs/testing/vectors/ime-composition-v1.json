@@ -1,7 +1,7 @@
 {
   "schema": "cdin.frontend-protocol.conformance.v1",
   "family": "proto.ime-composition",
-  "status": "PROPOSED",
+  "status": "ACCEPTED",
   "protocol_version": [
     1,
     0

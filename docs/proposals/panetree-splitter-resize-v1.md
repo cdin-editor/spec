@@ -1,6 +1,6 @@
 # PaneTree splitter resize contract v1
 
-**Status:** `PROPOSED`. This proposal does not change the accepted Frontend Protocol 1.0.0 contract until the owner accepts the corresponding decision. Implementations MUST NOT advertise or emit the optional extension while it remains proposed.
+**Status:** `ACCEPTED` by [ADR-0024](../adr/ADR-0024-pane-tree-splitter-resize.md). This optional capability is part of the accepted Frontend Protocol 1.0.0 extension surface. Implementations MUST still withhold capability advertisement until the complete authorization, mutation and atomic publication path passes conformance.
 
 **Related:** [Spec #20](https://github.com/cdin-editor/spec/issues/20), [Frontend #15](https://github.com/cdin-editor/frontend/issues/15), [Runtime PaneTree](../components/runtime.md), [Protocol wire contract](../architecture/protocol-wire.md).
 
@@ -87,7 +87,7 @@ A revision mismatch returns `stale_revision`; Frontend MUST NOT silently retry t
 
 ## 7. Conformance vectors
 
-The companion [pane-splitter-v1.json](../testing/vectors/pane-splitter-v1.json) is a proposed data-driven fixture family. It covers:
+The companion [pane-splitter-v1.json](../testing/vectors/pane-splitter-v1.json) is the accepted shared data-driven conformance fixture family. It covers:
 
 - horizontal, vertical and nested split commits;
 - exact minimum and maximum ratios, plus out-of-range rejection;
@@ -97,7 +97,7 @@ The companion [pane-splitter-v1.json](../testing/vectors/pane-splitter-v1.json) 
 - local cancellation on focus loss, pointer cancellation and Driver revocation;
 - success ordering: result, then complete `ui.layout` snapshot, then `ui.flush`.
 
-The fixtures are not passing test evidence. Frontend, Backend and Runtime runners must consume the same vectors after owner acceptance.
+The fixtures are not passing test evidence. Frontend, Backend and Runtime runners must consume the same vectors after component implementation.
 
 ## 8. Explicit non-goals
 

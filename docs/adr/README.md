@@ -2,7 +2,7 @@
 
 Two instruments record how the architecture was and will be decided.
 
-- **[Open Decisions Register](open-decisions.md)**: every unresolved question, its importance, options, trade-offs and dependencies. `OD-01` to `OD-20` are the twenty items identified at the start of the design work; `OD-21` and later were found while writing this specification. The current register contains 32 items; the owner-approved Frontend resolutions are recorded in ADR-0020.
+- **[Open Decisions Register](open-decisions.md)**: every unresolved question, its importance, options, trade-offs and dependencies. `OD-01` to `OD-20` are the twenty items identified at the start of the design work; `OD-21` and later were found while writing this specification. The current register contains 34 items; the owner-approved Frontend resolutions are recorded in ADR-0020.
 - **ADRs** (architecture decision records): one file per decision, with the structure in [conventions.md](../reference/conventions.md). An ADR is written when an `ACCEPTED` contract changes, when a decision is made that others depend on, or when options need to be on record.
 
 ## Index of ADRs
@@ -31,9 +31,11 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0020](ADR-0020-frontend-topology-and-interaction.md) | Frontend topology, TUI-first delivery and presentation contracts | `ACCEPTED` |
 | [ADR-0021](ADR-0021-kernel-implementation-backed-contracts.md) | Kernel ABI 1.1.0 implementation-backed contract acceptance | `ACCEPTED` |
 | [ADR-0022](ADR-0022-minimal-static-release-catalog.md) | Generic Consumer-Independent Registry and Component Orchestration | `ACCEPTED` |
-| [ADR-0023](ADR-0023-ime-composition-contract.md) | Versioned Frontend IME composition contract | `PROPOSED` |
+| [ADR-0023](ADR-0023-ime-composition-contract.md) | Versioned Frontend IME composition contract | `ACCEPTED` |
+| [ADR-0024](ADR-0024-pane-tree-splitter-resize.md) | PaneTree splitter resize protocol contract | `ACCEPTED` |
 
 ## How owner approval is recorded
 
 An ADR marked `ACCEPTED` records an owner-approved decision. Proposals awaiting owner review remain `PROPOSED`; they are never requirements until accepted (SPEC-020). The current resolved/open distinction is in [status.md](../reference/status.md) and [open-decisions.md](open-decisions.md).
+
 

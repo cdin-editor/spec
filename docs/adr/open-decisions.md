@@ -40,6 +40,8 @@ Every unresolved or not-yet-confirmed question, with importance, options, trade-
 | [OD-30](#od-30) | UI core stays in Lua or becomes native | Medium | `RESOLVED` |
 | [OD-31](#od-31) | Name of the specification repository | Low | `OPEN` |
 | [OD-32](#od-32) | Lua-to-native bridge behind the Runtime Host API | Medium | `RESOLVED` by ADR-0019 |
+| [OD-33](#od-33) | Native IME composition lifecycle and commit authority | High | `RESOLVED` by ADR-0023 |
+| [OD-34](#od-34) | Semantic PaneTree splitter resize protocol | High | `RESOLVED` by ADR-0024 |
 
 ---
 
@@ -212,3 +214,18 @@ Importance: Low. The repository is `cdin-editor/spec`; the owner has also called
 ## OD-32
 **Lua-to-native bridge behind the Runtime Host API.**
 Importance: Medium. **RESOLVED** by [ADR-0019](ADR-0019-runtime-bridge.md): PUC Lua 5.4 C API is the only supported v1 bridge. Backend owns the Lua state and native callbacks; all calls occur on the Runtime owner thread. Kernel pointers and handles remain private to the Backend adapter and are never exposed to Runtime extensions. LuaJIT FFI and MetaCall are not v1 targets. This does not add a dependency to `cdin-kernel`. A production release still requires the live bridge, Lua/Kernel round-trip tests and the complete platform matrix.
+
+
+## OD-33
+
+**Resolution:** `RESOLVED` by [ADR-0023](ADR-0023-ime-composition-contract.md). The optional `ime-composition/1` lifecycle is accepted as a Protocol 1.0.0 extension. Native preedit remains local to the originating Frontend; Backend validates capability, Driver role, lifecycle and exactly-once admission; Runtime validates the captured view/version/selection and owns committed text; Kernel sees only the committed edit. Capability advertisement remains disabled until the complete Frontend/Backend/Runtime implementation and CDIN live conformance path pass.
+
+**Native IME composition lifecycle and commit authority.**
+Importance: High. A committed-only `input.text` path cannot represent preedit cancellation or safely bind a composition to a view/version. The accepted optional capability preserves Protocol 1.0 peers and the component ownership boundaries. Implementation remains tracked separately.
+
+## OD-34
+
+**Resolution:** `RESOLVED` by [ADR-0024](ADR-0024-pane-tree-splitter-resize.md). Splitter manipulation is an optional `pane-splitter-resize/1` capability. Frontend owns geometry, pointer lifecycle and local preview; Backend owns authorization, revision validation and ordered atomic publication; Runtime owns the semantic split ratio and layout revision. `input.mouse.target` remains a Runtime View ID. Pixel rectangles are never protocol or Runtime state. Capability advertisement remains disabled until all owning implementations and CDIN live conformance tests pass.
+
+**Semantic PaneTree splitter resize protocol.**
+Importance: High. The GUI has hit-testing/geometry but cannot mutate authoritative PaneTree state before a protocol and owner-thread operation exists. The accepted contract prevents Frontend-only mutation and keeps the existing Protocol 1.0 behavior as the fallback.
