@@ -1,0 +1,396 @@
+{
+  "schema_version": "1.0.0",
+  "contract": "registry-artifact-delivery-v1",
+  "note": "Language-neutral selection and archive-safety cases. These are contract vectors, not passing implementation evidence.",
+  "selection_cases": [
+    {
+      "id": "exact-target-selected",
+      "mode": "artifact",
+      "target": {
+        "os": "linux",
+        "architecture": "x86_64",
+        "abi": "gnu-glibc-2.28"
+      },
+      "artifacts": [
+        {
+          "artifact_id": "linux-x64",
+          "target": {
+            "os": "linux",
+            "architecture": "x86_64",
+            "abi": "gnu-glibc-2.28"
+          }
+        }
+      ],
+      "expected": {
+        "result": "select",
+        "artifact_id": "linux-x64"
+      }
+    },
+    {
+      "id": "universal-selected-only-when-explicit",
+      "mode": "artifact",
+      "target": {
+        "os": "darwin",
+        "architecture": "arm64",
+        "abi": "darwin-macos-11"
+      },
+      "artifacts": [
+        {
+          "artifact_id": "portable-lua",
+          "target": {
+            "os": "any",
+            "architecture": "any",
+            "abi": "none"
+          }
+        }
+      ],
+      "expected": {
+        "result": "select",
+        "artifact_id": "portable-lua"
+      }
+    },
+    {
+      "id": "exact-beats-universal",
+      "mode": "artifact",
+      "target": {
+        "os": "windows",
+        "architecture": "x86_64",
+        "abi": "mingw-ucrt64"
+      },
+      "artifacts": [
+        {
+          "artifact_id": "portable",
+          "target": {
+            "os": "any",
+            "architecture": "any",
+            "abi": "none"
+          }
+        },
+        {
+          "artifact_id": "win-ucrt",
+          "target": {
+            "os": "windows",
+            "architecture": "x86_64",
+            "abi": "mingw-ucrt64"
+          }
+        }
+      ],
+      "expected": {
+        "result": "select",
+        "artifact_id": "win-ucrt"
+      }
+    },
+    {
+      "id": "strict-artifact-missing-target-fails",
+      "mode": "artifact",
+      "target": {
+        "os": "linux",
+        "architecture": "arm64",
+        "abi": "gnu-glibc-2.28"
+      },
+      "artifacts": [
+        {
+          "artifact_id": "linux-x64",
+          "target": {
+            "os": "linux",
+            "architecture": "x86_64",
+            "abi": "gnu-glibc-2.28"
+          }
+        }
+      ],
+      "expected": {
+        "result": "fail-resolution",
+        "code": "ARTIFACT_NOT_FOUND"
+      }
+    },
+    {
+      "id": "abi-mismatch-does-not-fallback-to-other-abi",
+      "mode": "artifact",
+      "target": {
+        "os": "linux",
+        "architecture": "x86_64",
+        "abi": "musl"
+      },
+      "artifacts": [
+        {
+          "artifact_id": "gnu",
+          "target": {
+            "os": "linux",
+            "architecture": "x86_64",
+            "abi": "gnu-glibc-2.28"
+          }
+        }
+      ],
+      "expected": {
+        "result": "fail-resolution",
+        "code": "ARTIFACT_NOT_FOUND"
+      }
+    },
+    {
+      "id": "duplicate-exact-target-is-ambiguous",
+      "mode": "artifact",
+      "target": {
+        "os": "linux",
+        "architecture": "x86_64",
+        "abi": "gnu-glibc-2.28"
+      },
+      "artifacts": [
+        {
+          "artifact_id": "a",
+          "target": {
+            "os": "linux",
+            "architecture": "x86_64",
+            "abi": "gnu-glibc-2.28"
+          }
+        },
+        {
+          "artifact_id": "b",
+          "target": {
+            "os": "linux",
+            "architecture": "x86_64",
+            "abi": "gnu-glibc-2.28"
+          }
+        }
+      ],
+      "expected": {
+        "result": "fail-resolution",
+        "code": "ARTIFACT_AMBIGUOUS"
+      }
+    },
+    {
+      "id": "artifact-or-source-fallback-on-no-match",
+      "mode": "artifact-or-source",
+      "target": {
+        "os": "linux",
+        "architecture": "arm64",
+        "abi": "gnu-glibc-2.28"
+      },
+      "artifacts": [
+        {
+          "artifact_id": "x64",
+          "target": {
+            "os": "linux",
+            "architecture": "x86_64",
+            "abi": "gnu-glibc-2.28"
+          }
+        }
+      ],
+      "expected": {
+        "result": "select-source"
+      }
+    },
+    {
+      "id": "artifact-or-source-does-not-hide-corrupt-download",
+      "mode": "artifact-or-source",
+      "target": {
+        "os": "linux",
+        "architecture": "x86_64",
+        "abi": "gnu-glibc-2.28"
+      },
+      "artifacts": [
+        {
+          "artifact_id": "x64",
+          "target": {
+            "os": "linux",
+            "architecture": "x86_64",
+            "abi": "gnu-glibc-2.28"
+          }
+        }
+      ],
+      "download_sha256_matches": false,
+      "expected": {
+        "result": "fail-integrity",
+        "code": "ARTIFACT_DIGEST_MISMATCH"
+      }
+    },
+    {
+      "id": "partial-wildcard-invalid",
+      "target": {
+        "os": "linux",
+        "architecture": "any",
+        "abi": "gnu"
+      },
+      "expected": {
+        "result": "reject-schema"
+      }
+    },
+    {
+      "id": "universal-tuple-must-be-complete",
+      "target": {
+        "os": "any",
+        "architecture": "any",
+        "abi": "gnu"
+      },
+      "expected": {
+        "result": "reject-schema"
+      }
+    }
+  ],
+  "integrity_cases": [
+    {
+      "id": "wrong-size",
+      "expected": "ARTIFACT_SIZE_MISMATCH"
+    },
+    {
+      "id": "wrong-sha256",
+      "expected": "ARTIFACT_DIGEST_MISMATCH"
+    },
+    {
+      "id": "http-uri",
+      "expected": "ARTIFACT_URI_REJECTED"
+    },
+    {
+      "id": "https-downgrade-redirect",
+      "expected": "ARTIFACT_REDIRECT_REJECTED"
+    },
+    {
+      "id": "redirect-to-private-host",
+      "expected": "ARTIFACT_HOST_REJECTED"
+    },
+    {
+      "id": "missing-historical-release-asset-on-replay",
+      "expected": "ARTIFACT_REPLAY_UNAVAILABLE"
+    },
+    {
+      "id": "replaced-asset-bytes-on-replay",
+      "expected": "ARTIFACT_DIGEST_MISMATCH"
+    },
+    {
+      "id": "corrupt-cache-entry",
+      "expected": "cache-miss-and-refetch-or-offline-failure"
+    },
+    {
+      "id": "offline-cache-absent",
+      "expected": "ARTIFACT_OFFLINE_MISS"
+    }
+  ],
+  "archive_cases": [
+    {
+      "id": "posix-absolute-path",
+      "entry": "/etc/passwd",
+      "type": "file",
+      "expected": "reject"
+    },
+    {
+      "id": "parent-traversal",
+      "entry": "../../outside",
+      "type": "file",
+      "expected": "reject"
+    },
+    {
+      "id": "windows-drive-path",
+      "entry": "C:/Windows/system.ini",
+      "type": "file",
+      "expected": "reject"
+    },
+    {
+      "id": "unc-path",
+      "entry": "//server/share/file",
+      "type": "file",
+      "expected": "reject"
+    },
+    {
+      "id": "backslash-traversal",
+      "entry": "..\\\\outside",
+      "type": "file",
+      "expected": "reject"
+    },
+    {
+      "id": "symbolic-link",
+      "entry": "lib/current",
+      "type": "symlink",
+      "target": "../../outside",
+      "expected": "reject"
+    },
+    {
+      "id": "hard-link",
+      "entry": "lib/copy",
+      "type": "hardlink",
+      "target": "../../outside",
+      "expected": "reject"
+    },
+    {
+      "id": "device-node",
+      "entry": "dev/null",
+      "type": "character-device",
+      "expected": "reject"
+    },
+    {
+      "id": "duplicate-entry",
+      "entries": [
+        "include/api.h",
+        "include/api.h"
+      ],
+      "expected": "reject"
+    },
+    {
+      "id": "case-fold-collision",
+      "entries": [
+        "bin/Tool.dll",
+        "bin/tool.dll"
+      ],
+      "target_os": "windows",
+      "expected": "reject"
+    },
+    {
+      "id": "unicode-normalization-collision",
+      "entries": [
+        "data/é.txt",
+        "data/é.txt"
+      ],
+      "expected": "reject"
+    },
+    {
+      "id": "trailing-dot-collision",
+      "entries": [
+        "bin/tool",
+        "bin/tool."
+      ],
+      "target_os": "windows",
+      "expected": "reject"
+    },
+    {
+      "id": "windows-reserved-name",
+      "entry": "bin/CON",
+      "type": "file",
+      "target_os": "windows",
+      "expected": "reject"
+    },
+    {
+      "id": "alternate-data-stream",
+      "entry": "bin/tool.exe:payload",
+      "type": "file",
+      "target_os": "windows",
+      "expected": "reject"
+    },
+    {
+      "id": "file-directory-prefix-conflict",
+      "entries": [
+        {
+          "path": "lib/item",
+          "type": "file"
+        },
+        {
+          "path": "lib/item/child",
+          "type": "file"
+        }
+      ],
+      "expected": "reject"
+    },
+    {
+      "id": "archive-bomb-expansion-limit",
+      "expanded_bytes_exceed_limit": true,
+      "expected": "reject"
+    },
+    {
+      "id": "entry-count-limit",
+      "entry_count_exceeds_limit": true,
+      "expected": "reject"
+    },
+    {
+      "id": "special-file-permissions",
+      "mode": "04755",
+      "expected": "reject"
+    }
+  ]
+}
