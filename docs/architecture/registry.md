@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-Registry is an independent delivery-plane system that discovers component releases, resolves declared requirements, collects exact source revisions and prepares reproducible workspaces. It serves unrelated products through the same generic engine and public data contracts.
+Registry is an independent delivery-plane system that discovers component releases, resolves declared requirements and target-compatible package artifacts, collects exact source revisions or verified package bytes, and prepares reproducible workspaces. It serves unrelated products through the same generic engine and public data contracts.
 
 > **Registry must understand requirements, not consumer identity.**
 
@@ -34,7 +34,7 @@ The public data boundary consists of six versioned artifacts:
 
 1. **Product Definition:** requested components and target-environment contracts.
 2. **Catalog Index:** references to release metadata and SHA-256 digests.
-3. **Component Release Metadata:** component/variant/version, source units, dependencies and contract declarations.
+3. **Component Release Metadata:** component/variant/version, source units, optional target-specific artifacts, dependencies and contract declarations.
 4. **Resolved Manifest:** selected graph, metadata identities, source revisions and workspace paths.
 5. **Resolution Report:** selected/rejected candidates, warnings and conflicts.
 6. **Update Discovery Report:** a deterministic, schema-validated comparison of a verified historical Manifest with current Product Definition and Catalog state.
@@ -43,7 +43,7 @@ Their canonical schemas and validation rules are in [Registry data contracts](re
 
 ## 4. Resolution model
 
-The resolver expands Product Definition roots into the transitive closure of required dependencies and normalizes omitted variants to `default`. It intersects version constraints for each component/variant key, filters withdrawn and disallowed prerelease releases, and selects the highest compatible Semantic Version.
+The resolver expands Product Definition roots into the transitive closure of required dependencies and normalizes omitted variants to `default`. After selecting exact component releases, it applies the Product Definition's explicit `source`, `artifact`, or `artifact-or-source` delivery mode and exact target tuple. It intersects version constraints for each component/variant key, filters withdrawn and disallowed prerelease releases, and selects the highest compatible Semantic Version.
 
 Compatibility includes component dependencies and explicit contract declarations. Each required contract has exactly one compatible provider in the selected component set or declared target environment. Missing, incompatible or ambiguous providers fail.
 
@@ -51,9 +51,9 @@ Resolution is deterministic. Catalog order and publication timestamps are not se
 
 ## 5. Source collection and handoff
 
-Registry collects each selected source unit at its immutable full Git commit revision. A component may map to multiple repositories, and a repository may contribute source to multiple components or variants. Workspace paths derive from stable component, variant and source-unit IDs, not repository names.
+Registry either collects each selected source unit at its immutable full Git commit revision or retrieves and safely extracts one exact target-compatible artifact for each selected component/variant. A component may map to multiple repositories, and a repository may contribute source to multiple components or variants. Workspace paths derive from stable component, variant and source-unit IDs, not repository names.
 
-A successful prepare operation publishes a complete workspace, Resolved Manifest and Resolution Report. The manifest records enough information to reproduce the exact selected graph without re-running version selection. A new release creates a new resolution; existing manifests and workspaces are not silently changed. Update discovery is a separate read-only report operation: it verifies the historical Manifest first, resolves current state through the generic Resolver, and records historical/current selection decisions without collecting sources or publishing a Workspace.
+A successful prepare operation publishes a complete workspace, Resolved Manifest and Resolution Report. Artifact manifests bind the exact asset URL, digest, target, provenance and extracted package path; source fallback is explicit and never hides an integrity failure. The manifest records enough information to reproduce the exact selected graph without re-running version selection. A new release creates a new resolution; existing manifests and workspaces are not silently changed. Update discovery is a separate read-only report operation: it verifies the historical Manifest first, resolves current state through the generic Resolver, and records historical/current selection decisions without collecting sources or publishing a Workspace.
 
 Registry does not run component build scripts or perform product integration. CDIN consumes the prepared input and performs configuration, build, product tests, packaging and launch.
 
