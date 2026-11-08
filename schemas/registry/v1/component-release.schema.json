@@ -151,7 +151,6 @@
           "type": "string",
           "enum": [
             "tar.gz",
-            "tar.xz",
             "zip"
           ]
         },
