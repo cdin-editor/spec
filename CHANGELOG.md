@@ -20,7 +20,7 @@ from the public Kernel ABI and the Spec release or compatibility target.
 
 - Extend Registry Data Contracts to baseline 1.3.0 with immutable target-specific package artifacts, explicit source/artifact delivery modes, ABI-aware deterministic target selection, verified download and safe extraction, replay and cache identity, and positive/negative security conformance vectors.
 - Add ADR-0025 accepting generic artifact delivery while preserving Registry's consumer-independent boundary and source-only compatibility.
-- Extend Product Definition, Component Release Metadata and Resolved Manifest JSON Schemas for explicit target and delivery identities.
+- Extend Product Definition, Component Release Metadata, Resolved Manifest and Resolution Report JSON Schemas for explicit target/delivery identities and stable artifact-selection conflict codes.
 - Extend Registry Data Contracts to baseline 1.1.0 with fully sourced applied constraints, candidate provenance, structured contract-provider evidence, closed conflict/rejection reason codes and explicit self-provider semantics.
 - Extend Registry Data Contracts to baseline 1.2.0 with a dedicated, deterministic Update Discovery Report schema bound to historical Manifest, Product Definition and current Catalog identities; define immutable withdrawal/update audit semantics without changing historical manifests or workspaces.
 - Accept ADR-0022 as the generic, consumer-independent Registry architecture and align ADR-0014 so a cohesive infrastructure system is distinguished from a catch-all shared-utilities repository.
