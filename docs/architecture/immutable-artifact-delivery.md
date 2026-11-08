@@ -37,7 +37,74 @@ Each artifact declares:
 | `build` | Immutable recipe source path and toolchain identity. |
 | `attestations` | Optional digest-addressed provenance statements; references are not automatically trusted. |
 
-The artifact ID MUST be unique within its metadata document. Each `source_unit_ids` member and `build.recipe.source_unit_id` MUST reference exactly one declared `source_units[].source_unit_id`; duplicate source-unit IDs are invalid. `build.recipe.path` MUST be a normalized relative POSIX path inside that immutable source unit revision. The artifact's `kind`, `layout` and target MUST agree: `runtime-module-archive` is only `lua-module-tree-v1` on `any/any/none`; native-development and SDK packages are only `cmake-prefix-v1` on a concrete native target. There MUST NOT be more than one artifact with the same target and layout role. A producer that needs several libraries or headers publishes one coherent package archive, not several ambiguous matches for the same target.
+### Example: universal Runtime module package
+
+This abbreviated example shows the universal-package shape. The digest,
+revision, URI and package version are illustrative and must be replaced by the
+actual immutable release values. It is not a release or a usable checksum.
+
+```json
+{
+  "schema_version": "1.0.0",
+  "component_id": "runtime",
+  "variant": "default",
+  "version": "1.0.0-rc.2",
+  "status": "active",
+  "source_units": [
+    {
+      "source_unit_id": "runtime-source",
+      "repository_uri": "https://github.com/cdin-editor/runtime",
+      "revision": "0123456789abcdef0123456789abcdef01234567"
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "lua-modules-universal",
+      "kind": "runtime-module-archive",
+      "target": {
+        "os": "any",
+        "architecture": "any",
+        "abi": "none"
+      },
+      "format": "tar.gz",
+      "file_name": "cdin-runtime-1.0.0-rc.2-any-any-none.tar.gz",
+      "uri": "https://github.com/cdin-editor/runtime/releases/download/v1.0.0-rc.2/cdin-runtime-1.0.0-rc.2-any-any-none.tar.gz",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size_bytes": 1,
+      "layout": "lua-module-tree-v1",
+      "source_unit_ids": ["runtime-source"],
+      "build": {
+        "recipe": {
+          "source_unit_id": "runtime-source",
+          "path": "scripts/package-release.sh"
+        },
+        "toolchain": [
+          { "name": "lua", "version": "5.4" },
+          { "name": "tar", "version": "pinned-by-release-workflow" }
+        ],
+        "runner": "github-actions-ubuntu-24.04"
+      }
+    }
+  ],
+  "dependencies": [],
+  "contracts": {
+    "provides": [
+      {
+        "contract_id": "org.cdin.runtime-extension-contract",
+        "version": "1.0.0"
+      }
+    ],
+    "requires": [
+      {
+        "contract_id": "org.cdin.runtime-host-api",
+        "version_constraint": ">=1.0.0 <2.0.0"
+      }
+    ]
+  }
+}
+```
+
+The artifact ID MUST be unique within its metadata document. A duplicate ID is invalid even when the target differs; one artifact ID denotes one immutable file identity. Each `source_unit_ids` member and `build.recipe.source_unit_id` MUST reference exactly one declared `source_units[].source_unit_id`; duplicate source-unit IDs are invalid. `build.recipe.path` MUST be a normalized relative POSIX path inside that immutable source unit revision. The artifact's `kind`, `layout` and target MUST agree: `runtime-module-archive` is only `lua-module-tree-v1` on `any/any/none`; native-development and SDK packages are only `cmake-prefix-v1` on a concrete native target. There MUST NOT be more than one artifact with the same target and layout role. A producer that needs several libraries or headers publishes one coherent package archive, not several ambiguous matches for the same target.
 
 ### Target vocabulary and matching
 
@@ -52,7 +119,7 @@ The only platform-independent target is exactly `{ "os": "any", "architecture": 
 - `cmake-prefix-v1`: archive root is an install prefix. It may contain `include/`, `lib/`, `bin/`, `share/`, `lib/cmake/` and `lib/pkgconfig/`. Files are already built and install-ready; Registry does not run CMake or a package script.
 - `lua-module-tree-v1`: archive root contains the platform-neutral Lua module tree under `lua/`. It contains source modules and package metadata, not VM-specific bytecode. Lua host version constraints remain ordinary component or environment requirements and are not inferred by Registry.
 
-A package layout describes files, not a product's final installation prefix. Consumers may stage packages in a private prefix and link them from there. Package archives MUST NOT require an install hook, shell script, CMake configure step, or network activity to become usable.
+A package layout describes files, not a product's final installation prefix. The package MUST contain only files owned by the component and MUST NOT privately vendor a dependency that is separately declared in `dependencies` or `contracts.requires`. Consumers may stage packages in a private prefix and link them from there. Package archives MUST NOT require an install hook, shell script, CMake configure step, or network activity to become usable.
 
 ## 3. Product Definition delivery policy
 
@@ -108,13 +175,13 @@ prepared/
 └── resolution-report.json
 ```
 
-The workspace is published atomically only after every selected source or artifact has been completely retrieved, verified, validated and staged. Partial component packages MUST NOT be exposed as a successful workspace.
+The workspace is published atomically only after every selected source or artifact has been completely retrieved, verified, validated and staged. Concurrent requests for the same cache identity MUST either converge on one verified cache entry or safely discard the losing temporary download; they MUST NOT expose a partial cache entry. Partial component packages MUST NOT be exposed as a successful workspace.
 
 ## 5. Download, integrity and archive security
 
 Artifact URIs MUST use HTTPS, contain no embedded credentials and be checked against the consumer's configured host allow-list. Redirects MUST remain HTTPS and pass the same host policy; HTTPS-to-HTTP downgrade, unapproved redirect hosts, loopback/private/link-local/reserved destinations and non-HTTP schemes MUST be rejected. DNS results MUST be checked against the same address policy for every connection and redirect to resist DNS rebinding. Registry MUST NOT forward credentials to a different host.
 
-The declared `size_bytes` is checked while streaming; implementation limits for compressed bytes, expanded bytes, entry count and nesting depth MUST be configurable and enforced before workspace publication. A package exceeding any configured limit fails closed. The expected SHA-256 is checked before extraction; neither a filename nor a checksum text file discovered inside the archive overrides metadata's digest.
+The declared `size_bytes` is checked while streaming; implementation limits for compressed bytes, expanded bytes, entry count and nesting depth MUST be configurable and enforced before workspace publication. Implementations MUST ship conservative finite defaults, not unlimited defaults; consumers may lower these limits and may raise them only through explicit configuration. A package exceeding any configured limit fails closed. The expected SHA-256 is checked before extraction; neither a filename nor a checksum text file discovered inside the archive overrides metadata's digest.
 
 Portable archive extraction MUST reject:
 
