@@ -100,6 +100,10 @@ The following frontend presentation and interaction contracts are proposals only
 - [UI presentation contract v1](proposals/ui-presentation-contract-v1.md) — style-role, line-span, panel, prompt and widget schemas.
 - [IME composition and preedit v1](proposals/ime-composition-contract-v1.md) — negotiated native text composition lifecycle.
 
+## Additional proposal
+
+- [Byte-anchored visible line windows v1](proposals/byte-anchored-line-windows-v1.md) — efficient, version-pinned mapping from Runtime byte scroll anchors to bounded logical line windows. Status remains `PROPOSED`.
+
 ## Decisions
 
 [adr/README.md](adr/README.md) indexes the ADRs and says how owner approval is
