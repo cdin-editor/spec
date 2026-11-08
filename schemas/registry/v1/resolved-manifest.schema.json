@@ -525,7 +525,29 @@
       "required": [
         "delivery_mode"
       ],
-      "additionalProperties": true
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "delivery_mode"
+            ],
+            "properties": {
+              "delivery_mode": {
+                "enum": [
+                  "artifact",
+                  "artifact-or-source"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "target"
+            ]
+          }
+        }
+      ]
     }
   },
   "required": [
@@ -548,6 +570,77 @@
         "properties": {
           "schema_version": {
             "pattern": "^1\\.[1-9][0-9]*\\.(?:0|[1-9][0-9]*)$"
+          },
+          "components": {
+            "items": {
+              "required": [
+                "delivery"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "resolution"
+        ],
+        "properties": {
+          "resolution": {
+            "required": [
+              "delivery_mode"
+            ],
+            "properties": {
+              "delivery_mode": {
+                "const": "source"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "components": {
+            "items": {
+              "properties": {
+                "delivery": {
+                  "const": "source"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "resolution"
+        ],
+        "properties": {
+          "resolution": {
+            "required": [
+              "delivery_mode"
+            ],
+            "properties": {
+              "delivery_mode": {
+                "const": "artifact"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "components": {
+            "items": {
+              "properties": {
+                "delivery": {
+                  "const": "artifact"
+                }
+              }
+            }
           }
         }
       }
