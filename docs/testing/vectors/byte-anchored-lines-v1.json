@@ -1,0 +1,179 @@
+{
+  "schema": "cdin.frontend-protocol.conformance.v1",
+  "family": "proto.byte-anchored-lines",
+  "status": "PROPOSED",
+  "protocol_version": [
+    1,
+    0
+  ],
+  "capability": "byte-anchored-lines/1",
+  "cases": [
+    {
+      "id": "empty-document-anchor-zero",
+      "document_bytes_hex": "",
+      "anchor_byte": 0,
+      "version": 1,
+      "capability": "byte-anchored-lines/1",
+      "expect": {
+        "first_line": 0,
+        "first_byte": 0,
+        "lines_hex": [
+          ""
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "line-start-selects-that-line",
+      "document_bytes_hex": "6162630a6465660a",
+      "anchor_byte": 4,
+      "version": 2,
+      "expect": {
+        "first_line": 1,
+        "first_byte": 4,
+        "lines_hex": [
+          "6465660a"
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "byte-inside-content-selects-containing-line",
+      "document_bytes_hex": "6162630a6465660a",
+      "anchor_byte": 5,
+      "version": 2,
+      "expect": {
+        "first_line": 1,
+        "first_byte": 4,
+        "lines_hex": [
+          "6465660a"
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "byte-inside-crlf-selects-preceding-line",
+      "document_bytes_hex": "610d0a620d0a",
+      "anchor_byte": 2,
+      "version": 3,
+      "expect": {
+        "first_line": 0,
+        "first_byte": 0,
+        "lines_hex": [
+          "610d0a"
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "next-line-start-selects-next-line",
+      "document_bytes_hex": "610d0a62",
+      "anchor_byte": 3,
+      "version": 3,
+      "expect": {
+        "first_line": 1,
+        "first_byte": 3,
+        "lines_hex": [
+          "62"
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "trailing-eol-final-empty-line",
+      "document_bytes_hex": "610d0a",
+      "anchor_byte": 3,
+      "version": 4,
+      "expect": {
+        "first_line": 1,
+        "first_byte": 3,
+        "lines_hex": [
+          ""
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "eof-without-trailing-eol-selects-final-line",
+      "document_bytes_hex": "616263",
+      "anchor_byte": 3,
+      "version": 4,
+      "expect": {
+        "first_line": 0,
+        "first_byte": 0,
+        "lines_hex": [
+          "616263"
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "nul-and-invalid-utf8-preserve-byte-indexing",
+      "document_bytes_hex": "61ff00620a7a",
+      "anchor_byte": 3,
+      "version": 5,
+      "expect": {
+        "first_line": 0,
+        "first_byte": 0,
+        "lines_hex": [
+          "61ff00620a"
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "out-of-range-anchor-rejected",
+      "document_bytes_hex": "616263",
+      "anchor_byte": 4,
+      "version": 6,
+      "expect": {
+        "result": "OUT_OF_RANGE",
+        "line_data_emitted": false
+      }
+    },
+    {
+      "id": "stale-version-rejected",
+      "document_bytes_hex": "6162630a",
+      "anchor_byte": 0,
+      "request_version": 6,
+      "current_version": 7,
+      "expect": {
+        "result": "STALE_VERSION",
+        "line_data_emitted": false
+      }
+    },
+    {
+      "id": "legacy-peer-uses-first-line",
+      "document_bytes_hex": "610a620a630a",
+      "first_line": 1,
+      "anchor_byte": 4,
+      "capability": null,
+      "expect": {
+        "first_line": 1,
+        "first_byte_field_emitted": false,
+        "lines_hex": [
+          "620a",
+          "630a"
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "short-window-preserves-actual-first-byte",
+      "document_bytes_hex": "610a620a630a",
+      "anchor_byte": 4,
+      "version": 7,
+      "max_response_bytes": 3,
+      "expect": {
+        "first_line": 1,
+        "first_byte": 2,
+        "lines_hex": [
+          "620a"
+        ],
+        "result": "accepted",
+        "continuation_first_line": 2,
+        "continuation_first_byte": 4
+      }
+    }
+  ]
+}
