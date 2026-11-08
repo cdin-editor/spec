@@ -31,6 +31,58 @@ Every document carries `schema_version`. The schemas in `schemas/registry/v1/` d
 - Version constraints are one exact version (for example `1.2.3`, optionally prefixed by `=`) or a space-separated conjunction of comparators (for example `>=1.2.0 <2.0.0`). Supported comparators are `=`, `>`, `>=`, `<` and `<=`. OR, wildcards, partial versions, hyphen ranges, caret ranges and tilde ranges are outside contract 1.2.0.
 - Build metadata does not affect SemVer precedence. Distinct candidates with equal precedence but different version strings or metadata identities are ambiguous and fail resolution; catalog order is never a tie-breaker.
 
+### Runtime Extension Contract identity and version mapping
+
+The Runtime Extension Contract has the canonical Registry identity
+`org.cdin.runtime-extension-contract`. The Runtime component is its provider.
+This ID is stable and is not a repository name, package name, display label or
+consumer-defined alias. Registry treats it as an opaque contract identifier;
+the semantics and compatibility policy are defined by the Runtime contract.
+
+The Runtime Extension API currently exposes its compatibility label as
+`major.minor` (the Runtime version descriptor carries `major` and `minor`).
+For Registry Release Metadata, that two-field value is represented as SemVer
+`major.minor.0`; therefore the existing Extension Contract label `1.0`
+is published as `1.0.0`. The omitted patch field is zero, not an unspecified
+version or a package version. A future non-zero patch version requires the
+Runtime descriptor and the public Extension API version declaration to expose
+that patch value before metadata may publish it.
+
+Extension Contract version evolution follows SemVer 2.0.0: a major increment
+is required for an incompatible change to existing extension-facing behavior;
+a minor increment is for backward-compatible additions; and a patch increment
+is for backward-compatible corrections that do not add or remove API
+capabilities. A consumer that relies only on the baseline v1 API may require
+`>=1.0.0 <2.0.0`; a consumer that relies on functionality introduced by a
+later minor MUST raise its lower bound to that minor. Runtime MUST publish the
+exact version it implements in `contracts.provides`, independently of its
+own package version and the Backend-provided Runtime Host API version.
+
+A Runtime Release Metadata declaration for the current Extension Contract is:
+
+```json
+{
+  "contracts": {
+    "provides": [
+      {
+        "contract_id": "org.cdin.runtime-extension-contract",
+        "version": "1.0.0"
+      }
+    ],
+    "requires": [
+      {
+        "contract_id": "org.cdin.runtime-host-api",
+        "version_constraint": ">=1.0.0 <2.0.0"
+      }
+    ]
+  }
+}
+```
+
+This representation satisfies the metadata shape required by RT-012. It does
+not by itself promote a Runtime package candidate to a stable package release
+or claim that all legacy extension behavior has been migrated.
+
 ## 3. Product Definition
 
 A Product Definition declares root component requirements and optional contracts supplied by the target environment. It is declarative data, never executable product logic.
