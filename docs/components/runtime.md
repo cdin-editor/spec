@@ -63,6 +63,12 @@ flowchart TB
 - **RT-010** `ACCEPTED` Runtime Host API is a separately versioned compatibility contract provided by Backend. Only documented behavior is contractual. Within a stable major version, additive compatible methods/capabilities may use a minor increment and compatible corrections a patch increment; breaking changes require a major increment. A `0.x` Host API remains provisional and does not promise stable compatibility. Host API `1.0.0` is the frozen stable contract defined in [Runtime Host API 1.0.0](../contracts/runtime-host-api.md). Its compatibility rule is same-major and minimum-minor; additive 1.x minors are compatible, breaking changes require a major increment. — *Verify:* INSPECT
 - **RT-011** `PROPOSED` Kernel statuses MUST retain their stable status identity and typed details when surfaced to Lua. Human-readable messages MUST NOT be used as compatibility keys. Known Kernel statuses MUST NOT be collapsed into a generic internal error. The stable status identity and typed-detail representation are defined by [Runtime Host API 1.0.0](../contracts/runtime-host-api.md); production adapter conformance vectors remain a verification gate. — *Verify:* INSPECT, INTEG, CONF
 - **RT-012** `ACCEPTED` Runtime package metadata MUST declare its package version, required Runtime Host API compatibility range and Extension Contract version/range it provides. Backend detects and enforces Kernel ABI compatibility and negotiates/enforces Frontend Protocol compatibility; Runtime MUST NOT independently negotiate either. Backend exposes only validated compatibility descriptors and effective capabilities to Lua. — *Verify:* INSPECT, INTEG
+
+The Registry representation is normative: Runtime provides contract ID
+`org.cdin.runtime-extension-contract`; its current public `1.0` compatibility
+label maps to Registry SemVer `1.0.0`. Version evolution and compatible range
+semantics are defined in [Registry data contracts, Runtime Extension Contract
+identity and version mapping](../architecture/registry-contracts.md#runtime-extension-contract-identity-and-version-mapping).
 - **RT-013** `EXISTING` The legacy plugin entry shape is a directory with `init.lua` or a single `.lua` file returning a table with `init(core, config)` and optional `unload()`. — *Verify:* INTEG — *Anchor:* `docs/architecture/extension-contract.md` ("The plugin protocol")
 - **RT-014** `EXISTING` The Lua C binding gives every C object reachable from Lua one owner and an explicit `close()` with `__gc` as backstop. — *Verify:* SAN — *Anchor:* `src/lua/handle.c`, `AGENTS.md §2.5`
 - **RT-015** `ACCEPTED` Runtime v1 loader MUST resolve only explicit extension roots/catalog entries supplied by CDIN composition or the selected bundle; it MUST NOT perform remote fetch/clone or unrestricted filesystem discovery. A loaded extension MUST execute under Runtime-owned lifecycle, capability and cleanup controls and MUST NOT receive Kernel handles, native pointers or Backend-private APIs. Path traversal outside declared roots MUST be rejected. Duplicate precedence, dependency/cycle handling, module isolation, metadata schema and unload-failure semantics remain open implementation details and MUST NOT be inferred from this requirement. — *Verify:* INTEG
@@ -100,6 +106,11 @@ PUC Lua 5.4 C API is the only supported Runtime v1 bridge, as accepted in [ADR-0
 | Kernel ABI version | Backend Kernel adapter detects/enforces | Native Kernel boundary; Runtime does not negotiate it. |
 | Frontend Protocol version | Backend/Frontend session layer negotiates/enforces | Wire/session compatibility; Runtime does not negotiate it. |
 | Extension Contract version | Runtime provides; extension loader validates | Compatibility boundary between Runtime and extensions. |
+
+For Registry publication, the Extension Contract provider declaration uses
+`org.cdin.runtime-extension-contract` at SemVer `1.0.0` for the current
+Runtime API label `1.0`. The package version and the Host API requirement
+remain separate metadata fields.
 
 ## 8. Runtime v1 scope and transition rules
 
