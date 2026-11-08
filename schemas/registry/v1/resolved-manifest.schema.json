@@ -139,10 +139,42 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 2048
+            },
+            "source_provenance": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "source_unit_id": {
+                    "$ref": "#/$defs/sourceUnitId"
+                  },
+                  "repository_uri": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "revision": {
+                    "$ref": "#/$defs/gitRevision"
+                  },
+                  "subdirectory": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1024
+                  }
+                },
+                "required": [
+                  "source_unit_id",
+                  "repository_uri",
+                  "revision"
+                ],
+                "additionalProperties": true
+              }
             }
           },
           "required": [
-            "workspace_path"
+            "workspace_path",
+            "source_provenance"
           ],
           "additionalProperties": true
         }
@@ -504,5 +536,21 @@
     "components",
     "resolution_order"
   ],
-  "additionalProperties": true
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "resolution"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schema_version": {
+            "pattern": "^1\\.[1-9][0-9]*\\.(?:0|[1-9][0-9]*)$"
+          }
+        }
+      }
+    }
+  ]
 }
