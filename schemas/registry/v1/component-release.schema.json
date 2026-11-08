@@ -505,5 +505,21 @@
     "status",
     "source_units"
   ],
-  "additionalProperties": true
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "artifacts"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schema_version": {
+            "pattern": "^1\\.[1-9][0-9]*\\.(?:0|[1-9][0-9]*)$"
+          }
+        }
+      }
+    }
+  ]
 }
