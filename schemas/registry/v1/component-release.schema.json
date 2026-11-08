@@ -199,7 +199,8 @@
                 "path": {
                   "type": "string",
                   "minLength": 1,
-                  "maxLength": 1024
+                  "maxLength": 1024,
+                  "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(/|$)).+$"
                 }
               },
               "required": [
@@ -286,7 +287,76 @@
         "source_unit_ids",
         "build"
       ],
-      "additionalProperties": true
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "runtime-module-archive"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "layout": {
+                "const": "lua-module-tree-v1"
+              },
+              "target": {
+                "properties": {
+                  "os": {
+                    "const": "any"
+                  },
+                  "architecture": {
+                    "const": "any"
+                  },
+                  "abi": {
+                    "const": "none"
+                  }
+                },
+                "required": [
+                  "os",
+                  "architecture",
+                  "abi"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "layout": {
+                "const": "cmake-prefix-v1"
+              },
+              "target": {
+                "properties": {
+                  "os": {
+                    "enum": [
+                      "linux",
+                      "darwin",
+                      "windows",
+                      "freebsd",
+                      "openbsd"
+                    ]
+                  },
+                  "architecture": {
+                    "enum": [
+                      "x86_64",
+                      "arm64"
+                    ]
+                  }
+                },
+                "required": [
+                  "os",
+                  "architecture"
+                ]
+              }
+            }
+          }
+        }
+      ]
     }
   },
   "properties": {
