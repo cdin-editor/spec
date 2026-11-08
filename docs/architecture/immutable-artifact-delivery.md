@@ -45,7 +45,7 @@ actual immutable release values. It is not a release or a usable checksum.
 
 ```json
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "component_id": "runtime",
   "variant": "default",
   "version": "1.0.0-rc.2",
