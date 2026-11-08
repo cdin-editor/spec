@@ -37,7 +37,7 @@ Each artifact declares:
 | `build` | Immutable recipe source path and toolchain identity. |
 | `attestations` | Optional digest-addressed provenance statements; references are not automatically trusted. |
 
-The artifact ID is unique within the metadata document. There MUST NOT be more than one artifact with the same target and layout role. A producer that needs several libraries or headers publishes one coherent package archive, not several ambiguous matches for the same target.
+The artifact ID MUST be unique within its metadata document. Each `source_unit_ids` member and `build.recipe.source_unit_id` MUST reference exactly one declared `source_units[].source_unit_id`; duplicate source-unit IDs are invalid. `build.recipe.path` MUST be a normalized relative POSIX path inside that immutable source unit revision. The artifact's `kind`, `layout` and target MUST agree: `runtime-module-archive` is only `lua-module-tree-v1` on `any/any/none`; native-development and SDK packages are only `cmake-prefix-v1` on a concrete native target. There MUST NOT be more than one artifact with the same target and layout role. A producer that needs several libraries or headers publishes one coherent package archive, not several ambiguous matches for the same target.
 
 ### Target vocabulary and matching
 
@@ -79,7 +79,7 @@ The modes are:
 
 Omitting `resolution` preserves legacy behavior and means `source`. Artifact modes require an explicit target tuple. The product owns target selection; Registry MUST NOT silently substitute the detected host for an explicit target or infer a different ABI. A product may generate a target-specific Product Definition for each native build target.
 
-Fallback is deliberately narrow. `artifact-or-source` may fall back only when metadata contains no matching artifact. It MUST NOT fall back after an artifact was selected but its download, size, digest, archive format, extraction, path validation or staging failed. Such a failure is an integrity or delivery failure and MUST fail the operation.
+Fallback is deliberately narrow. `artifact-or-source` may fall back only when a valid release metadata document contains no matching artifact. Malformed artifact metadata, duplicate IDs, invalid source references, or a kind/layout/target mismatch are metadata errors and MUST fail validation rather than being interpreted as artifact absence. It MUST NOT fall back after an artifact was selected but its download, size, digest, archive format, extraction, path validation or staging failed. Such a failure is an integrity or delivery failure and MUST fail the operation.
 
 ## 4. Resolution and workspace semantics
 
@@ -112,7 +112,7 @@ The workspace is published atomically only after every selected source or artifa
 
 ## 5. Download, integrity and archive security
 
-Artifact URIs MUST use HTTPS, contain no embedded credentials and be checked against the consumer's configured host allow-list. Redirects MUST remain HTTPS and pass the same host policy; HTTPS-to-HTTP downgrade, unapproved redirect hosts, loopback/private/link-local destinations and non-HTTP schemes MUST be rejected. Registry MUST NOT forward credentials to a different host.
+Artifact URIs MUST use HTTPS, contain no embedded credentials and be checked against the consumer's configured host allow-list. Redirects MUST remain HTTPS and pass the same host policy; HTTPS-to-HTTP downgrade, unapproved redirect hosts, loopback/private/link-local/reserved destinations and non-HTTP schemes MUST be rejected. DNS results MUST be checked against the same address policy for every connection and redirect to resist DNS rebinding. Registry MUST NOT forward credentials to a different host.
 
 The declared `size_bytes` is checked while streaming; implementation limits for compressed bytes, expanded bytes, entry count and nesting depth MUST be configurable and enforced before workspace publication. A package exceeding any configured limit fails closed. The expected SHA-256 is checked before extraction; neither a filename nor a checksum text file discovered inside the archive overrides metadata's digest.
 
@@ -121,13 +121,13 @@ Portable archive extraction MUST reject:
 - absolute POSIX paths, UNC paths, drive-letter paths and NUL bytes;
 - `.` or `..` traversal, backslash-based traversal and paths that escape the staging root after normalization;
 - symbolic links, hard links, device nodes, sockets, FIFOs and other special file types;
-- duplicate entries, case-fold collisions, Unicode-normalization collisions, trailing-dot/space collisions and file-versus-directory prefix conflicts;
+- duplicate entries, case-fold collisions (on every target, independent of the current filesystem's case-sensitivity), Unicode-normalization collisions, trailing-dot/space collisions and file-versus-directory prefix conflicts;
 - Windows reserved device names and alternate data stream syntax;
 - unsupported compression/format and entries exceeding configured limits.
 
-Implementations MUST use a fresh private temporary directory, validate every entry before creating it, refuse to follow pre-existing symlinks/reparse points in the destination path, and publish the completed directory with an atomic rename. A failed extraction removes its temporary tree and MUST NOT modify an existing successful workspace or cache entry.
+Implementations MUST use a fresh private temporary directory, validate every effective path after archive-format extensions (including PAX/GNU long paths and ZIP extra fields) before creating it, refuse to follow pre-existing symlinks/reparse points in the destination path, normalize extracted file permissions (never preserve setuid/setgid/sticky bits), and publish the completed directory with an atomic rename. Because package layouts are install prefixes, publishers MUST encode shared-library aliases as regular files rather than archive symlinks or hardlinks. A failed extraction removes its temporary tree and MUST NOT modify an existing successful workspace or cache entry.
 
-The content hash proves byte integrity relative to the pinned metadata. It does not by itself authenticate the publisher, prove a trustworthy builder, or establish that the binary is safe. Optional attestations are immutable references; Registry may verify their digest but MUST NOT claim signature or identity verification without an explicitly configured trust policy.
+Implementations MUST expose stable failure identities for at least `ARTIFACT_NOT_FOUND`, `ARTIFACT_AMBIGUOUS`, `ARTIFACT_SIZE_MISMATCH`, `ARTIFACT_DIGEST_MISMATCH`, `ARTIFACT_URI_REJECTED`, `ARTIFACT_REDIRECT_REJECTED`, `ARTIFACT_HOST_REJECTED`, `ARTIFACT_FORMAT_UNSUPPORTED`, `ARTIFACT_ARCHIVE_REJECTED`, `ARTIFACT_LIMIT_EXCEEDED`, `ARTIFACT_EXTRACTION_FAILED`, `ARTIFACT_OFFLINE_MISS` and `ARTIFACT_REPLAY_UNAVAILABLE`. Delivery failures are distinct from version-resolution conflicts and MUST preserve their stable code in CLI/API diagnostics.\n\nThe content hash proves byte integrity relative to the pinned metadata. It does not by itself authenticate the publisher, prove a trustworthy builder, or establish that the binary is safe. Optional attestations are immutable references; Registry may verify their digest but MUST NOT claim signature or identity verification without an explicitly configured trust policy.
 
 ## 6. Cache, offline and withdrawal behavior
 
@@ -160,7 +160,7 @@ The extension is additive under Registry Data Contract `1.3.0`:
 - **REG-038** Artifact retrieval MUST enforce HTTPS, configured host policy, redirect policy and protection against private/local destinations. — *Verify:* INTEG
 - **REG-039** Registry MUST treat checksum verification and publisher authentication as separate claims. — *Verify:* INSPECT
 - **REG-040** Artifact cache reuse MUST be bound to immutable metadata and digest identity; offline mode MUST NOT substitute a newer artifact. — *Verify:* INTEG
-- **REG-041** Registry MUST remain consumer-independent and MUST NOT run package scripts, component build systems or product installation logic. — *Verify:* STATIC
+- **REG-041** Registry MUST remain consumer-independent and MUST NOT run package scripts, component build systems or product installation logic. — *Verify:* STATIC\n- **REG-042** Artifact IDs MUST be unique within a release; every artifact source-unit reference and build-recipe source-unit reference MUST resolve to exactly one declared immutable source unit. Kind, target and layout combinations MUST be semantically validated. — *Verify:* CONF\n- **REG-043** Artifact retrieval MUST enforce bounded streaming size, expanded-size, entry-count and nesting-depth limits with safe defaults; archive-format path extensions MUST be normalized and validated before extraction. — *Verify:* FUZZ
 
 ## 9. References
 
