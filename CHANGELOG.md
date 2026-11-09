@@ -30,6 +30,8 @@ from the public Kernel ABI and the Spec release or compatibility target.
 
 ### Changed
 
+- Align `cdin.ui-model.v1` split-ratio constraints with accepted ADR-0024: inclusive Runtime range `[0.1,0.8999]`, exact basis-point projection and rejection instead of silent clamping.
+
 - Refresh Backend requirement evidence anchors to the standalone repository layout and synchronize the ABI compatibility table with the current Spec release version (`1.4.0`).
 
 - Reconcile the repository inventory with the extracted standalone Backend repository and distinguish repository existence from completion of the CDIN Composition Root migration.
