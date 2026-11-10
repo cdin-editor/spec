@@ -1,7 +1,7 @@
 # Registry data contracts
 
 - **Status:** ACCEPTED
-- **Contract baseline:** Registry data contracts `1.3.0`
+- **Contract baseline:** Registry data contracts `1.4.0`
 - **Schema dialect:** JSON Schema Draft 2020-12
 - **Implementation owner:** `cdin-editor/registry`
 
@@ -128,6 +128,18 @@ One logical component may use multiple source units. Several variants may come f
 
 A `withdrawn` release is ineligible for new resolution but remains identifiable for audit. Existing manifests are not silently rewritten; retrieval is blocked only by a separate explicit security policy.
 
+### GitHub Release Sources (Registry Data Contract 1.4.0)
+
+A Catalog Index uses exactly one of two publication models: `entries` (the existing static list of immutable metadata URI + SHA-256 identities) or `release_sources` (stable repository-to-component/variant mappings). A Catalog document MUST NOT contain both. A Release Source has a unique `source_id`, provider `github-releases-v1`, a canonical HTTPS GitHub repository URI, component ID, optional variant (default `default`) and optional tag prefix (default `v`). The same `(component_id, variant)` MUST NOT be declared more than once in the effective Catalog source set.
+
+For every discovered Release, Registry requires the tag to equal `tag_prefix + metadata.version`. The expected metadata asset name is `<component-id>-<version>.json` for variant `default` and `<component-id>-<variant>-<version>.json` otherwise. A Release MUST contain exactly one asset with that name. The metadata document's `publication` object MUST state provider, publisher repository URI, tag, tag commit and metadata asset name. Exactly one source unit MUST identify the publisher repository, and its revision MUST equal the resolved tag commit.
+
+Registry enumerates the complete published Release list with bounded pagination; it never calls GitHub's floating `/releases/latest` endpoint. Drafts are excluded. Prereleases are included only when the Product Definition allows them, and the GitHub prerelease flag must match SemVer. The tag reference is resolved to a commit, recursively peeling annotated tags with a finite cycle/depth guard. The API asset digest and size are mandatory and are checked against the exact downloaded bytes before JSON parsing. Missing/duplicate assets, absent digests, tag movement, source/repository mismatch, version mismatch and incomplete pagination are explicit failures.
+
+Discovered release candidates enter the existing SemVer resolver. Highest compatible SemVer wins; publication timestamps and API ordering are not selection rules. Equal-precedence different release identities are ambiguous. The Resolved Manifest records the exact source ID, repository, Release ID/API URI, tag, tag commit and metadata asset filename/size; its existing release metadata URI/digest bind the exact asset bytes. Replay uses only that URI and digest and never re-discovers a replacement release. Offline resolution requires a verified cache snapshot for the exact Release Source identity.
+
+The canonical generated metadata asset is a Release Asset, not a tracked source file. Component release workflows generate it after package assets and checksums exist. A per-version file under a component repository's `registry/releases/` directory is not required.
+
 ## 5. Resolution semantics
 
 Resolution is deterministic and independent of catalog ordering, repository names, publication timestamps and consumer identity.
@@ -242,3 +254,12 @@ The artifact-specific requirements REG-028 through REG-041 are normative within 
 - **REG-025** `ACCEPTED` A failed resolution MUST produce structured conflict and rejected-candidate details and MUST NOT produce a successful manifest. — *Verify:* CONF
 - **REG-026** `ACCEPTED` Registry metadata MUST be treated as untrusted data and MUST NOT be executed as code, scripts, templates or plugins. — *Verify:* FUZZ
 - **REG-027** `ACCEPTED` Update discovery MUST verify the historical Manifest before loading current Catalogs, resolve current state through the generic Resolver, and emit a deterministic schema-validated report bound to the exact historical Manifest SHA-256, exact Product Definition input SHA-256 and verified current Catalog Index identities. It MUST record stable historical-selection and candidate-decision reason codes, MUST NOT rewrite or invalidate the historical Manifest or prepared Workspace, and MUST NOT collect source or publish a Workspace. — *Verify:* CONF
+
+- **REG-047** A Catalog Index MUST declare either static release-metadata entries or GitHub Release Sources; it MUST NOT mix the two models, and each Release Source MUST identify one stable component/variant-to-repository mapping. — *Verify:* CONF
+- **REG-048** A GitHub Release publisher MUST generate metadata from the exact tag commit and upload one canonical variant-specific JSON Release Asset; it MUST NOT require a tracked per-version metadata file in the source repository. — *Verify:* INSPECT
+- **REG-049** Registry MUST enumerate the complete eligible GitHub Release candidate set with bounded pagination and MUST fail rather than resolve from a truncated set; it MUST NOT use the floating GitHub `latest` endpoint. — *Verify:* INTEG
+- **REG-050** Registry MUST verify that a discovered release tag, SemVer, GitHub prerelease flag, publisher repository, tag commit and publisher source-unit revision agree. Annotated tags MUST be resolved to their commit, and moved tags MUST fail closed. — *Verify:* CONF
+- **REG-051** Registry MUST require the GitHub metadata asset's published SHA-256 digest and byte size, verify the exact downloaded bytes before parsing, and reject missing or ambiguous metadata assets. — *Verify:* INTEG
+- **REG-052** Dynamic release candidates MUST use the existing deterministic SemVer resolver; GitHub publication time, API order and page order MUST NOT be tie-breakers. Equal-precedence distinct release identities MUST fail as ambiguous. — *Verify:* CONF
+- **REG-053** A Resolved Manifest using GitHub discovery MUST preserve the exact Release Source ID, repository, Release ID/API URI, tag, tag commit, metadata asset name/URI/size/digest; replay MUST use only that immutable identity. — *Verify:* INTEG
+- **REG-054** Release discovery caches MUST be keyed by exact source/release/tag/commit/metadata digest identity; offline discovery MUST use only a previously verified snapshot and MUST NOT silently query or substitute a newer release. — *Verify:* INTEG
