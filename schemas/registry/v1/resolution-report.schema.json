@@ -447,6 +447,9 @@
           },
           "release_metadata_sha256": {
             "$ref": "#/$defs/sha256"
+          },
+          "release_discovery": {
+            "$ref": "#/$defs/releaseDiscovery"
           }
         },
         "required": [
@@ -581,6 +584,53 @@
         "required": [
           "applied_constraints"
         ]
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "rejected_candidates"
+            ],
+            "properties": {
+              "rejected_candidates": {
+                "contains": {
+                  "required": [
+                    "release_discovery"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "required": [
+              "conflicts"
+            ],
+            "properties": {
+              "conflicts": {
+                "contains": {
+                  "properties": {
+                    "candidate_evidence": {
+                      "contains": {
+                        "required": [
+                          "release_discovery"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "schema_version": {
+            "pattern": "^1\\.(?:[2-9]|[1-9][0-9]+)\\.(?:0|[1-9][0-9]*)$"
+          }
+        }
       }
     }
   ]
