@@ -130,7 +130,7 @@ A `withdrawn` release is ineligible for new resolution but remains identifiable 
 
 ### GitHub Release Sources (Registry Data Contract 1.4.0)
 
-A Catalog Index uses exactly one of two publication models: `entries` (the existing static list of immutable metadata URI + SHA-256 identities) or `release_sources` (stable repository-to-component/variant mappings). A Catalog document MUST NOT contain both. A Release Source has a unique `source_id`, provider `github-releases-v1`, a canonical HTTPS GitHub repository URI, component ID, optional variant (default `default`) and optional tag prefix (default `v`). The same `(component_id, variant)` MUST NOT be declared more than once in the effective Catalog source set.
+A Catalog Index schema 1.0.x uses `entries` (the existing static list of immutable metadata URI + SHA-256 identities). Catalog schema 1.1.x may instead use `release_sources` (stable repository-to-component/variant mappings). Component Release Metadata schema 1.2.x declares `publication`; Resolved Manifest and Resolution Report schema 1.2.x record discovered Release provenance. A Catalog Index uses exactly one of two publication models: `entries` or `release_sources`. A Catalog document MUST NOT contain both. A Release Source has a unique `source_id`, provider `github-releases-v1`, a canonical HTTPS GitHub repository URI, component ID, optional variant (default `default`) and optional tag prefix (default `v`). The same `(component_id, variant)` MUST NOT be declared more than once in the effective Catalog source set.
 
 For every discovered Release, Registry requires the tag to equal `tag_prefix + metadata.version`. The expected metadata asset name is `<component-id>-<version>.json` for variant `default` and `<component-id>-<variant>-<version>.json` otherwise. A Release MUST contain exactly one asset with that name. The metadata document's `publication` object MUST state provider, publisher repository URI, tag, tag commit and metadata asset name. Exactly one source unit MUST identify the publisher repository, and its revision MUST equal the resolved tag commit.
 
@@ -182,7 +182,7 @@ Optional dependencies, feature negotiation, arbitrary solver plugins and consume
 
 In `source` mode, each source unit is retrieved at its declared full immutable Git commit object ID. Branch names, tags and other movable references are not valid resolved revisions. Full 40-character and 64-character hexadecimal object IDs are accepted; the retrieved commit must resolve to exactly that ID. In `artifact` mode, Registry retrieves the selected release asset by its exact URI and verifies its declared byte count and SHA-256 before safe extraction. In `artifact-or-source` mode, source collection is permitted only when no artifact matches the requested target; it is not a recovery path for a corrupt or unavailable selected artifact.
 
-The Catalog Index digest protects release metadata. Git object verification protects the declared source revision. Neither implies publisher identity or signed provenance.
+The Catalog Index digest protects static release metadata; for a discovered Release Source, the GitHub Release Asset API digest and exact asset size protect the fetched metadata bytes. Git object verification protects the declared source revision. Neither implies publisher identity or signed provenance.
 
 The deterministic workspace layout is:
 
