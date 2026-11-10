@@ -8,7 +8,26 @@ The specification version is defined in `docs/reference/status.md`
 (SPEC-010). The Kernel package release version is tracked independently
 from the public Kernel ABI and the Spec release or compatibility target.
 
-## [1.4.0] - 2026-11-10
+## [1.5.0] - 2026-11-10
+
+### Accepted contracts
+
+- Accept ADR-0028: GitHub Release metadata discovery. Component Release Metadata is generated from the exact tag commit and published as a Release Asset; a tracked per-version JSON file is no longer required.
+- Extend Registry Data Contract to 1.4.0 with one-time GitHub Release Source declarations, complete paginated discovery, exact tag/commit/metadata-asset verification, deterministic SemVer selection and immutable Manifest replay.
+- Preserve the existing static Catalog entries model as a backward-compatible alternative to dynamic GitHub Release Sources.
+
+### Added
+
+- Add Catalog Index schema support for stable component/variant Release Sources and generated metadata asset discovery.
+- Add Component Release Metadata publication provenance and Resolved Manifest Release ID/tag/commit/asset evidence.
+- Add positive and negative GitHub Release discovery conformance cases for tag mismatch/movement, duplicate/missing assets, digest failures, prerelease policy, pagination limits, SemVer ambiguity, offline cache and exact replay.
+
+### Changed
+
+- Advance the Registry Data Contract baseline from 1.3.0 to 1.4.0 and the Spec release from 1.4.0 to 1.5.0.
+- Keep GitHub publication time and API order as provenance only; SemVer precedence remains the deterministic selection rule.
+
+
 
 ### Accepted contracts
 
