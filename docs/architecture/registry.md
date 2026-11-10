@@ -3,7 +3,7 @@
 - **Status:** ACCEPTED — [ADR-0022](../adr/ADR-0022-minimal-static-release-catalog.md).
 - **Implementation status:** NOT IMPLEMENTED in this Spec repository; implementation belongs to [`cdin-editor/registry`](https://github.com/cdin-editor/registry).
 - **Architecture:** Generic Consumer-Independent Component Registry.
-- **Contract baseline:** `1.2.0`; see [Registry data contracts](registry-contracts.md).
+- **Contract baseline:** `1.3.0`; see [Registry data contracts](registry-contracts.md).
 
 ## 1. Purpose
 
