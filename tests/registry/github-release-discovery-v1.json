@@ -91,6 +91,22 @@
         "result": "reject-semantic",
         "code": "RELEASE_SOURCE_COMPONENT_VARIANT_DUPLICATE"
       }
+    },
+    {
+      "id": "minimum-version-defines-historical-migration-boundary",
+      "source": {
+        "source_id": "backend-default",
+        "provider": "github-releases-v1",
+        "repository_uri": "https://github.com/example/backend",
+        "component_id": "backend",
+        "variant": "default",
+        "tag_prefix": "v",
+        "minimum_version": "1.2.1"
+      },
+      "expected": {
+        "result": "accept",
+        "minimum_version": "1.2.1"
+      }
     }
   ],
   "asset_name_cases": [
@@ -420,6 +436,32 @@
       "expected": {
         "result": "fetch-exact-manifest-asset",
         "release_id": 77
+      }
+    },
+    {
+      "id": "release-below-minimum-version-is-skipped-without-metadata-asset",
+      "minimum_version": "1.2.1",
+      "release": {
+        "tag": "v1.2.0",
+        "version": "1.2.0",
+        "assets": []
+      },
+      "expected": {
+        "result": "skip-release",
+        "reason": "BELOW_MINIMUM_VERSION"
+      }
+    },
+    {
+      "id": "eligible-release-at-minimum-version-still-requires-metadata",
+      "minimum_version": "1.2.1",
+      "release": {
+        "tag": "v1.2.1",
+        "version": "1.2.1",
+        "assets": []
+      },
+      "expected": {
+        "result": "reject-release",
+        "code": "RELEASE_METADATA_ASSET_MISSING"
       }
     }
   ]
