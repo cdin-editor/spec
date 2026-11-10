@@ -49,7 +49,7 @@ System-level design: who owns what, how components talk, how they start and stop
 | [overview](architecture/overview.md) | goals, principles, system context, the component list |
 | [system-maps](architecture/system-maps.md) | layered landscape, dependency map, edit sequence, lifecycle, versioning and component orchestration |
 | [registry](architecture/registry.md) | accepted consumer-independent Registry architecture and delivery-plane boundary |
-| [registry-contracts](architecture/registry-contracts.md) | [immutable-artifact-delivery](architecture/immutable-artifact-delivery.md) | accepted Product Definition, catalog, release, manifest, report, SemVer and source/workspace contracts |
+| [registry-contracts](architecture/registry-contracts.md) | [immutable-artifact-delivery](architecture/immutable-artifact-delivery.md) | accepted Product Definition, static/dynamic Catalog, GitHub Release metadata, manifest, report, SemVer and source/workspace contracts |
 | [repositories](architecture/repositories.md) | which component lives in which repository, today and at the target |
 | [module-boundaries](architecture/module-boundaries.md) | who may depend on whom; who owns which state |
 | [abi-and-compatibility](architecture/abi-and-compatibility.md) | the C ABI rules every binary boundary follows |
@@ -107,7 +107,7 @@ The following frontend presentation and interaction contracts are proposals only
 ## Decisions
 
 [adr/README.md](adr/README.md) indexes the ADRs and says how owner approval is
-recorded. [ADR-0022](adr/ADR-0022-minimal-static-release-catalog.md) accepts a generic, data-driven Component Registry. [ADR-0025](adr/ADR-0025-immutable-target-artifact-delivery.md) extends its contract with immutable target-specific package artifacts. Its versioned schemas and resolution/workspace contracts are documented in [Registry data contracts](architecture/registry-contracts.md). [adr/open-decisions.md](adr/open-decisions.md) is the register of every
+recorded. [ADR-0022](adr/ADR-0022-minimal-static-release-catalog.md) accepts a generic, data-driven Component Registry. [ADR-0025](adr/ADR-0025-immutable-target-artifact-delivery.md) extends its contract with immutable target-specific package artifacts, and [ADR-0028](adr/ADR-0028-github-release-metadata-discovery.md) defines automatic GitHub Release metadata discovery. Its versioned schemas and resolution/workspace contracts are documented in [Registry data contracts](architecture/registry-contracts.md). [adr/open-decisions.md](adr/open-decisions.md) is the register of every
 unresolved question, with options and trade-offs. Unresolved questions are never
 requirements.
 
