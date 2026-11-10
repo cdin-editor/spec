@@ -171,6 +171,37 @@ GitHub API access MUST use HTTPS and an explicit `api.github.com` endpoint deriv
 
 The legacy static Catalog `entries` model remains supported. A Catalog Index document MUST use either `entries` or `release_sources`, never both. Dynamic discovery does not make a build floating: every successful resolution records exact release/tag/commit/asset identities, and a consumer that needs a preselected build may pin an exact version constraint.
 
+### Example: generated publisher metadata asset
+
+The following abbreviated metadata document is the generated content of the `backend-1.2.1.json` Release Asset. The revision and artifact digest values are illustrative; a real release workflow replaces them with the exact tag commit and produced package checksums.
+
+~~~json
+{
+  "schema_version": "1.2.0",
+  "component_id": "backend",
+  "variant": "default",
+  "version": "1.2.1",
+  "status": "active",
+  "source_units": [
+    {
+      "source_unit_id": "backend-source",
+      "repository_uri": "https://github.com/cdin-editor/backend",
+      "revision": "0123456789abcdef0123456789abcdef01234567"
+    }
+  ],
+  "publication": {
+    "provider": "github-releases-v1",
+    "repository_uri": "https://github.com/cdin-editor/backend",
+    "tag": "v1.2.1",
+    "tag_commit": "0123456789abcdef0123456789abcdef01234567",
+    "metadata_asset_name": "backend-1.2.1.json"
+  },
+  "artifacts": []
+}
+~~~
+
+The release workflow writes this JSON to its build output (for example `dist/backend-1.2.1.json`) and uploads it to the Release. The build output is not committed to the component source tree. GitHub's Release Asset API supplies the metadata asset's own SHA-256 and byte size to Registry; the document cannot hash itself.
+
 ## 3. Product Definition delivery policy
 
 Product Definition adds an optional `resolution` object:
