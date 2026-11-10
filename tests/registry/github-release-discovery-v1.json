@@ -421,6 +421,125 @@
         "result": "fetch-exact-manifest-asset",
         "release_id": 77
       }
+    },
+    {
+      "id": "withdrawn-release-retained-for-audit-but-not-selected",
+      "allow_prerelease": false,
+      "releases": [
+        {
+          "tag": "v1.2.0",
+          "version": "1.2.0",
+          "status": "withdrawn",
+          "metadata_asset": "backend-1.2.0.json"
+        },
+        {
+          "tag": "v1.1.0",
+          "version": "1.1.0",
+          "status": "active",
+          "metadata_asset": "backend-1.1.0.json"
+        }
+      ],
+      "expected": {
+        "result": "select",
+        "version": "1.1.0",
+        "rejected_candidates": [
+          {
+            "version": "1.2.0",
+            "reason_code": "WITHDRAWN"
+          }
+        ],
+        "audit_retains_withdrawn_release": true
+      }
+    }
+  ],
+  "resolution_report_cases": [
+    {
+      "id": "ordinary-conflict-without-candidate-evidence-is-v1.1",
+      "schema_version": "1.1.0",
+      "conflicts": [
+        {
+          "code": "NO_COMPATIBLE_RELEASE",
+          "message": "no compatible candidate satisfies the requested constraint"
+        }
+      ],
+      "expected": {
+        "result": "accept"
+      }
+    },
+    {
+      "id": "release-provenance-conflict-requires-v1.2",
+      "schema_version": "1.2.0",
+      "conflicts": [
+        {
+          "code": "AMBIGUOUS_RELEASE",
+          "message": "equal-precedence release identities are ambiguous",
+          "candidate_evidence": [
+            {
+              "component_id": "backend",
+              "variant": "default",
+              "version": "1.2.1",
+              "release_discovery": {
+                "source_id": "backend-default",
+                "provider": "github-releases-v1",
+                "repository_uri": "https://github.com/example/backend",
+                "release_id": 77,
+                "release_api_uri": "https://api.github.com/repos/example/backend/releases/77",
+                "tag": "v1.2.1",
+                "tag_commit": "1111111111111111111111111111111111111111",
+                "metadata_asset_name": "backend-1.2.1.json",
+                "metadata_asset_size_bytes": 300
+              }
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "result": "accept"
+      }
+    },
+    {
+      "id": "ordinary-conflict-does-not-trigger-release-provenance-version-gate",
+      "schema_version": "1.1.0",
+      "conflicts": [
+        {
+          "code": "NO_COMPATIBLE_RELEASE",
+          "message": "no compatible candidate satisfies the requested constraint"
+        }
+      ],
+      "expected": {
+        "result": "accept"
+      }
+    },
+    {
+      "id": "release-provenance-is-not-accepted-under-v1.1",
+      "schema_version": "1.1.0",
+      "conflicts": [
+        {
+          "code": "AMBIGUOUS_RELEASE",
+          "message": "equal-precedence release identities are ambiguous",
+          "candidate_evidence": [
+            {
+              "component_id": "backend",
+              "variant": "default",
+              "version": "1.2.1",
+              "release_discovery": {
+                "source_id": "backend-default",
+                "provider": "github-releases-v1",
+                "repository_uri": "https://github.com/example/backend",
+                "release_id": 77,
+                "release_api_uri": "https://api.github.com/repos/example/backend/releases/77",
+                "tag": "v1.2.1",
+                "tag_commit": "1111111111111111111111111111111111111111",
+                "metadata_asset_name": "backend-1.2.1.json",
+                "metadata_asset_size_bytes": 300
+              }
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "result": "reject"
+      }
     }
   ]
 }
