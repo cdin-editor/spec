@@ -1,4 +1,4 @@
-# CDIN Specification v1.4.0
+# CDIN Specification v1.5.0
 
 > Automatically generated from this tagged source tree. Counts are an inventory summary, not a documentation-quality or implementation-conformance check.
 
@@ -6,9 +6,9 @@
 
 | Metric | Count |
 | --- | ---: |
-| Markdown documents | 89 |
-| Normative requirements | 408 |
-| Architecture Decision Records (ADRs) | 21 |
+| Markdown documents | 90 |
+| Normative requirements | 416 |
+| Architecture Decision Records (ADRs) | 22 |
 | Open Decisions Register entries | 32 |
 | Mermaid diagrams | 41 |
 | Architecture pages | 13 |
@@ -20,7 +20,7 @@
 
 | Contract / package | Version |
 | --- | --- |
-| Spec release | `1.4.0` |
+| Spec release | `1.5.0` |
 | `cdin-kernel` package | `1.2.1` |
 | Public C ABI | `1.1.0` |
 | Kernel-declared Spec target | `1.1.0` |
@@ -37,7 +37,7 @@ The categories below are counted independently: requirement status, ADR status a
 
 | Status | Count |
 | --- | ---: |
-| `ACCEPTED` | 272 |
+| `ACCEPTED` | 280 |
 | `PROPOSED` | 99 |
 | `EXISTING` | 31 |
 | `DEFERRED` | 6 |
@@ -46,7 +46,7 @@ The categories below are counted independently: requirement status, ADR status a
 
 | Status | Count |
 | --- | ---: |
-| `ACCEPTED` | 18 |
+| `ACCEPTED` | 19 |
 | `PROPOSED` | 1 |
 | `EXISTING` | 0 |
 | `DEFERRED` | 1 |
