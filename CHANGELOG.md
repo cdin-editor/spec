@@ -27,7 +27,7 @@ from the public Kernel ABI and the Spec release or compatibility target.
 - Advance the Registry Data Contract baseline from 1.3.0 to 1.4.0 and the Spec release from 1.4.0 to 1.5.0.
 - Keep GitHub publication time and API order as provenance only; SemVer precedence remains the deterministic selection rule.
 
-
+## [1.4.0] - 2026-11-10
 
 ### Accepted contracts
 
