@@ -618,7 +618,10 @@
                         ]
                       }
                     }
-                  }
+                  },
+                  "required": [
+                    "candidate_evidence"
+                  ]
                 }
               }
             }
