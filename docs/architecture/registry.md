@@ -24,7 +24,7 @@ A new consumer supplies a Product Definition and applicable target-environment c
 | Consumer (CDIN or another product) | Product policy, configuration, integration, builds, tests, packaging and launch | Catalog, dependency solving or source collection |
 | Spec | Architecture, schemas, normative requirements and ADRs | Registry implementation or runtime execution |
 
-Component repositories remain authoritative for source and releases. A Catalog Index references immutable Component Release Metadata; it is not a second source of truth for component code.
+Component repositories remain authoritative for source and releases. A Catalog Index either pins immutable metadata documents or declares one-time GitHub Release Sources. Component Release Metadata is generated as an asset attached to the exact GitHub Release; Registry discovers those assets and verifies their tag, source commit, size and SHA-256. A per-version source-tree metadata file is not required. The Catalog is not a second source of truth for component code.
 
 Registry is an independent infrastructure repository, not a catch-all shared-code repository. It owns one responsibility: component delivery and orchestration. No component links to Registry or depends on it at runtime.
 
