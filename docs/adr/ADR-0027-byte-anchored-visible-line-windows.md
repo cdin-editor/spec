@@ -1,7 +1,7 @@
 # ADR-0027: Byte-anchored visible line windows
 
 - **ID:** ADR-0027
-- **Status:** `PROPOSED`
+- **Status:** `ACCEPTED`
 - **Decision scope:** An additive, capability-negotiated extension to Frontend Protocol 1.0.0 line-window requests.
 
 ## Context

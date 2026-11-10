@@ -1,6 +1,6 @@
 # UI presentation contract v1
 
-**Status:** `PROPOSED`. The field schemas below are a compatibility proposal for the existing Protocol 1.0.0 presentation messages. They are not accepted requirements until the owner accepts the corresponding decision. Implementations MUST NOT assume that opaque maps already carry these semantics.
+**Status:** `ACCEPTED` by ADR-0026. The field schemas below define the optional `ui-presentation/1` Protocol 1.0.0 capability. Peers may rely on interactive behavior only after explicit capability negotiation; older peers retain static-only compatibility.
 
 **Related:** [Spec #21](https://github.com/cdin-editor/spec/issues/21), [Frontend #15](https://github.com/cdin-editor/frontend/issues/15), [ADR-0011](../adr/ADR-0011-extension-ui.md), [Runtime UI Model](../architecture/ui-model-v1.md), [Protocol wire contract](../architecture/protocol-wire.md).
 

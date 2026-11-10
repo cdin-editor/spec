@@ -1,7 +1,7 @@
 # ADR-0026: Semantic UI presentation payloads
 
 - **ID:** ADR-0026
-- **Status:** `PROPOSED`
+- **Status:** `ACCEPTED`
 - **Decision scope:** Additive, capability-negotiated presentation schemas for Frontend Protocol 1.0.0.
 
 ## Context

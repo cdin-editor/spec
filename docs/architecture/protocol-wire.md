@@ -132,20 +132,18 @@ support does not enable the capability automatically; CDIN's pinned live
 product conformance remains tracked by
 [CDIN #118](https://github.com/cdin-editor/cdin/issues/118).
 
-## 12. Proposed UI presentation extension (not active)
+## 12. Accepted UI presentation extension
 
-The optional `ui-presentation/1` capability is specified for owner review in
+The optional `ui-presentation/1` capability is accepted by [ADR-0026](../adr/ADR-0026-ui-presentation-contract.md) and specified in
 [ui-presentation-contract-v1.md](../proposals/ui-presentation-contract-v1.md)
 and tracked by [Spec #21](https://github.com/cdin-editor/spec/issues/21).
 Its proposed schema covers semantic style roles, byte-based line spans,
 declarative panels, prompts and widgets. Runtime owns semantic values and
 command policy; Backend validates and projects snapshots; Frontend owns
 rendering and local geometry. The proposal does not add pixel fields, native
-handles or a second command path. Until this contract is accepted, Protocol
-1.0.0's current opaque presentation maps MUST NOT be interpreted using
-implementation-invented schemas.
+handles or a second command path. Peers may rely on this schema only after `ui-presentation/1` appears in `hello_ack.accepted_capabilities`. Without the capability, older peers retain static-only compatibility. No implementation may advertise the capability before its conformance suite passes.
 
-## 13. Proposed byte-anchored line-window extension (not active)
+## 13. Accepted byte-anchored line-window extension
 
 The optional `byte-anchored-lines/1` capability is specified for owner review
 in [byte-anchored-line-windows-v1.md](../proposals/byte-anchored-line-windows-v1.md)
@@ -154,6 +152,5 @@ It retains the required `first_line` fallback and proposes an `anchor_byte`
 request field plus a `first_byte` response field. Runtime remains owner of the
 logical byte scroll anchor; Backend resolves the byte-to-line mapping using one
 version-pinned Kernel snapshot; Frontend uses the returned bounded window and
-does not scan preceding document content. No peer may send or rely on these
-fields until the capability is accepted and negotiated.
+does not scan preceding document content. A peer may send `anchor_byte` or rely on `first_byte` only when the capability appears in `hello_ack.accepted_capabilities`. Without it, the existing line-number-only behavior remains unchanged. Components MUST pass the shared vectors before advertising the capability.
 
