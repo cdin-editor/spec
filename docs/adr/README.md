@@ -36,6 +36,7 @@ Two instruments record how the architecture was and will be decided.
 | [ADR-0025](ADR-0025-immutable-target-artifact-delivery.md) | Immutable target-specific artifact delivery | `ACCEPTED` |
 | [ADR-0026](ADR-0026-ui-presentation-contract.md) | Semantic UI presentation payloads | `ACCEPTED` |
 | [ADR-0027](ADR-0027-byte-anchored-visible-line-windows.md) | Byte-anchored visible line windows | `ACCEPTED` |
+| [ADR-0028](ADR-0028-github-release-metadata-discovery.md) | GitHub Release metadata discovery | `ACCEPTED` |
 
 ## How owner approval is recorded
 
