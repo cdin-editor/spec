@@ -7,7 +7,7 @@
 | Metric | Count |
 | --- | ---: |
 | Markdown documents | 90 |
-| Normative requirements | 416 |
+| Normative requirements | 417 |
 | Architecture Decision Records (ADRs) | 22 |
 | Open Decisions Register entries | 32 |
 | Mermaid diagrams | 41 |
@@ -37,7 +37,7 @@ The categories below are counted independently: requirement status, ADR status a
 
 | Status | Count |
 | --- | ---: |
-| `ACCEPTED` | 280 |
+| `ACCEPTED` | 281 |
 | `PROPOSED` | 99 |
 | `EXISTING` | 31 |
 | `DEFERRED` | 6 |
