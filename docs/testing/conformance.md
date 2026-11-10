@@ -53,12 +53,18 @@ flowchart LR
 | `proto.ui-presentation` | protocol/runtime/frontend | style roles, byte spans, declarative widgets, snapshot replacement, capability fallback and safe activation |
 | `proto.byte-anchored-lines` | protocol/backend/frontend | version-pinned mapping from document byte anchors to bounded logical line windows, EOL/raw-byte/EOF behavior and legacy fallback |
 | `ext.contract` | runtime | the existing extension contract's behaviour (to be derived from the contract document and the current Lua tests) |
+| `registry.github-release-discovery` | Registry | ADR-0028: static/dynamic Catalog compatibility, full Release inventory, SemVer selection, tag/asset identity, withdrawal audit retention, provenance-gated Resolution Report versions and exact Manifest replay |
 
 The proposed IME, PaneTree splitter, UI presentation and byte-anchored line-window vectors are stored in
 [ime-composition-v1.json](vectors/ime-composition-v1.json), [pane-splitter-v1.json](vectors/pane-splitter-v1.json) and [ui-presentation-v1.json](vectors/ui-presentation-v1.json) and [byte-anchored-lines-v1.json](vectors/byte-anchored-lines-v1.json). They remain
 `PROPOSED` fixtures until ADR-0023 is accepted and executable Frontend,
 Backend and Runtime runners consume them. The Spec repository has no Protocol
 vector runner; the JSON file is not evidence that any implementation passed.
+
+The Registry positive/negative Release discovery cases are stored in
+[github-release-discovery-v1.json](../../tests/registry/github-release-discovery-v1.json).
+They define schema and behavior expectations; the fixture itself is not
+evidence that any implementation or runner passed.
 
 ## 3. Scenario shape (illustrative, non-normative)
 
