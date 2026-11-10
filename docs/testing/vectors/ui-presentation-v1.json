@@ -275,6 +275,86 @@
         "accepted": false,
         "previous_snapshot_preserved": true
       }
+    },
+    {
+      "id": "stale-snapshot-revision-discarded",
+      "capability": "ui-presentation/1",
+      "committed_revision": 8,
+      "incoming_revision": 8,
+      "expect": {
+        "accepted": false,
+        "previous_snapshot_preserved": true
+      }
+    },
+    {
+      "id": "presentation-revision-mismatch-rejected",
+      "capability": "ui-presentation/1",
+      "model_revision": 9,
+      "style_revision": 9,
+      "panel_revision": 8,
+      "expect": {
+        "accepted": false,
+        "previous_snapshot_preserved": true
+      }
+    },
+    {
+      "id": "unknown-panel-kind-falls-back-to-content",
+      "capability": "ui-presentation/1",
+      "panel": {
+        "kind": "future_panel",
+        "title": "Help",
+        "widgets": [
+          {
+            "id": "x",
+            "kind": "label",
+            "text": "About"
+          }
+        ]
+      },
+      "expect": {
+        "accepted": true,
+        "layout": "content",
+        "widget_order": [
+          "x"
+        ]
+      }
+    },
+    {
+      "id": "oversized-action-arguments-rejected",
+      "capability": "ui-presentation/1",
+      "widget": {
+        "id": "run",
+        "kind": "button",
+        "label": "Run",
+        "activate": {
+          "command": "run",
+          "arguments_bytes": 32769
+        }
+      },
+      "expect": {
+        "accepted": false,
+        "previous_snapshot_preserved": true
+      }
+    },
+    {
+      "id": "input-widget-keeps-unsubmitted-value-local",
+      "capability": "ui-presentation/1",
+      "driver": true,
+      "widget": {
+        "id": "query",
+        "kind": "input",
+        "value": "before",
+        "submit": {
+          "command": "search.run"
+        }
+      },
+      "local_edit": "after",
+      "expect": {
+        "document_input_sent": false,
+        "request_command_on_change": false,
+        "request_command_on_submit": true,
+        "submitted_value": "after"
+      }
     }
   ]
 }
