@@ -355,6 +355,44 @@
         "request_command_on_submit": true,
         "submitted_value": "after"
       }
+    },
+    {
+      "id": "input-local-buffer-survives-unrelated-snapshot",
+      "capability": "ui-presentation/1",
+      "widget": {
+        "id": "query",
+        "kind": "input",
+        "value": "base"
+      },
+      "local_edit": "draft",
+      "next_snapshot": {
+        "widget_id": "query",
+        "kind": "input",
+        "value": "base"
+      },
+      "expect": {
+        "local_buffer": "draft",
+        "document_input_sent": false
+      }
+    },
+    {
+      "id": "runtime-input-value-change-replaces-local-buffer",
+      "capability": "ui-presentation/1",
+      "widget": {
+        "id": "query",
+        "kind": "input",
+        "value": "base"
+      },
+      "local_edit": "draft",
+      "next_snapshot": {
+        "widget_id": "query",
+        "kind": "input",
+        "value": "server"
+      },
+      "expect": {
+        "local_buffer": "server",
+        "document_input_sent": false
+      }
     }
   ]
 }
