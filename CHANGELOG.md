@@ -16,6 +16,10 @@ from the public Kernel ABI and the Spec release or compatibility target.
 - Accept ADR-0024, PaneTree Splitter Resize v1: stable semantic split identity, Driver-authorized ratio changes, revision checks and atomic UI projection requirements.
 - Add shared positive/negative conformance fixtures for IME lifecycle and nested PaneTree splitter resizing; component implementations remain separately release-gated.
 
+- Accept ADR-0026, Semantic UI Presentation: revision-pinned, capability-negotiated presentation payloads with bounded styles, panels and prompts.
+
+- Accept ADR-0027, Byte-Anchored Visible Line Windows: byte-offset anchors, exact document revision checks and negotiated line-window semantics.
+
 ### Added
 
 - Extend Registry Data Contracts to baseline 1.3.0 with immutable target-specific package artifacts, explicit source/artifact delivery modes, ABI-aware deterministic target selection, verified download and safe extraction, replay and cache identity, and positive/negative security conformance vectors.
