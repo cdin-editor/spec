@@ -8,16 +8,14 @@ The specification version is defined in `docs/reference/status.md`
 (SPEC-010). The Kernel package release version is tracked independently
 from the public Kernel ABI and the Spec release or compatibility target.
 
-## [Unreleased]
+## [1.4.0] - 2026-11-10
 
 ### Accepted contracts
 
 - Accept ADR-0023, IME Composition v1: capability-gated, client-local preedit state and exact-once committed-text semantics, with cancellation and stale-context rules.
 - Accept ADR-0024, PaneTree Splitter Resize v1: stable semantic split identity, Driver-authorized ratio changes, revision checks and atomic UI projection requirements.
 - Add shared positive/negative conformance fixtures for IME lifecycle and nested PaneTree splitter resizing; component implementations remain separately release-gated.
-
 - Accept ADR-0026, Semantic UI Presentation: revision-pinned, capability-negotiated presentation payloads with bounded styles, panels and prompts.
-
 - Accept ADR-0027, Byte-Anchored Visible Line Windows: byte-offset anchors, exact document revision checks and negotiated line-window semantics.
 
 ### Added
