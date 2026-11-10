@@ -165,14 +165,74 @@
       "version": 7,
       "max_response_bytes": 3,
       "expect": {
+        "first_line": 2,
+        "first_byte": 4,
+        "lines_hex": [
+          "630a"
+        ],
+        "result": "accepted",
+        "continuation_first_line": 3,
+        "continuation_first_byte": 6
+      }
+    },
+    {
+      "id": "lone-cr-line-boundary",
+      "document_bytes_hex": "610d620d63",
+      "anchor_byte": 2,
+      "version": 8,
+      "expect": {
+        "first_line": 1,
+        "first_byte": 2,
+        "lines_hex": [
+          "620d"
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "first-line-only-request-still-receives-first-byte-when-negotiated",
+      "document_bytes_hex": "610a620a",
+      "first_line": 1,
+      "version": 9,
+      "capability": "byte-anchored-lines/1",
+      "expect": {
         "first_line": 1,
         "first_byte": 2,
         "lines_hex": [
           "620a"
         ],
-        "result": "accepted",
-        "continuation_first_line": 2,
-        "continuation_first_byte": 4
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "byte-anchor-takes-priority-over-valid-legacy-first-line",
+      "document_bytes_hex": "610a620a630a",
+      "first_line": 0,
+      "anchor_byte": 4,
+      "version": 10,
+      "capability": "byte-anchored-lines/1",
+      "expect": {
+        "first_line": 2,
+        "first_byte": 4,
+        "lines_hex": [
+          "630a"
+        ],
+        "result": "accepted"
+      }
+    },
+    {
+      "id": "unaccepted-capability-does-not-emit-first-byte",
+      "document_bytes_hex": "610a620a",
+      "first_line": 1,
+      "version": 11,
+      "capability": null,
+      "expect": {
+        "first_line": 1,
+        "first_byte_field_emitted": false,
+        "lines_hex": [
+          "620a"
+        ],
+        "result": "accepted"
       }
     }
   ]
