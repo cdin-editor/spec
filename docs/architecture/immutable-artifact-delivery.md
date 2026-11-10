@@ -173,7 +173,7 @@ The legacy static Catalog `entries` model remains supported. A Catalog Index doc
 
 ### Example: generated publisher metadata asset
 
-The following abbreviated metadata document is the generated content of the `backend-1.2.1.json` Release Asset. The revision and artifact digest values are illustrative; a real release workflow replaces them with the exact tag commit and produced package checksums.
+The following abbreviated metadata document is the generated content of the `backend-1.2.1.json` Release Asset. Artifact descriptors are omitted from this abbreviated example; an artifact-bearing release MUST include the complete non-empty `artifacts` array. The revision and artifact digest values are illustrative; a real release workflow replaces them with the exact tag commit and produced package checksums.
 
 ~~~json
 {
@@ -196,7 +196,6 @@ The following abbreviated metadata document is the generated content of the `bac
     "tag_commit": "0123456789abcdef0123456789abcdef01234567",
     "metadata_asset_name": "backend-1.2.1.json"
   },
-  "artifacts": []
 }
 ~~~
 
