@@ -318,7 +318,7 @@ The extension is additive under Registry Data Contract `1.4.0`:
 - **REG-045** An artifact Manifest MUST preserve complete source provenance (repository URI and immutable revision for every referenced source unit); source provenance and build-recipe source references MUST be semantically cross-validated. — *Verify:* CONF
 - **REG-046** Registry MUST enforce URI format assertions and semantic validation even when its JSON Schema library treats `format` as annotation-only. — *Verify:* CONF
 
-- **REG-047** A Catalog Index MUST declare either static release-metadata entries or GitHub Release Sources; it MUST NOT mix the two models, and each Release Source MUST identify one stable component/variant-to-repository mapping. — *Verify:* CONF
+- **REG-047** A Catalog Index MUST declare either static release-metadata entries or GitHub Release Sources; it MUST NOT mix the two models, and each Release Source MUST identify one stable component/variant-to-repository mapping. An optional SemVer `minimum_version` MUST be applied before metadata-asset validation so historical Releases predating adoption can remain outside the dynamic source. — *Verify:* CONF
 - **REG-048** A GitHub Release publisher MUST generate metadata from the exact tag commit and upload one canonical variant-specific JSON Release Asset; it MUST NOT require a tracked per-version metadata file in the source repository. — *Verify:* INSPECT
 - **REG-049** Registry MUST enumerate the complete eligible GitHub Release candidate set with bounded pagination and MUST fail rather than resolve from a truncated set; it MUST NOT use the floating GitHub `latest` endpoint. — *Verify:* INTEG
 - **REG-050** Registry MUST verify that a discovered release tag, SemVer, GitHub prerelease flag, publisher repository, tag commit and publisher source-unit revision agree. Annotated tags MUST be resolved to their commit, and moved tags MUST fail closed. — *Verify:* CONF
@@ -328,6 +328,8 @@ The extension is additive under Registry Data Contract `1.4.0`:
 - **REG-054** Release discovery caches MUST be keyed by exact source/release/tag/commit/metadata digest identity; offline discovery MUST use only a previously verified snapshot and MUST NOT silently query or substitute a newer release. — *Verify:* INTEG
 
 - **REG-055** Release Source IDs MUST be unique within an effective Catalog source set, and each normalized `(component_id, variant)` MUST have at most one Release Source. Duplicate source IDs or component/variant mappings MUST fail semantic validation. — *Verify:* CONF
+
+- **REG-056** A Release Source MAY declare a valid SemVer `minimum_version` to define its metadata-publication adoption boundary. Releases below it MUST be skipped before metadata-asset validation; every eligible release at or above it MUST be fully validated, and missing metadata assets MUST fail. — *Verify:* CONF
 
 ## 9. References
 
