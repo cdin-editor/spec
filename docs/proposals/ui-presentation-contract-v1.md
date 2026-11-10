@@ -19,7 +19,7 @@ No arbitrary drawing or platform-native handles are embedded in these payloads. 
 
 The proposed capability is `ui-presentation/1`. It signals that the Frontend understands the role/panel/widget schema in this document. The Backend may still send the existing Protocol 1.0.0 messages to older peers, but MUST NOT rely on an older peer interpreting these fields.
 
-All style, panel and prompt values belong to the same semantic snapshot revision. The Backend sends one complete ordered snapshot and the existing `ui.flush`. The Frontend stages the new state and replaces the committed presentation model only at that matching flush. A complete snapshot replaces the full style table and panel set; omission removes old entries. A null prompt clears the previous prompt. A stale revision is discarded as a whole.
+All style, panel and prompt values belong to the same root `cdin.ui-model.v1` revision. Their `revision` fields MUST equal that root revision; they are not independent counters. The Backend publishes one complete ordered snapshot group and its existing `ui.flush` with the same revision. The Frontend stages the group and replaces the committed presentation state only at the matching flush sequence and revision. A complete snapshot replaces the full style table and panel set; omission removes old entries. A null prompt clears the previous prompt. A revision not greater than the last committed revision is stale and the entire group is discarded; a malformed or over-limit presentation payload also rejects the entire pending group and preserves the last committed state. Repeated `panel_id` values in one group are invalid rather than last-writer-wins.
 
 The following byte and item limits are proposed for v1. They are deliberately bounded before allocation:
 
@@ -104,11 +104,11 @@ Required: `label:text`, `activate:map`. A button is focusable unless disabled. T
 
 ### 5.6 `input`
 
-Required: `value:text`, `submit:map`. Optional: `placeholder:text`, `max_bytes:uint` (default 4096, maximum 16384), `multiline:bool` (default false). The submit map has required `command:text` and optional `arguments:map`. Text input values are transient widget state returned only through the action arguments; they do not directly mutate a document.
+Required: `value:text`, `submit:map`. Optional: `placeholder:text`, `max_bytes:uint` (default 4096, maximum 16384), `multiline:bool` (default false). The submit map has required `command:text` and optional `arguments:map`. `value` is the Runtime-provided initial value. While this widget owns local focus, the Frontend edits a bounded, disposable local buffer and consumes its text/editing keys locally; it MUST NOT forward those keystrokes as document `input.text` or `input.key` events. The buffer does not mutate the Runtime UI model or document before submission. Submission sends one ordinary `core/request.command` with the declared arguments plus the final `value`; the Runtime validates and applies it. A new committed snapshot replaces the local buffer with its new `value`. When the widget is hidden, removed, disabled, or the client loses the Driver lease, local editing stops and no submission is sent.
 
 ### 5.7 Action map
 
-An action map is `{command:text, arguments:map}`. On activation or input submission, the Frontend sends existing `core/request.command` with that exact command name and a copy of the declared arguments. For an input widget, the Frontend adds the current `value:text` to the arguments under the reserved key `value`; if the action already defines that key, the payload is invalid and no command is sent.
+An action map is `{command:text, arguments:map}`. `command` is non-empty and at most 128 UTF-8 bytes; the encoded action and arguments are included in the aggregate presentation-payload limit. On activation or input submission, the Frontend sends existing `core/request.command` with that exact command name and a copy of the declared arguments. For an input widget, the Frontend adds the current `value:text` to the arguments under the reserved key `value`; if the action already defines that key, the payload is invalid and no command is sent. The Frontend does not execute commands or treat a widget action as an alternate authorization path.
 
 Runtime remains authoritative for command existence, validation, authorization and side effects. A widget may not name a command that bypasses normal Runtime command registration.
 
@@ -142,6 +142,10 @@ The existing message is `{revision:uint, prompt:map|null}`. A non-null prompt re
 - Unknown panel kinds fall back to `content` layout and apply the same widget-kind rules.
 - A peer without `ui-presentation/1` MUST NOT receive reliance-critical interaction. A compatible Frontend may render plain text labels only and must not emit widget actions.
 - An interactive widget action is ignored if the widget is hidden/disabled or if the sender lacks the Driver lease.
+
+### 6.3 Revision and replacement rules
+
+Every `ui.style_table`, `ui.panel` and `ui.prompt` message in one snapshot carries the same root model revision. The Backend MUST validate that equality before publication. The Frontend MUST stage these messages with the rest of the snapshot; it MUST NOT expose a subset before the matching `ui.flush`. A complete snapshot replaces the entire style table and panel set. A panel omitted from the snapshot is removed, `panel:null` removes that panel, and `prompt:null` clears the prompt. A stale, duplicate or non-monotonic snapshot revision is discarded without changing committed presentation state. A panel ID may occur at most once per snapshot group.
 
 ## 8. Conformance vectors
 
