@@ -108,19 +108,52 @@ The pinned Backend 1.0.0 implementation declares `CDIN_BACKEND_PROTOCOL_MAJOR/MI
 
 `driver-role-events/1` is an optional capability. It is included in `hello.capabilities` only by Frontends that implement the `driver.role_changed` state transition. The Backend MUST send the initial `driver` role and `driver_role_epoch` in `hello_ack`; after a negotiated client's role changes while attached, it MUST enqueue one `driver.role_changed` message in that client's ordered outbound stream. `epoch` MUST equal the outbound envelope `seq` of that message. The `hello_ack` role epoch follows the same rule. This makes the epoch monotonic per client and avoids adding mutable role counters or fields to public Frontend session structs. A receiver MUST reject epoch zero and any payload/envelope mismatch; the protocol client's normal receive sequence check rejects duplicate, older and skipped frames. The event is state synchronization only: the Backend MUST continue validating the current lease for every inbound driver-only message, regardless of what a client reports locally. When the capability is not accepted, no new core message is sent to that client, preserving compatibility with v1.0 consumers; that client refreshes its local role by reconnecting and negotiating again.
 
-## 10. Proposed IME composition extension (not part of accepted Protocol 1.0.0)
+## 10. Accepted IME composition extension
 
-The optional `ime-composition/1` capability and `ime` namespace are proposed,
-not currently registered as an active Protocol 1.0.0 implementation contract.
-They MUST NOT be advertised or used unless the proposal is accepted and both
-peers negotiate the capability. The detailed proposed schemas, state machine,
-UTF-8 byte-offset rules, cancellation behavior and fallback are documented in
-[IME composition and preedit contract v1](../proposals/ime-composition-contract-v1.md)
-and tracked by [ADR-0023](../adr/ADR-0023-ime-composition-contract.md).
+The optional `ime-composition/1` capability and `ime` namespace are accepted by
+[ADR-0023](../adr/ADR-0023-ime-composition-contract.md). The v1.0.0 core
+message catalogue remains unchanged: committed text continues through
+`core/input.text`; preedit remains client-local and transient. A peer MUST
+request the capability and MUST use it only after it appears in
+`hello_ack.accepted_capabilities`. Acceptance of the contract does not mean
+that every component or product currently implements it. Component release
+pins and the CDIN live end-to-end gate remain required before a product enables
+the capability; see [CDIN #118](https://github.com/cdin-editor/cdin/issues/118).
 
-The proposal deliberately keeps committed text on the existing
-`core/input.text` message. Preedit remains transient and client-local; it is
-not a new `ui-model.v1` field and is not sent to Runtime or Observer Frontends.
-This section does not change the accepted §3 message catalogue or the §7
-reference-codec conformance statement.
+## 11. Accepted PaneTree splitter-resize extension
+
+The optional `pane-splitter-resize/1` capability and `pane` namespace are
+accepted by [ADR-0024](../adr/ADR-0024-pane-tree-splitter-resize.md). The
+Frontend owns hit-testing, pointer capture and local preview; Backend validates
+capability, Driver lease and layout revision; Runtime owns the authoritative
+split ratio and semantic layout revision. The Kernel has no role. Requests are
+valid only after the capability is accepted for that connection. Component
+support does not enable the capability automatically; CDIN's pinned live
+product conformance remains tracked by
+[CDIN #118](https://github.com/cdin-editor/cdin/issues/118).
+
+## 12. Proposed UI presentation extension (not active)
+
+The optional `ui-presentation/1` capability is specified for owner review in
+[ui-presentation-contract-v1.md](../proposals/ui-presentation-contract-v1.md)
+and tracked by [Spec #21](https://github.com/cdin-editor/spec/issues/21).
+Its proposed schema covers semantic style roles, byte-based line spans,
+declarative panels, prompts and widgets. Runtime owns semantic values and
+command policy; Backend validates and projects snapshots; Frontend owns
+rendering and local geometry. The proposal does not add pixel fields, native
+handles or a second command path. Until this contract is accepted, Protocol
+1.0.0's current opaque presentation maps MUST NOT be interpreted using
+implementation-invented schemas.
+
+## 13. Proposed byte-anchored line-window extension (not active)
+
+The optional `byte-anchored-lines/1` capability is specified for owner review
+in [byte-anchored-line-windows-v1.md](../proposals/byte-anchored-line-windows-v1.md)
+and tracked by [Spec #25](https://github.com/cdin-editor/spec/issues/25).
+It retains the required `first_line` fallback and proposes an `anchor_byte`
+request field plus a `first_byte` response field. Runtime remains owner of the
+logical byte scroll anchor; Backend resolves the byte-to-line mapping using one
+version-pinned Kernel snapshot; Frontend uses the returned bounded window and
+does not scan preceding document content. No peer may send or rely on these
+fields until the capability is accepted and negotiated.
 
