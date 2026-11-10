@@ -182,6 +182,64 @@
           "additionalProperties": true
         }
       ]
+    },
+    "releaseDiscovery": {
+      "type": "object",
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "provider": {
+          "const": "github-releases-v1"
+        },
+        "repository_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "release_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "release_api_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "tag_commit": {
+          "$ref": "#/$defs/gitRevision"
+        },
+        "metadata_asset_name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,254}\\.json$"
+        },
+        "metadata_asset_size_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "published_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "source_id",
+        "provider",
+        "repository_uri",
+        "release_id",
+        "release_api_uri",
+        "tag",
+        "tag_commit",
+        "metadata_asset_name",
+        "metadata_asset_size_bytes"
+      ],
+      "additionalProperties": false
     }
   },
   "properties": {
@@ -406,6 +464,9 @@
           },
           "selected_artifact": {
             "$ref": "#/$defs/selectedArtifact"
+          },
+          "release_discovery": {
+            "$ref": "#/$defs/releaseDiscovery"
           }
         },
         "required": [
@@ -644,6 +705,29 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "components"
+        ],
+        "properties": {
+          "components": {
+            "contains": {
+              "required": [
+                "release_discovery"
+              ]
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "schema_version": {
+            "pattern": "^1\\.[2-9][0-9]*\\.(?:0|[1-9][0-9]*)$"
           }
         }
       }
