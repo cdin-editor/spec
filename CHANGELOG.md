@@ -26,6 +26,8 @@ from the public Kernel ABI and the Spec release or compatibility target.
 
 - Advance the Registry Data Contract baseline from 1.3.0 to 1.4.0 and the Spec release from 1.4.0 to 1.5.0.
 - Keep GitHub publication time and API order as provenance only; SemVer precedence remains the deterministic selection rule.
+- Retain verified withdrawn releases as auditable Catalog history while rejecting them from new selection.
+- Gate Resolution Report schema 1.2.0 only on actual GitHub Release provenance evidence, preserving schema 1.1.0 for ordinary conflicts.
 
 ## [1.4.0] - 2026-11-10
 
