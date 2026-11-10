@@ -1,6 +1,6 @@
 # Byte-anchored visible line windows v1
 
-**Status:** `PROPOSED`. This is an additive Protocol 1.0.0 extension proposal. It does not amend the accepted wire contract until the owner accepts it. Implementations MUST NOT advertise the capability while it remains proposed.
+**Status:** `ACCEPTED` by ADR-0027. This is an additive, optional Protocol 1.0.0 capability. Implementations may advertise it only after the request/response semantics and shared conformance vectors pass in the owning component.
 
 **Related:** [Spec #25](https://github.com/cdin-editor/spec/issues/25), [Frontend #15](https://github.com/cdin-editor/frontend/issues/15), [UI Model v1](../architecture/ui-model-v1.md), [Protocol wire v1.0.0](../architecture/protocol-wire.md).
 
