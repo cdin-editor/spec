@@ -3,6 +3,8 @@
 **Status:** `PROPOSED`. This optional extension does not change the accepted
 Runtime UI Model or Frontend Protocol 1.0.0 until owner acceptance.
 
+> **Design direction update:** this is an earlier alternative that projected a line number into the Runtime cursor snapshot. The active design under [Spec #25](https://github.com/cdin-editor/spec/issues/25) is the Backend-resolved `byte-anchored-lines/1` request/response extension in [byte-anchored-line-windows-v1.md](byte-anchored-line-windows-v1.md). Do not implement or advertise `view-scroll-anchor-line/1` alongside that design. This file is retained as design history; it is not the selected contract.
+
 **Related:** [Spec #23](https://github.com/cdin-editor/spec/issues/23),
 [Frontend #15](https://github.com/cdin-editor/frontend/issues/15),
 [Runtime UI Model](../architecture/ui-model-v1.md),
