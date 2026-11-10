@@ -140,6 +140,24 @@ Discovered release candidates enter the existing SemVer resolver. Highest compat
 
 The canonical generated metadata asset is a Release Asset, not a tracked source file. Component release workflows generate it after package assets and checksums exist. A per-version file under a component repository's `registry/releases/` directory is not required.
 
+## 4.1 GitHub Release discovery failure identities
+
+Implementations using `release_sources` MUST preserve distinct failure identities for at least:
+
+- `RELEASE_SOURCE_INVALID`: malformed, duplicate or unsupported source declaration.
+- `RELEASE_API_UNAVAILABLE`: GitHub API failure that is not a bounded retryable rate-limit response.
+- `RELEASE_API_RATE_LIMITED`: the configured retry budget is exhausted for a GitHub API rate limit.
+- `RELEASE_DISCOVERY_LIMIT`: pagination or response budget ended while more releases remain.
+- `RELEASE_DISCOVERY_OFFLINE_MISS`: no verified discovery snapshot exists for the exact source identity.
+- `RELEASE_TAG_INVALID` and `RELEASE_TAG_VERSION_MISMATCH`: tag cannot be parsed or does not equal configured prefix plus metadata SemVer.
+- `RELEASE_METADATA_ASSET_MISSING` and `RELEASE_METADATA_ASSET_AMBIGUOUS`: expected metadata asset has zero or multiple matches.
+- `RELEASE_METADATA_DIGEST_UNAVAILABLE`, `RELEASE_METADATA_DIGEST_MISMATCH` and `RELEASE_METADATA_SIZE_MISMATCH`: the release API does not expose a usable digest/size or downloaded bytes differ.
+- `RELEASE_TAG_MOVED`, `RELEASE_SOURCE_REVISION_MISMATCH` and `RELEASE_REPOSITORY_MISMATCH`: immutable publication provenance does not match the current tag/source.
+- `RELEASE_PRERELEASE_FLAG_MISMATCH`: GitHub Release prerelease state contradicts SemVer.
+- `RELEASE_VERSION_AMBIGUOUS`: distinct release identities have equal SemVer precedence.
+
+These failures are distinct from ordinary version-resolution conflicts. None may trigger source fallback or cause Registry to select from a partial candidate set.
+
 ## 5. Resolution semantics
 
 Resolution is deterministic and independent of catalog ordering, repository names, publication timestamps and consumer identity.
