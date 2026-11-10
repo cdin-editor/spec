@@ -46,7 +46,7 @@ When `byte-anchored-lines/1` is accepted, the Frontend may append:
 |---|---|---|
 | `anchor_byte` | uint | Zero-based document byte offset whose containing logical line becomes the first returned line |
 
-When present, `anchor_byte` takes precedence over `first_line`; `first_line` is still required as a compatibility fallback for older peers. Backend rejects an anchor beyond the document length with `OUT_OF_RANGE`. It never clamps an invalid anchor silently.
+When present, `anchor_byte` takes precedence over `first_line`; `first_line` remains required and MUST still be a valid in-range line index so an older Backend can safely ignore the unknown optional `anchor_byte` field and use the fallback. Backend rejects an anchor beyond the document length with `OUT_OF_RANGE`. It never clamps an invalid anchor silently. A client MUST NOT send `anchor_byte` unless `byte-anchored-lines/1` was accepted.
 
 The request remains bounded by the existing `line_count` and response-byte limits. It is still pinned to the exact required `version`. A stale version returns `STALE_VERSION` and no line data.
 
@@ -63,9 +63,7 @@ The document is interpreted as the Kernel's logical byte sequence and line index
 - CR, LF and CRLF semantics are those of the Kernel's existing line index. No newline normalization occurs.
 - Invalid UTF-8, NUL and raw bytes have no special effect on the byte offset. No UTF-8 decoding is needed to resolve the anchor.
 
-The lookup MUST run against one immutable Kernel snapshot whose version equals the request's `version`. It MUST use public Kernel line-index services; Backend MUST NOT copy the entire document into a Frontend-visible buffer or derive a line index from an unpinned live document.
-
-A binary search over the version-pinned line-start index is the expected implementation. The required complexity is logarithmic in the number of logical lines, excluding the bounded work to read and encode the requested window.
+The lookup and line read MUST run against one immutable Kernel snapshot whose version equals the request's `version`. Backend MUST use the Kernel's public line-index services; it MUST NOT copy or scan the document prefix, scan Frontend cache contents, or derive a line index from an unpinned live document. The lookup cost MUST be independent of the number of document bytes preceding the anchor (the Kernel's indexed line lookup is the intended path). The returned line bytes and `first_byte` MUST be derived from that same snapshot; taking a second snapshot for the byte start is forbidden because a concurrent edit could mix versions.
 
 ## 5. Response extension
 
@@ -79,7 +77,7 @@ The response continues to contain the existing `view_id`, `version`, `first_line
 
 For every subsequent line in the same response, its document byte start is obtained by adding the exact byte length of each preceding returned line. The line byte strings retain their original terminator bytes, so this mapping is exact. A Frontend MUST NOT count Unicode scalar values, grapheme clusters or rendered glyphs to derive document byte offsets.
 
-`first_byte` is emitted only to a peer that negotiated `byte-anchored-lines/1`. A response remains pinned to the exact requested document version and participates in the existing response-scoped `ui.flush`/ACK flow. Short windows caused by the existing byte budget retain their actual `first_line`, `first_byte`, `version` and returned line count; the Frontend requests the next window from the actual `first_line + returned_count` and derives its byte start by adding the returned raw byte lengths.
+`first_byte` is emitted on every `view.lines` response to a peer that negotiated `byte-anchored-lines/1`, whether the request used `anchor_byte` or only the existing `first_line`. For a line-number-only request, Backend obtains the exact start of `first_line` from the same immutable snapshot used to read its lines. A peer that did not negotiate the capability never receives `first_byte`; a peer that negotiated it but omits `anchor_byte` continues to use `first_line` while still receiving the byte-start metadata. A response remains pinned to the exact requested document version and participates in the existing response-scoped `ui.flush`/ACK flow. Short windows caused by the existing byte budget retain their actual `first_line`, `first_byte`, `version` and returned line count; the Frontend requests the next window from the actual `first_line + returned_count` and derives its byte start by adding the returned raw byte lengths.
 
 ## 6. Frontend usage and ownership
 
