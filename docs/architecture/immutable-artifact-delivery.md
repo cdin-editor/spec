@@ -297,6 +297,8 @@ The extension is additive under Registry Data Contract `1.4.0`:
 - **REG-053** A Resolved Manifest using GitHub discovery MUST preserve the exact Release Source ID, repository, Release ID/API URI, tag, tag commit, metadata asset name/URI/size/digest; replay MUST use only that immutable identity. — *Verify:* INTEG
 - **REG-054** Release discovery caches MUST be keyed by exact source/release/tag/commit/metadata digest identity; offline discovery MUST use only a previously verified snapshot and MUST NOT silently query or substitute a newer release. — *Verify:* INTEG
 
+- **REG-055** Release Source IDs MUST be unique within an effective Catalog source set, and each normalized `(component_id, variant)` MUST have at most one Release Source. Duplicate source IDs or component/variant mappings MUST fail semantic validation. — *Verify:* CONF
+
 ## 9. References
 
 - [Registry data contracts](registry-contracts.md)
